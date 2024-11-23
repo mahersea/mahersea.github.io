@@ -1,9 +1,176 @@
----
-layout: default
-title: Sean Maher
----
-    		<div class="blurb">
-        		<h1>Sean Maher</h1>
-				<p>(Auto Bio)</p>
-    		</div><!-- /.blurb -->
-<!-- /.blurb -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Display</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      font-family: 'Arial', sans-serif; 
+      background: linear-gradient(to right, #ff7e5f, #feb47b); /* Unique gradient background */
+      color: #333; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      height: 50vh; 
+    }
+    canvas { 
+      display: block; 
+      border: 2px solid #333; /* Adds a border to the canvas */
+      border-radius: 10px; 
+      margin-bottom: 20px; 
+    }
+    button { 
+      padding: 10px 20px; 
+      background-color: #333; 
+      color: white; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      font-size: 16px; 
+      transition: background-color 0.3s; 
+      margin: 5px; /* Add margin for spacing */
+    }
+    button:hover { 
+      background-color: #555; 
+    }
+  </style>
+</head>
+<body>
+  <canvas id="resumeCanvas"></canvas>
+  <div id="markdownContent"></div>
+  <button id="toggleEffect">Toggle Text Effect</button>
+  <button id="resetContent">Reset Content</button> <!-- New reset button -->
+  <button id="adminButton" style="display: none;">Admin</button> <!-- Changed to button -->
+  <button id="loginButton" style="display: none;">Log in</button> <!-- New login button -->
+  <button id="logoutButton" style="display: none;">Log out</button> <!-- New logout button -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('resumeCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Function to retrieve or set default resume content
+      function getResumeContent() {
+        return localStorage.getItem('resumeContent') || '# Default Resume Content';
+      }
+
+      // Convert Markdown to HTML
+      function convertMarkdownToHTML(markdown) {
+        return marked.parse(markdown);
+      }
+
+      // Get HTML from Markdown
+      const resumeMarkdown = getResumeContent();
+      const resumeHTML = convertMarkdownToHTML(resumeMarkdown);
+      document.getElementById('markdownContent').innerHTML = resumeHTML;
+
+      // Render text on the canvas
+      const renderTextOnCanvas = (text) => {
+        ctx.font = '30px Arial';
+        ctx.fillStyle = 'black';
+        const lines = text.split('\n');
+
+        let lineHeight = 40; // adjust for spacing
+        lines.forEach((line, index) => {
+          ctx.fillText(line, 50, 100 + index * lineHeight);
+        });
+      };
+
+      // Blow/Dissolve effect
+      let particles = [];
+      let x = 50;
+      let y = 100;
+      let effectActive = false;
+
+      function createParticles() {
+        for (let i = 0; i < resumeMarkdown.length; i++) {
+          const char = resumeMarkdown[i];
+          const particle = {
+            x: x + i * 20,
+            y: y,
+            char: char,
+            alpha: 1,
+            dx: (Math.random() - 0.5) * 2,
+            dy: Math.random() * -2
+          };
+          particles.push(particle);
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((particle, index) => {
+          particle.x += particle.dx;
+          particle.y += particle.dy;
+          particle.alpha -= 0.01;
+          
+          if (particle.alpha <= 0) {
+            particles.splice(index, 1);
+          }
+
+          ctx.fillStyle = `rgba(0, 0, 0, ${particle.alpha})`;
+          ctx.fillText(particle.char, particle.x, particle.y);
+        });
+
+        if (effectActive && particles.length > 0) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      // Toggle effect button
+      document.getElementById('toggleEffect').addEventListener('click', () => {
+        effectActive = !effectActive; // Toggle the effect on/off
+        if (effectActive) {
+          particles = []; // Reset particles when effect is turned on
+          createParticles();
+          animate();
+        }
+      });
+
+      // Reset local storage content
+      document.getElementById('resetContent').addEventListener('click', () => {
+        localStorage.removeItem('resumeContent'); // Clear existing content
+        alert('Resume content has been reset to default.');
+        const newContent = '# Default Resume Content'; // Set default content
+        localStorage.setItem('resumeContent', newContent);
+        renderTextOnCanvas(convertMarkdownToHTML(newContent)); // Update canvas display
+      });
+
+      // Admin Button (Simulated login state)
+      let isLoggedIn = true; // Change this to simulate logged-in state
+      const adminButton = document.getElementById('adminButton');
+      const loginButton = document.getElementById('loginButton');
+      const logoutButton = document.getElementById('logoutButton');
+
+      if (isLoggedIn) {
+        adminButton.style.display = 'inline-block'; // Show the admin button
+        adminButton.addEventListener('click', () => {
+          window.location.href = "admin.html"; // Replace with actual admin link
+        });
+        logoutButton.style.display = 'inline-block'; // Show the logout button
+      } else {
+        loginButton.style.display = 'inline-block'; // Show the logout button
+        adminButton.style.display = 'none'; // Hide the admin button
+      }
+
+      // Logout button action
+      logoutButton.addEventListener('click', () => {
+        isLoggedIn = false; // Simulate logout
+        localStorage.removeItem('authenticated'); // Clear authentication state
+        alert('You have been logged out.');
+        adminButton.style.display = 'none'; // Hide admin button
+        logoutButton.style.display = 'none'; // Hide logout button
+      });
+
+      renderTextOnCanvas(resumeHTML); // Render HTML content on the canvas
+    });
+  </script>
+</body>
+</html>
