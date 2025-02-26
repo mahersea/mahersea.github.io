@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A* Pathfinding Demo</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const GRID_SIZE = 30;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
+
+        // Create grid
+        let grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+
+        // Add some random walls
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE / 4; i++) {
+            const x = Math.floor(Math.random() * GRID_SIZE);
+            const y = Math.floor(Math.random() * GRID_SIZE);
+            grid[y][x] = 1;
+        }
+
+        // Start and end points
+        const start = { x: 0, y: 0 };
+        const end = { x: GRID_SIZE - 1, y: GRID_SIZE - 1 };
+        grid[start.y][start.x] = 0;
+        grid[end.y][end.x] = 0;
+
+        // Helper functions
+        function heuristic(a, b) {
+            return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+        }
+
+        function getNeighbors(node) {
+            const neighbors = [];
+            const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+            
+            for (const [dx, dy] of dirs) {
+                const newX = node.x + dx;
+                const newY = node.y + dy;
+                
+                if (newX >= 0 && newX < GRID_SIZE && 
+                    newY >= 0 && newY < GRID_SIZE && 
+                    grid[newY][newX] !== 1) {
+                    neighbors.push({ x: newX, y: newY });
+                }
+            }
+            return neighbors;
+        }
+
+        // A* implementation
+        function findPath(start, end) {
+            const openSet = [start];
+            const cameFrom = new Map();
+            const gScore = new Map();
+            const fScore = new Map();
+            
+            gScore.set(`${start.x},${start.y}`, 0);
+            fScore.set(`${start.x},${start.y}`, heuristic(start, end));
+            
+            while (openSet.length > 0) {
+                let current = openSet[0];
+                let lowestFScore = fScore.get(`${current.x},${current.y}`);
+                
+                // Find node with lowest fScore
+                for (const node of openSet) {
+                    const score = fScore.get(`${node.x},${node.y}`);
+                    if (score < lowestFScore) {
+                        current = node;
+                        lowestFScore = score;
+                    }
+                }
+                
+                if (current.x === end.x && current.y === end.y) {
+                    // Reconstruct path
+                    const path = [current];
+                    while (cameFrom.has(`${current.x},${current.y}`)) {
+                        current = cameFrom.get(`${current.x},${current.y}`);
+                        path.unshift(current);
+                    }
+                    return path;
+                }
+                
+                openSet.splice(openSet.indexOf(current), 1);
+                
+                for (const neighbor of getNeighbors(current)) {
+                    const tentativeGScore = gScore.get(`${current.x},${current.y}`) + 1;
+                    const neighborKey = `${neighbor.x},${neighbor.y}`;
+                    
+                    if (!gScore.has(neighborKey) || tentativeGScore < gScore.get(neighborKey)) {
+                        cameFrom.set(neighborKey, current);
+                        gScore.set(neighborKey, tentativeGScore);
+                        fScore.set(neighborKey, tentativeGScore + heuristic(neighbor, end));
+                        
+                        if (!openSet.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
+                            openSet.push(neighbor);
+                        }
+                    }
+                }
+            }
+            
+            return null; // No path found
+        }
+
+        // Draw functions
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    ctx.fillStyle = grid[y][x] === 1 ? 'black' : 'white';
+                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            }
+            
+            // Draw start and end
+            ctx.fillStyle = 'green';
+            ctx.fillRect(start.x * CELL_SIZE, start.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(end.x * CELL_SIZE, end.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
+
+        function drawPath(path) {
+            if (!path) return;
+            
+            ctx.beginPath();
+            ctx.moveTo((path[0].x + 0.5) * CELL_SIZE, (path[0].y + 0.5) * CELL_SIZE);
+            
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo((path[i].x + 0.5) * CELL_SIZE, (path[i].y + 0.5) * CELL_SIZE);
+            }
+            
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Main execution
+        drawGrid();
+        const path = findPath(start, end);
+        drawPath(path);
+    </script>
+</body>
+</html>
