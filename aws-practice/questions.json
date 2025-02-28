@@ -1,0 +1,254 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which of the following best describes the AWS Shared Responsibility Model?",
+      "options": {
+        "A": "AWS is responsible for both security of the cloud and security in the cloud.",
+        "B": "AWS is responsible for security in the cloud while the customer is responsible for security of the cloud.",
+        "C": "AWS is responsible for security of the cloud while the customer is responsible for security in the cloud.",
+        "D": "AWS is not responsible for any security aspects."
+      }
+    },
+    {
+      "id": "q2",
+      "question": "Which AWS service is primarily used for scalable object storage?",
+      "options": {
+        "A": "Amazon EC2",
+        "B": "Amazon S3",
+        "C": "Amazon RDS",
+        "D": "Amazon DynamoDB"
+      }
+    },
+    {
+      "id": "q3",
+      "question": "Which AWS service is best suited for serverless computing?",
+      "options": {
+        "A": "AWS Lambda",
+        "B": "Amazon EC2",
+        "C": "Amazon Elastic Container Service",
+        "D": "AWS Fargate"
+      }
+    },
+    {
+      "id": "q4",
+      "question": "Which AWS service is used for a managed relational database solution?",
+      "options": {
+        "A": "Amazon DynamoDB",
+        "B": "Amazon RDS",
+        "C": "Amazon Aurora",
+        "D": "Amazon Redshift"
+      }
+    },
+    {
+      "id": "q5",
+      "question": "What is a key benefit of using Amazon CloudFront?",
+      "options": {
+        "A": "It provides scalable compute capacity.",
+        "B": "It is a content delivery network (CDN) that reduces latency.",
+        "C": "It is a database service for large data sets.",
+        "D": "It monitors application performance in real time."
+      }
+    },
+    {
+      "id": "q6",
+      "question": "Which AWS service helps automate resource scaling based on demand?",
+      "options": {
+        "A": "AWS CloudFormation",
+        "B": "AWS Auto Scaling",
+        "C": "AWS OpsWorks",
+        "D": "Amazon CloudWatch"
+      }
+    },
+    {
+      "id": "q7",
+      "question": "Which AWS service is a managed NoSQL database?",
+      "options": {
+        "A": "Amazon RDS",
+        "B": "Amazon DynamoDB",
+        "C": "Amazon Aurora",
+        "D": "Amazon Redshift"
+      }
+    },
+    {
+      "id": "q8",
+      "question": "Which AWS service provides a platform for running containerized applications?",
+      "options": {
+        "A": "Amazon EC2",
+        "B": "AWS Lambda",
+        "C": "Amazon ECS",
+        "D": "Amazon S3"
+      }
+    },
+    {
+      "id": "q9",
+      "question": "Which service is used to monitor AWS resources and applications in real time?",
+      "options": {
+        "A": "AWS CloudTrail",
+        "B": "Amazon CloudWatch",
+        "C": "AWS Config",
+        "D": "AWS X-Ray"
+      }
+    },
+    {
+      "id": "q10",
+      "question": "What does the term \"elasticity\" refer to in cloud computing?",
+      "options": {
+        "A": "The ability to scale resources up or down as needed.",
+        "B": "The ability to store unlimited amounts of data.",
+        "C": "The ability to secure applications from vulnerabilities.",
+        "D": "The ability to monitor application performance continuously."
+      }
+    },
+    {
+      "id": "q11",
+      "question": "Which AWS service provides a managed data warehousing solution?",
+      "options": {
+        "A": "Amazon Redshift",
+        "B": "Amazon RDS",
+        "C": "Amazon Aurora",
+        "D": "Amazon EMR"
+      }
+    },
+    {
+      "id": "q12",
+      "question": "Which AWS service allows you to deploy infrastructure as code?",
+      "options": {
+        "A": "AWS CloudFormation",
+        "B": "Amazon EC2",
+        "C": "AWS Lambda",
+        "D": "Amazon SNS"
+      }
+    },
+    {
+      "id": "q13",
+      "question": "What is one of the main benefits of using AWS Lambda?",
+      "options": {
+        "A": "No need to provision or manage servers.",
+        "B": "Automatic scaling based on demand.",
+        "C": "You only pay for the compute time you consume.",
+        "D": "All of the above."
+      }
+    },
+    {
+      "id": "q14",
+      "question": "Which service helps you secure and manage user access to AWS resources?",
+      "options": {
+        "A": "AWS IAM",
+        "B": "Amazon Cognito",
+        "C": "AWS Organizations",
+        "D": "Amazon Inspector"
+      }
+    },
+    {
+      "id": "q15",
+      "question": "Which AWS service is best suited for long-term archival of data at a lower cost?",
+      "options": {
+        "A": "Amazon S3 Standard",
+        "B": "Amazon S3 Glacier",
+        "C": "Amazon RDS",
+        "D": "Amazon Redshift"
+      }
+    },
+    {
+      "id": "q16",
+      "question": "Which AWS service is used to manage and govern multiple AWS accounts centrally?",
+      "options": {
+        "A": "AWS IAM",
+        "B": "AWS Organizations",
+        "C": "AWS Config",
+        "D": "AWS Control Tower"
+      }
+    },
+    {
+      "id": "q17",
+      "question": "Which AWS service would you use to analyze large volumes of streaming data?",
+      "options": {
+        "A": "Amazon Kinesis",
+        "B": "Amazon S3",
+        "C": "Amazon Glacier",
+        "D": "Amazon RDS"
+      }
+    },
+    {
+      "id": "q18",
+      "question": "What does AWS CloudTrail enable you to do?",
+      "options": {
+        "A": "Monitor application performance.",
+        "B": "Track user activity and API usage.",
+        "C": "Automate infrastructure deployment.",
+        "D": "Distribute content globally."
+      }
+    },
+    {
+      "id": "q19",
+      "question": "Which of the following describes a key aspect of high availability in AWS architectures?",
+      "options": {
+        "A": "Deploying resources in a single Availability Zone.",
+        "B": "Deploying resources across multiple Availability Zones.",
+        "C": "Using a single server to minimize cost.",
+        "D": "Encrypting data at rest."
+      }
+    },
+    {
+      "id": "q20",
+      "question": "What is the primary purpose of the AWS Well-Architected Framework?",
+      "options": {
+        "A": "To help build secure, high-performing, resilient, and efficient infrastructure.",
+        "B": "To provide cost optimization only.",
+        "C": "To facilitate database migrations.",
+        "D": "To offer cloud-based file storage solutions."
+      }
+    },
+    {
+      "id": "q21",
+      "question": "Which AWS service automatically distributes incoming application traffic across multiple targets?",
+      "options": {
+        "A": "AWS Auto Scaling",
+        "B": "Elastic Load Balancing (ELB)",
+        "C": "Amazon Route 53",
+        "D": "AWS CloudFormation"
+      }
+    },
+    {
+      "id": "q22",
+      "question": "Which AWS pricing model allows you to pay for compute resources on a per-second basis?",
+      "options": {
+        "A": "Reserved Instances",
+        "B": "Spot Instances",
+        "C": "On-Demand Instances",
+        "D": "Dedicated Hosts"
+      }
+    },
+    {
+      "id": "q23",
+      "question": "Which AWS service is designed for deploying and managing virtual servers in the cloud?",
+      "options": {
+        "A": "Amazon S3",
+        "B": "Amazon EC2",
+        "C": "AWS Lambda",
+        "D": "Amazon RDS"
+      }
+    },
+    {
+      "id": "q24",
+      "question": "Which AWS service is used for building continuous integration and continuous delivery (CI/CD) pipelines?",
+      "options": {
+        "A": "AWS CodePipeline",
+        "B": "AWS CloudFormation",
+        "C": "Amazon SNS",
+        "D": "Amazon SQS"
+      }
+    },
+    {
+      "id": "q25",
+      "question": "What is one of the key benefits of the pay-as-you-go pricing model in AWS?",
+      "options": {
+        "A": "You must commit to long-term contracts.",
+        "B": "You only pay for the services you actually use.",
+        "C": "You pay a fixed monthly fee regardless of usage.",
+        "D": "It eliminates the need for resource scaling."
+      }
+    }
+  ]
+}

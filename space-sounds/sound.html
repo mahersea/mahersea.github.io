@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space-Themed 8-Bit Music</title>
+    <script src="https://cdn.jsdelivr.net/npm/8bit-js/dist/8bit.min.js"></script>
+</head>
+<body>
+    <h1>Space-Themed 8-Bit Music</h1>
+    <button id="playWinSong">Play Winning Song</button>
+    <button id="playLoseSong">Play Losing Song</button>
+    <script>
+        // Initialize 8-bit player
+        const player = new _8bit();
+
+        // Winning Song (uplifting and triumphant)
+        const winSong = [
+            { pitch: "C5", duration: 200 },
+            { pitch: "E5", duration: 200 },
+            { pitch: "G5", duration: 200 },
+            { pitch: "C6", duration: 400 },
+            { pitch: "G5", duration: 200 },
+            { pitch: "E5", duration: 200 },
+            { pitch: "C5", duration: 200 },
+            { pitch: null, duration: 100 }, // Pause
+            { pitch: "F5", duration: 200 },
+            { pitch: "A5", duration: 200 },
+            { pitch: "C6", duration: 400 }
+        ];
+
+        // Losing Song (somber and melancholic)
+        const loseSong = [
+            { pitch: "E5", duration: 300 },
+            { pitch: "D5", duration: 300 },
+            { pitch: "C5", duration: 300 },
+            { pitch: "G4", duration: 600 },
+            { pitch: null, duration: 100 }, // Pause
+            { pitch: "F4", duration: 300 },
+            { pitch: "E4", duration: 300 },
+            { pitch: "D4", duration: 600 }
+        ];
+
+        // Play the winning song
+        document.getElementById("playWinSong").addEventListener("click", () => {
+            player.play(winSong);
+        });
+
+        // Play the losing song
+        document.getElementById("playLoseSong").addEventListener("click", () => {
+            player.play(loseSong);
+        });
+    </script>
+</body>
+</html>

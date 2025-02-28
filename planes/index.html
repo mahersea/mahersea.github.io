@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSP Flight Visualization Over Time</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1c1c1c;
+            color: white;
+            text-align: center;
+        }
+        h3 {
+            margin-top: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            margin-top: 20px;
+        }
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h3>MSP Flight Visualization Over Time</h3>
+        <p>This project visualizes flights departing from MSP with colorful streaks fading over 5 minutes, using flight data from the OpenSky API. Each plane’s streak will appear gradually over the period, including the departure time.</p>
+
+        <div id="canvas-container">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+            <script>
+                let planes = [];
+                let planeIndex = 0;
+                let totalTime = 200; // Total time in seconds (5 minutes)
+                let interval;
+
+                function setup() {
+                  let canvas = createCanvas(windowWidth * 0.8, windowHeight * 0.7);
+                  canvas.parent('canvas-container');
+                  fetchFlightData(); // Fetch flight data from OpenSky API
+                }
+
+
+                function draw() {
+                  background(0); // Set dark background
+                  for (let i = 0; i < planes.length; i++) {
+                      planes[i].update();
+                      planes[i].show();
+                  }
+                }
+
+                class Plane {
+                  constructor(x, y, flightNumber, airline, destination, speed, time) {
+                    this.x = x;
+                    this.y = y;
+                    this.flightNumber = flightNumber;
+                    this.airline = airline;
+                    this.destination = destination;
+                    this.speed = .3; // Speed default if not provided
+                    this.verticalSpeed = random(0.2, 1); // Vertical speed for downward movement
+                    this.opacity = 255; // Opacity for fading effect
+                    this.time = time; // Departure time
+                  }
+
+                  update() {
+                      this.x += this.speed; // Move the plane horizontally
+                      this.y += this.verticalSpeed; // Drift the plane downward
+                      this.opacity -= .5; // Gradually fade the line
+                  }
+
+                  show() {
+                      stroke(255, this.opacity); // Set stroke with fading opacity
+                      line(this.x, this.y, this.x - 20, this.y); // Draw streak
+
+                      textSize(12);
+                      fill(255, this.opacity);
+                      text(`${this.flightNumber} to ${this.destination}`, this.x - 30, this.y - 10);
+                      
+                      // Display the time below the flight number in dark red and larger
+                      // padding on top of the text
+                      textSize(28);
+                      fill(139, 0, 0, this.opacity); // Dark red with fading effect
+                      text(this.time, this.x - 30, this.y + 15);
+                  }
+              }
+
+
+                // Fetch flight data from OpenSky API
+                async function fetchFlightData() {
+                    const apiUrl = 'https://opensky-network.org/api/flights/arrival?airport=KMSP&begin=1609459200&end=1609545600';
+                    
+                    try {
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+                        console.log(data); // Log data for debugging
+                        
+                        // Spread flight introductions over 5 minutes
+                        let delayBetweenPlanes = (totalTime * 3000) / data.length;
+                        
+                        interval = setInterval(() => {
+                            if (planeIndex < data.length) {
+                                let flight = data[planeIndex];
+
+                                // Convert Unix timestamp to readable time format
+                                let departureTime = flight.firstSeen ? new Date(flight.firstSeen * 1000).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: true }) : 'Unknown Time';
+
+                                // Add a new plane at random vertical positions
+                                planes.push(new Plane(
+                                  100, // Starting x position
+                                  random(0, height * 0.2), // Starting y position near the top of the canvas
+                                  flight.callsign || 'Unknown', // Flight number
+                                  'MSP', // Origin MSP
+                                  flight.estArrivalAirport || 'Unknown Destination', // Destination
+                                  2, // Speed
+                                  departureTime
+                                ));
+
+                                planeIndex++;
+                            } else {
+                                clearInterval(interval); // Stop after all planes are added
+                            }
+                        }, delayBetweenPlanes); // Interval calculated based on number of flights
+
+                    } catch (error) {
+                        console.error('Error fetching flight data:', error);
+                    }
+                }
+
+            </script>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

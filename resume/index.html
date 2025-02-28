@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Static Markdown to HTML Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h3{
+      color: rgb(120, 37, 37);
+      padding-bottom: 0px;
+      border-bottom: 0px;
+    }
+    #htmlOutput {
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 200px;
+      margin-top: 10px;
+      width: 800px;
+    }
+  </style>
+  <script>
+    const md_file = 'resume.md'
+  </script>
+</head>
+<body>
+  <div id="htmlOutput"></div>
+
+  <script>
+    // Function to convert basic Markdown formatting to HTML
+    function convertMarkdownToHTML(markdown) {
+      // Escape HTML special characters to prevent XSS issues
+      markdown = markdown.replace(/&/g, '&amp;')
+                         .replace(/</g, '&lt;')
+                         .replace(/>/g, '&gt;');
+
+      // Convert headers (supports from # to ######)
+      markdown = markdown.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+      markdown = markdown.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+      markdown = markdown.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+      markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+      markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+      markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+      // Convert bold text: **text**
+      markdown = markdown.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+
+      // Convert italic text: *text* or _text_
+      markdown = markdown.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+      markdown = markdown.replace(/_(.*?)_/gim, '<em>$1</em>');
+
+      // Convert inline code: `code`
+      markdown = markdown.replace(/`(.*?)`/gim, '<code>$1</code>');
+
+      // Convert links: [text](url)
+      markdown = markdown.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
+
+      // Convert double newlines into paragraph breaks
+      markdown = markdown.replace(/\n\n+/gim, '</p><p>');
+      markdown = '<p>' + markdown + '</p>';
+
+      // Convert square brackets into a line break plus a dash (<br> -)
+      markdown = markdown.replace(/\[(.*?)\]/gim, '<br> - ');
+
+      //remove <br> tags after header tags
+      //markdown = markdown.replace(/<h[1-6]>(.*?)<\/h[1-6]>/gim, '<h$1>$2</h$1>');
+
+      // Optional cleanup: remove <p> tags wrapping block-level elements
+      markdown = markdown.replace(/<p>(\s*(<h\d>|<ul>|<ol>|<blockquote>))/gim, '$1');
+      markdown = markdown.replace(/(<\/h\d>|<\/ul>|<\/ol>|<\/blockquote>)\s*<\/p>/gim, '$1');
+
+      return markdown;
+    }
+
+    // When the page loads, fetch the static markdown file
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch(md_file)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(markdownText => {
+          const htmlOutput = convertMarkdownToHTML(markdownText);
+          document.getElementById('htmlOutput').innerHTML = htmlOutput;
+        })
+        .catch(error => {
+          console.error('Error loading markdown file:', error);
+          document.getElementById('htmlOutput').innerText = 'Error loading markdown file.';
+        });
+    });
+  </script>
+</body>
+</html>
