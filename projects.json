@@ -103,6 +103,14 @@
         "image": "https://via.placeholder.com/600x400",
         "thumbnail": "https://via.placeholder.com/300x200",
         "link": "words"
+      },
+      {
+        "id": "project14",
+        "title": "Waveform Examples",
+        "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
+        "image": "https://via.placeholder.com/600x400",
+        "thumbnail": "https://via.placeholder.com/300x200",
+        "link": "waves"
       }
     ]
   }
