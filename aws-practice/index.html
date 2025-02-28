@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AWS Certified Cloud Practitioner Practice Exam</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .correct-question {
+      background-color: rgba(40, 167, 69, 0.1);
+      border-left: 4px solid #28a745;
+    }
+    .incorrect-question {
+      background-color: rgba(220, 53, 69, 0.1);
+      border-left: 4px solid #dc3545;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    input[type="submit"] {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    input[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      font-size: 18px;
+    }
+    .chosen-answer {
+      font-weight: bold;
+    }
+    .correct-answer {
+      color: #28a745;
+      font-weight: bold;
+    }
+    .incorrect-answer {
+      color: #dc3545;
+      font-weight: bold;
+      text-decoration: line-through;
+    }
+    .answer-highlight {
+      padding: 3px 8px;
+      border-radius: 3px;
+      margin-left: 5px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .correct-highlight {
+      background-color: #28a745;
+      color: white;
+    }
+    .incorrect-highlight {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent the default form submission
+        gradeForm();
+      });
+    });
+
+    function gradeForm() {
+      var score = 0;
+      var total = 25;
+      // Define the correct answers for each question
+      var answers = {
+        q1: "C",
+        q2: "B",
+        q3: "A",
+        q4: "B",
+        q5: "B",
+        q6: "B",
+        q7: "B",
+        q8: "C",
+        q9: "B",
+        q10: "A",
+        q11: "A",
+        q12: "A",
+        q13: "D",
+        q14: "A",
+        q15: "B",
+        q16: "B",
+        q17: "A",
+        q18: "B",
+        q19: "B",
+        q20: "A",
+        q21: "B",
+        q22: "C",
+        q23: "B",
+        q24: "A",
+        q25: "B"
+      };
+
+      // Reset all question styling
+      document.querySelectorAll('.question').forEach(function(question) {
+        question.classList.remove('correct-question', 'incorrect-question');
+      });
+
+      // Reset all answer highlights
+      document.querySelectorAll('.answer-highlight').forEach(function(highlight) {
+        highlight.remove();
+      });
+
+      // Loop through each question and check the selected answer
+      for (var key in answers) {
+        var radios = document.getElementsByName(key);
+        var questionDiv = radios[0].closest('.question');
+        var selectedAnswer = null;
+        var isCorrect = false;
+        
+        // Find which answer was selected
+        for (var i = 0; i < radios.length; i++) {
+          // Remove previous styling
+          radios[i].parentNode.classList.remove('chosen-answer', 'correct-answer', 'incorrect-answer');
+          
+          if (radios[i].checked) {
+            selectedAnswer = radios[i].value;
+            
+            // Mark as correct or incorrect
+            if (selectedAnswer === answers[key]) {
+              score++;
+              isCorrect = true;
+              radios[i].parentNode.classList.add('chosen-answer', 'correct-answer');
+              
+              // Add "Correct" label
+              var correctSpan = document.createElement('span');
+              correctSpan.className = 'answer-highlight correct-highlight';
+              correctSpan.textContent = 'CORRECT';
+              radios[i].parentNode.appendChild(correctSpan);
+            } else {
+              radios[i].parentNode.classList.add('chosen-answer', 'incorrect-answer');
+              
+              // Add "Incorrect" label
+              var incorrectSpan = document.createElement('span');
+              incorrectSpan.className = 'answer-highlight incorrect-highlight';
+              incorrectSpan.textContent = 'INCORRECT';
+              radios[i].parentNode.appendChild(incorrectSpan);
+            }
+          }
+          
+          // Highlight the correct answer if an incorrect one was chosen
+          if (!isCorrect && radios[i].value === answers[key] && selectedAnswer !== null) {
+            radios[i].parentNode.classList.add('correct-answer');
+            
+            // Add "Correct Answer" label
+            var correctAnswerSpan = document.createElement('span');
+            correctAnswerSpan.className = 'answer-highlight correct-highlight';
+            correctAnswerSpan.textContent = 'CORRECT ANSWER';
+            radios[i].parentNode.appendChild(correctAnswerSpan);
+          }
+        }
+        
+        // Style the question div based on correct/incorrect
+        if (selectedAnswer !== null) {
+          if (isCorrect) {
+            questionDiv.classList.add('correct-question');
+          } else {
+            questionDiv.classList.add('incorrect-question');
+          }
+        }
+      }
+
+      // Display the result
+      document.getElementById("result").innerHTML = "Your score is " + score + " out of " + total + " (" + Math.round((score/total)*100) + "%).";
+      
+      // Scroll to top to see results
+      window.scrollTo(0, 0);
+    }
+  </script>
+</head>
+<body>
+  <h1>AWS Certified Cloud Practitioner Practice Exam</h1>
+  <div id="result" style="display:none;">Select your answers and submit to see your score.</div>
+  <form>
+    <!-- Question 1 -->
+    <div class="question">
+      <h3>Question 1: Which of the following best describes the AWS Shared Responsibility Model?</h3>
+      <label><input type="radio" name="q1" value="A"> AWS is responsible for both security of the cloud and security in the cloud.</label><br>
+      <label><input type="radio" name="q1" value="B"> AWS is responsible for security in the cloud while the customer is responsible for security of the cloud.</label><br>
+      <label><input type="radio" name="q1" value="C"> AWS is responsible for security of the cloud while the customer is responsible for security in the cloud.</label><br>
+      <label><input type="radio" name="q1" value="D"> AWS is not responsible for any security aspects.</label>
+    </div>
+
+    <!-- Question 2 -->
+    <div class="question">
+      <h3>Question 2: Which AWS service is primarily used for scalable object storage?</h3>
+      <label><input type="radio" name="q2" value="A"> Amazon EC2</label><br>
+      <label><input type="radio" name="q2" value="B"> Amazon S3</label><br>
+      <label><input type="radio" name="q2" value="C"> Amazon RDS</label><br>
+      <label><input type="radio" name="q2" value="D"> Amazon DynamoDB</label>
+    </div>
+
+    <!-- Question 3 -->
+    <div class="question">
+      <h3>Question 3: Which AWS service is best suited for serverless computing?</h3>
+      <label><input type="radio" name="q3" value="A"> AWS Lambda</label><br>
+      <label><input type="radio" name="q3" value="B"> Amazon EC2</label><br>
+      <label><input type="radio" name="q3" value="C"> Amazon Elastic Container Service</label><br>
+      <label><input type="radio" name="q3" value="D"> AWS Fargate</label>
+    </div>
+
+    <!-- Question 4 -->
+    <div class="question">
+      <h3>Question 4: Which AWS service is used for a managed relational database solution?</h3>
+      <label><input type="radio" name="q4" value="A"> Amazon DynamoDB</label><br>
+      <label><input type="radio" name="q4" value="B"> Amazon RDS</label><br>
+      <label><input type="radio" name="q4" value="C"> Amazon Aurora</label><br>
+      <label><input type="radio" name="q4" value="D"> Amazon Redshift</label>
+    </div>
+
+    <!-- Question 5 -->
+    <div class="question">
+      <h3>Question 5: What is a key benefit of using Amazon CloudFront?</h3>
+      <label><input type="radio" name="q5" value="A"> It provides scalable compute capacity.</label><br>
+      <label><input type="radio" name="q5" value="B"> It is a content delivery network (CDN) that reduces latency.</label><br>
+      <label><input type="radio" name="q5" value="C"> It is a database service for large data sets.</label><br>
+      <label><input type="radio" name="q5" value="D"> It monitors application performance in real time.</label>
+    </div>
+
+    <!-- Question 6 -->
+    <div class="question">
+      <h3>Question 6: Which AWS service helps automate resource scaling based on demand?</h3>
+      <label><input type="radio" name="q6" value="A"> AWS CloudFormation</label><br>
+      <label><input type="radio" name="q6" value="B"> AWS Auto Scaling</label><br>
+      <label><input type="radio" name="q6" value="C"> AWS OpsWorks</label><br>
+      <label><input type="radio" name="q6" value="D"> Amazon CloudWatch</label>
+    </div>
+
+    <!-- Question 7 -->
+    <div class="question">
+      <h3>Question 7: Which AWS service is a managed NoSQL database?</h3>
+      <label><input type="radio" name="q7" value="A"> Amazon RDS</label><br>
+      <label><input type="radio" name="q7" value="B"> Amazon DynamoDB</label><br>
+      <label><input type="radio" name="q7" value="C"> Amazon Aurora</label><br>
+      <label><input type="radio" name="q7" value="D"> Amazon Redshift</label>
+    </div>
+
+    <!-- Question 8 -->
+    <div class="question">
+      <h3>Question 8: Which AWS service provides a platform for running containerized applications?</h3>
+      <label><input type="radio" name="q8" value="A"> Amazon EC2</label><br>
+      <label><input type="radio" name="q8" value="B"> AWS Lambda</label><br>
+      <label><input type="radio" name="q8" value="C"> Amazon ECS</label><br>
+      <label><input type="radio" name="q8" value="D"> Amazon S3</label>
+    </div>
+
+    <!-- Question 9 -->
+    <div class="question">
+      <h3>Question 9: Which service is used to monitor AWS resources and applications in real time?</h3>
+      <label><input type="radio" name="q9" value="A"> AWS CloudTrail</label><br>
+      <label><input type="radio" name="q9" value="B"> Amazon CloudWatch</label><br>
+      <label><input type="radio" name="q9" value="C"> AWS Config</label><br>
+      <label><input type="radio" name="q9" value="D"> AWS X-Ray</label>
+    </div>
+
+    <!-- Question 10 -->
+    <div class="question">
+      <h3>Question 10: What does the term "elasticity" refer to in cloud computing?</h3>
+      <label><input type="radio" name="q10" value="A"> The ability to scale resources up or down as needed.</label><br>
+      <label><input type="radio" name="q10" value="B"> The ability to store unlimited amounts of data.</label><br>
+      <label><input type="radio" name="q10" value="C"> The ability to secure applications from vulnerabilities.</label><br>
+      <label><input type="radio" name="q10" value="D"> The ability to monitor application performance continuously.</label>
+    </div>
+
+    <!-- Question 11 -->
+    <div class="question">
+      <h3>Question 11: Which AWS service provides a managed data warehousing solution?</h3>
+      <label><input type="radio" name="q11" value="A"> Amazon Redshift</label><br>
+      <label><input type="radio" name="q11" value="B"> Amazon RDS</label><br>
+      <label><input type="radio" name="q11" value="C"> Amazon Aurora</label><br>
+      <label><input type="radio" name="q11" value="D"> Amazon EMR</label>
+    </div>
+
+    <!-- Question 12 -->
+    <div class="question">
+      <h3>Question 12: Which AWS service allows you to deploy infrastructure as code?</h3>
+      <label><input type="radio" name="q12" value="A"> AWS CloudFormation</label><br>
+      <label><input type="radio" name="q12" value="B"> Amazon EC2</label><br>
+      <label><input type="radio" name="q12" value="C"> AWS Lambda</label><br>
+      <label><input type="radio" name="q12" value="D"> Amazon SNS</label>
+    </div>
+
+    <!-- Question 13 -->
+    <div class="question">
+      <h3>Question 13: What is one of the main benefits of using AWS Lambda?</h3>
+      <label><input type="radio" name="q13" value="A"> No need to provision or manage servers.</label><br>
+      <label><input type="radio" name="q13" value="B"> Automatic scaling based on demand.</label><br>
+      <label><input type="radio" name="q13" value="C"> You only pay for the compute time you consume.</label><br>
+      <label><input type="radio" name="q13" value="D"> All of the above.</label>
+    </div>
+
+    <!-- Question 14 -->
+    <div class="question">
+      <h3>Question 14: Which service helps you secure and manage user access to AWS resources?</h3>
+      <label><input type="radio" name="q14" value="A"> AWS IAM</label><br>
+      <label><input type="radio" name="q14" value="B"> Amazon Cognito</label><br>
+      <label><input type="radio" name="q14" value="C"> AWS Organizations</label><br>
+      <label><input type="radio" name="q14" value="D"> Amazon Inspector</label>
+    </div>
+
+    <!-- Question 15 -->
+    <div class="question">
+      <h3>Question 15: Which AWS service is best suited for long-term archival of data at a lower cost?</h3>
+      <label><input type="radio" name="q15" value="A"> Amazon S3 Standard</label><br>
+      <label><input type="radio" name="q15" value="B"> Amazon S3 Glacier</label><br>
+      <label><input type="radio" name="q15" value="C"> Amazon RDS</label><br>
+      <label><input type="radio" name="q15" value="D"> Amazon Redshift</label>
+    </div>
+
+    <!-- Question 16 -->
+    <div class="question">
+      <h3>Question 16: Which AWS service is used to manage and govern multiple AWS accounts centrally?</h3>
+      <label><input type="radio" name="q16" value="A"> AWS IAM</label><br>
+      <label><input type="radio" name="q16" value="B"> AWS Organizations</label><br>
+      <label><input type="radio" name="q16" value="C"> AWS Config</label><br>
+      <label><input type="radio" name="q16" value="D"> AWS Control Tower</label>
+    </div>
+
+    <!-- Question 17 -->
+    <div class="question">
+      <h3>Question 17: Which AWS service would you use to analyze large volumes of streaming data?</h3>
+      <label><input type="radio" name="q17" value="A"> Amazon Kinesis</label><br>
+      <label><input type="radio" name="q17" value="B"> Amazon S3</label><br>
+      <label><input type="radio" name="q17" value="C"> Amazon Glacier</label><br>
+      <label><input type="radio" name="q17" value="D"> Amazon RDS</label>
+    </div>
+
+    <!-- Question 18 -->
+    <div class="question">
+      <h3>Question 18: What does AWS CloudTrail enable you to do?</h3>
+      <label><input type="radio" name="q18" value="A"> Monitor application performance.</label><br>
+      <label><input type="radio" name="q18" value="B"> Track user activity and API usage.</label><br>
+      <label><input type="radio" name="q18" value="C"> Automate infrastructure deployment.</label><br>
+      <label><input type="radio" name="q18" value="D"> Distribute content globally.</label>
+    </div>
+
+    <!-- Question 19 -->
+    <div class="question">
+      <h3>Question 19: Which of the following describes a key aspect of high availability in AWS architectures?</h3>
+      <label><input type="radio" name="q19" value="A"> Deploying resources in a single Availability Zone.</label><br>
+      <label><input type="radio" name="q19" value="B"> Deploying resources across multiple Availability Zones.</label><br>
+      <label><input type="radio" name="q19" value="C"> Using a single server to minimize cost.</label><br>
+      <label><input type="radio" name="q19" value="D"> Encrypting data at rest.</label>
+    </div>
+
+    <!-- Question 20 -->
+    <div class="question">
+      <h3>Question 20: What is the primary purpose of the AWS Well-Architected Framework?</h3>
+      <label><input type="radio" name="q20" value="A"> To help build secure, high-performing, resilient, and efficient infrastructure.</label><br>
+      <label><input type="radio" name="q20" value="B"> To provide cost optimization only.</label><br>
+      <label><input type="radio" name="q20" value="C"> To facilitate database migrations.</label><br>
+      <label><input type="radio" name="q20" value="D"> To offer cloud-based file storage solutions.</label>
+    </div>
+
+    <!-- Question 21 -->
+    <div class="question">
+      <h3>Question 21: Which AWS service automatically distributes incoming application traffic across multiple targets?</h3>
+      <label><input type="radio" name="q21" value="A"> AWS Auto Scaling</label><br>
+      <label><input type="radio" name="q21" value="B"> Elastic Load Balancing (ELB)</label><br>
+      <label><input type="radio" name="q21" value="C"> Amazon Route 53</label><br>
+      <label><input type="radio" name="q21" value="D"> AWS CloudFormation</label>
+    </div>
+
+    <!-- Question 22 -->
+    <div class="question">
+      <h3>Question 22: Which AWS pricing model allows you to pay for compute resources on a per-second basis?</h3>
+      <label><input type="radio" name="q22" value="A"> Reserved Instances</label><br>
+      <label><input type="radio" name="q22" value="B"> Spot Instances</label><br>
+      <label><input type="radio" name="q22" value="C"> On-Demand Instances</label><br>
+      <label><input type="radio" name="q22" value="D"> Dedicated Hosts</label>
+    </div>
+
+    <!-- Question 23 -->
+    <div class="question">
+      <h3>Question 23: Which AWS service is designed for deploying and managing virtual servers in the cloud?</h3>
+      <label><input type="radio" name="q23" value="A"> Amazon S3</label><br>
+      <label><input type="radio" name="q23" value="B"> Amazon EC2</label><br>
+      <label><input type="radio" name="q23" value="C"> AWS Lambda</label><br>
+      <label><input type="radio" name="q23" value="D"> Amazon RDS</label>
+    </div>
+
+    <!-- Question 24 -->
+    <div class="question">
+      <h3>Question 24: Which AWS service is used for building continuous integration and continuous delivery (CI/CD) pipelines?</h3>
+      <label><input type="radio" name="q24" value="A"> AWS CodePipeline</label><br>
+      <label><input type="radio" name="q24" value="B"> AWS CloudFormation</label><br>
+      <label><input type="radio" name="q24" value="C"> Amazon SNS</label><br>
+      <label><input type="radio" name="q24" value="D"> Amazon SQS</label>
+    </div>
+
+    <!-- Question 25 -->
+    <div class="question">
+      <h3>Question 25: What is one of the key benefits of the pay-as-you-go pricing model in AWS?</h3>
+      <label><input type="radio" name="q25" value="A"> You must commit to long-term contracts.</label><br>
+      <label><input type="radio" name="q25" value="B"> You only pay for the services you actually use.</label><br>
+      <label><input type="radio" name="q25" value="C"> You pay a fixed monthly fee regardless of usage.</label><br>
+      <label><input type="radio" name="q25" value="D"> It eliminates the need for resource scaling.</label>
+    </div>
+
+    <input type="submit" value="Submit">
+  </form>
+  <div id="result">Select your answers and submit to see your score.</div>
+</body>
+</html>

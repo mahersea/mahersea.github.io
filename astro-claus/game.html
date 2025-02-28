@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Fighter Game</title>
+    <link rel="stylesheet" href="style.css">
+      <style>
+    canvas {
+      display: block;
+      background-color: #141414;
+      border: 2px solid #222;
+    }
+    body {
+      background-color: #1b1b2c;
+    }
+    table {
+      border: 2px solid #34345a;
+      width: auto;
+    }
+    tr {
+        background-color:rgb(1, 23, 43)
+    }
+    td {
+      color: #f0f0f0;
+      text-align: left;
+      font-size: 18xpx;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    img.icon {
+        vertical-align: middle;
+        margin-right: 5px; /* optional spacing between image & text */
+    }
+    .points {
+        display: block;
+        height: 40px;
+    }
+  </style>
+</head>
+<body onload="disableScroll()">
+    <table>
+        <tr>
+            <td>
+                <div class="points">
+                    <img class="icon" src="images/snow-ball.png" alt="Snowball" />
+                    Catch the Snowballs: <strong>gain 1 pt.</strong><br/>
+                </div>
+                <div class="points">
+                    <img class="icon" src="images/laser.png" alt="Grinch laser" />
+                    Hit by a Grinch laser: <strong>lose 1 pt.</strong><br/>
+                </div>
+                <div class="points">
+                    <img class="icon" src="images/orb.png" alt="Golden Gift Orb" />
+                    Catch the Golden Gift Orb: <strong>5 pts.</strong><br/>
+                </div>
+            </td>
+            <td>
+                <img class="icon" src="images/trophy.png" alt="Trophy" />
+                Win the game: <strong>10 pts.</strong><br/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <canvas id="gameCanvas" width="780" height="500"></canvas>
+                <script src="script.js"></script>
+                <img id="animatedGif" src="images/src/ship-9.gif" style="display:none;">
+            </td>
+        </tr>
+    </table>
+
+<script>
+    /* 
+    * Logic to prevent scrolling while playing the game
+    * left: 37, up: 38, right: 39, down: 40,
+    * spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
+    */
+    var keys = {37: 1, 38: 1, 39: 1, 40: 1};
+
+    function preventDefault(e) {
+        e.preventDefault();
+    }
+
+    function preventDefaultForScrollKeys(e) {
+        if (keys[e.keyCode]) {
+        preventDefault(e);
+        return false;
+        }
+    }
+
+    // modern Chrome requires { passive: false } when adding event
+    var supportsPassive = false;
+    try {
+        window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
+        get: function () { supportsPassive = true; } 
+        }));
+    } catch(e) {}
+
+    var wheelOpt = supportsPassive ? { passive: false } : false;
+    var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel';
+
+    // call this to Disable
+    function disableScroll() {
+        window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
+        window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
+        window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
+        window.addEventListener('keydown', preventDefaultForScrollKeys, false);
+    }
+
+    // call this to Enable
+    function enableScroll() {
+        window.removeEventListener('DOMMouseScroll', preventDefault, false);
+        window.removeEventListener(wheelEvent, preventDefault, wheelOpt); 
+        window.removeEventListener('touchmove', preventDefault, wheelOpt);
+        window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
+    }
+  </script>
+
+</body>
+</html>

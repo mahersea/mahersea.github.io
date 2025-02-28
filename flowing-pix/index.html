@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        canvas {
+            border: 1px solid #ccc;
+            background: black;     
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #111;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pixelCanvas" width="800" height="800"></canvas>
+    <script>
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Array to store active pixels
+        const pixels = [];
+        
+        // Pixel class to manage individual pixels
+        class Pixel {
+            constructor(row) {
+                this.x = 0;
+                this.y = row;
+                this.speed = Math.random() * 2 + 0.5;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.size = 1;
+                this.stuck = false;
+            }
+            
+            update() {
+                if (!this.stuck) {
+                    this.x += this.speed;
+                    
+                    // Check if pixel should stick
+                    const pixelsInRow = pixels.filter(p => 
+                        p !== this && 
+                        p.y === this.y && 
+                        Math.abs(p.x - this.x) < this.size &&
+                        p.stuck
+                    );
+                    
+                    if (pixelsInRow.length > 0) {
+                        this.stuck = true;
+                    }
+                    
+                    // Random chance to unstick and leave canvas
+                    if (this.stuck && Math.random() < 0.001) {
+                        this.stuck = false;
+                        this.x = -10; // Move off canvas to the left
+                    }
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+        
+        // Add new pixels randomly
+        function addPixel() {
+            if (Math.random() < 0.3) {
+                const row = Math.floor(Math.random() * canvas.height);
+                pixels.push(new Pixel(row));
+            }
+        }
+        
+        // Animation loop
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw pixels
+            for (let i = pixels.length - 1; i >= 0; i--) {
+                pixels[i].update();
+                pixels[i].draw();
+                
+                // Remove pixels that have left the canvas
+                if (pixels[i].x < -10 || pixels[i].x > canvas.width + 10) {
+                    pixels.splice(i, 1);
+                }
+            }
+            
+            addPixel();
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

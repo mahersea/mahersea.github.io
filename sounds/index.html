@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Buttons with Pitch and Brightness Reduction</title>
+    <script>
+        async function getWord() {
+            try {
+                const response = await fetch('words.json'); // Ensure the path is correct
+                const data = await response.json();
+                const words = data.words;
+
+                const randomIndex = Math.floor(Math.random() * words.length);
+                const randomWord = words[randomIndex];
+
+                console.log('Random Word:', randomWord);
+                return randomWord; // Return the random word
+            } catch (error) {
+                console.error('Error fetching the JSON file:', error);
+                return null; // Return null or handle the error as needed
+            }
+        }
+
+        // Example of how to use getWord()
+        document.addEventListener('DOMContentLoaded', async function() {
+            const randomWordElement = document.getElementById('randomWord');
+            const word = await getWord(); // Wait for the async function to complete
+            if (word) {
+                randomWordElement.innerText = word; // Update the DOM with the random word
+            }
+        });
+    </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        .buttonRow {
+            display: flex;
+        }
+        .color-button {
+            width: 100px;
+            height: 100px;
+            border: none;
+            border-radius: 10px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+            outline: none;
+            transition: transform 0.1s;
+        }
+        .color-button:active {
+            transform: scale(0.55);
+        }
+    </style>
+</head>
+<body>
+    <h2 id="randomWord"></h2>
+    <div id="buttonContainer"></div>
+    <script>
+        let pitch = 180; // Base pitch reduction
+        const pitchReductionStep = 20; // Amount to reduce the pitch with each raga set
+        const brightnessReductionStep = 30; // Amount to reduce brightness with each row (for RGB)
+
+        // Helper function to reduce the brightness of a color
+        function reduceBrightness(hexColor, reduction) {
+            let r = parseInt(hexColor.substring(1, 3), 16);
+            let g = parseInt(hexColor.substring(3, 5), 16);
+            let b = parseInt(hexColor.substring(5, 7), 16);
+
+            r = Math.max(0, r - reduction);
+            g = Math.max(0, g - reduction);
+            b = Math.max(0, b - reduction);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Base notes for main raga sets
+        const baseNotes = [
+            { name: '1', frequency: 261.63, color: '#99ccff' },
+            { name: '2', frequency: 293.66, color: '#99ff99' },
+            { name: '3', frequency: 349.23, color: '#ffcc99' },
+            { name: '4', frequency: 392.00, color: '#ff9999' },
+            { name: '5', frequency: 440.00, color: '#cc99ff' },
+            { name: '6', frequency: 493.88, color: '#ffccff' }
+        ];
+
+        // Arrays for the different raga sets
+        const ragaSets = [
+            { name: 'Original', notes: JSON.parse(JSON.stringify(baseNotes)) },
+            { name: 'Deep-1', notes: JSON.parse(JSON.stringify(baseNotes)) },
+            { name: 'Deep-2', notes: JSON.parse(JSON.stringify(baseNotes)) },
+            { name: 'Deep-3', notes: JSON.parse(JSON.stringify(baseNotes)) },
+            { name: 'Deep-4', notes: JSON.parse(JSON.stringify(baseNotes)) }
+        ];
+
+        // Apply the pitch and brightness reduction for each set of ragas
+        ragaSets.forEach((raga, index) => {
+            const pitchOffset = pitchReductionStep * index;
+            const brightnessReduction = brightnessReductionStep * index;
+
+            raga.notes.forEach(note => {
+                note.frequency = note.frequency - (pitch + pitchOffset); // Reduce pitch
+                note.color = reduceBrightness(note.color, brightnessReduction); // Reduce brightness
+            });
+        });
+
+        const buttonContainer = document.getElementById('buttonContainer');
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillators = {};
+
+        // Create buttons for the notes
+        const createButtons = (notesArray) => {
+            const buttonRow = document.createElement('div');
+            buttonRow.className = 'buttonRow';
+            notesArray.forEach(note => {
+                const button = document.createElement('button');
+                button.className = 'color-button';
+                button.style.backgroundColor = note.color;
+                button.innerText = note.name;
+
+                button.addEventListener('mouseover', () => {
+                    if (oscillators[note.name]) {
+                        // Stop the sound if it's already playing
+                        oscillators[note.name].gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Mute the sound
+                        oscillators[note.name].oscillator.stop(audioContext.currentTime + 0.1); // Stop oscillator after a brief fade out
+                        delete oscillators[note.name];
+                        button.style.transform = 'scale(1)'; // Reset button size
+                    } else {
+                        // Create and play a new oscillator
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain(); // Create a gain node for volume control
+
+                        oscillator.frequency.setValueAtTime(note.frequency, audioContext.currentTime);
+
+                        // Connect oscillator to gain node, then to destination
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+
+                        // Start the oscillator
+                        oscillator.start();
+                        gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Set initial volume
+                        oscillators[note.name] = { oscillator, gainNode };
+                        button.style.transform = 'scale(1.5)'; // Scale button up to indicate it's playing
+                    }
+                });
+
+                button.addEventListener('mouseout', () => {
+                    if (oscillators[note.name]) {
+                        // Stop the sound when the mouse leaves the button
+                        oscillators[note.name].gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Mute the sound
+                        oscillators[note.name].oscillator.stop(audioContext.currentTime + 0.1); // Stop oscillator after a brief fade out
+                        delete oscillators[note.name];
+                        button.style.transform = 'scale(1)'; // Reset button size
+                    }
+                });
+
+                buttonRow.appendChild(button);
+            });
+            buttonContainer.appendChild(buttonRow);
+        };
+
+        // Create buttons for all raga sets
+        ragaSets.forEach(raga => createButtons(raga.notes));
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GeoJSON Map with Leaflet</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize the map centered on the US
+    //var map = L.map('map').setView([37.8, -96], 4);
+
+    // Initializa the map centered on the Twin Cities
+    var map = L.map('map').setView([44.9778, -93.2650], 10);
+    // Set the map's maximum zoom level
+    map.setMaxZoom(19);
+    // Set the map's minimum zoom level
+    //map.setMinZoom(10);
+    // Set the map's zoom level
+    map.setZoom(9);
+
+    // Add a tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // URL for a public GeoJSON dataset (US States example)
+    //var geojsonUrl = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+    
+    //World Countries:
+    //A global dataset with country boundaries.
+   //var geojsonUrl ='https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
+
+    //US Counties (FIPS):
+    //Contains county boundaries for the United States with FIPS codes, great for demographic or election mapping.
+    //var geojsonUrl ='https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+
+    //California Counties:
+    //A detailed GeoJSON of California’s county boundaries, useful for state-specific projects.
+    var geojsonUrl ='https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/california-counties.geojson'
+
+    //New York City Boroughs:
+    //A GeoJSON file outlining the five boroughs of NYC, ideal for city-level visualizations.
+    //var geojsonUrl ='https://raw.githubusercontent.com/dwillis/nyc-maps/master/boroughs.geojson'
+
+    //USGS Earthquake Data (Past Week):
+    //This dynamic dataset provides recent earthquake information worldwide, updated continuously by the US Geological Survey.
+    //var geojsonUrl ='https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson'
+
+    //US Counties (Filter for Minnesota):
+    //use the comprehensive US counties GeoJSON from Plotly, then filter for Minnesota (FIPS codes starting with “27”).
+    //var geojsonUrl ='https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+
+
+    /// Minnesota, Minneapolis, and St. Paul etc.
+
+//1. Minneapolis Neighborhoods:
+//    https://opendata.minneapolismn.gov/datasets/cityoflakes::minneapolis-neighborhoods/explore
+   //var geojsonUrl ='https://opendata.minneapolismn.gov/datasets/cityoflakes::minneapolis-neighborhoods.geojson'
+
+// St. Paul Planning Districts:
+   // https://information.stpaul.gov/datasets/stpaul::planning-districts/explore
+   //var geojsonUrl ='https://opendata.arcgis.com/datasets/stpaul::planning-districts.geojson'
+
+// Minnesota County Boundaries:
+   // https://gisdata.mn.gov/dataset/bdry-counties-in-minnesota
+   //var geojsonUrl ='https://resources.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_state_dnr/bdry_counties_in_minnesota/geojson_epsg_4326/mn_county_boundaries_500k.geojson'
+
+// Twin Cities Metro Area:
+   // https://gisdata.mn.gov/dataset/us-mn-state-metc-bdry-metro-counties
+   // Metropolitan Council open data: https://gisdata.mn.gov/organization/us-mn-state-metc
+
+// Minnesota Water Features:
+   // Lakes and Rivers: https://gisdata.mn.gov/dataset/water-dnr-hydrography
+   //var geojsonUrl ='https://resources.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_state_dnr/water_dnr_hydrography/geojson_epsg_4326/mn_water_dnr_hydrography_lakes_and_rivers.geojson'
+
+// Minneapolis Parks:
+   // https://opendata.minneapolismn.gov/datasets/minneapolismn::park-boundaries/explore
+   //var geojsonUrl ='https://opendata.minneapolismn.gov/datasets/minneapolismn::park-boundaries.geojson'
+
+// St. Paul Neighborhoods:
+   // https://information.stpaul.gov/datasets/stpaul::district-councils/explore
+   //var geojsonUrl ='https://opendata.arcgis.com/datasets/stpaul::district-councils.geojson'
+
+// Minnesota Legislative Districts:
+   // https://gisdata.mn.gov/dataset/bdry-electionresults-2012-2022
+   // Various political boundaries available through the Minnesota Geospatial Commons
+
+// Minneapolis Bicycle Facilities:
+   // https://opendata.minneapolismn.gov/datasets/cityoflakes::bicycle-facilities/explore
+   //var geojsonUrl ='https://opendata.minneapolismn.gov/datasets/cityoflakes::bicycle-facilities.geojson'
+
+
+    // Fetch and add the GeoJSON data to the map
+    fetch(geojsonUrl)
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: function(feature) {
+            return {color: "blue", weight: 2};
+          }
+        }).addTo(map);
+      });
+  </script>
+</body>
+</html>

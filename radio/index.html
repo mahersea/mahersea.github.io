@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Player</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { border: 1px solid black; }
+        #controls { position: absolute; top: 20px; left: 20px; }
+        button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div id="controls"></div>
+
+    <script>
+        // Preloaded sounds
+        const soundUrls = [
+            'https://www.soundjay.com/button/sounds/button-1.mp3',
+            'https://www.soundjay.com/button/sounds/button-2.mp3',
+            'https://www.soundjay.com/button/sounds/button-3.mp3',
+            'https://www.soundjay.com/button/sounds/button-4.mp3',
+            'https://www.soundjay.com/button/sounds/button-5.mp3',
+            'https://www.soundjay.com/button/sounds/button-6.mp3',
+            'https://www.soundjay.com/button/sounds/button-7.mp3',
+            'https://www.soundjay.com/button/sounds/button-8.mp3',
+            'https://www.soundjay.com/button/sounds/button-9.mp3',
+            'https://www.soundjay.com/button/sounds/button-10.mp3'
+        ];
+
+        const sounds = soundUrls.map(url => new Audio(url));
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const controls = document.getElementById('controls');
+        const buttons = [];
+
+        // Create buttons for each sound
+        sounds.forEach((sound, index) => {
+            const button = document.createElement('button');
+            button.innerText = 'Play';  // Start with "Play"
+            button.dataset.index = index;
+            button.classList.add('sound-button');
+            button.onclick = () => toggleSound(button, sound);
+            controls.appendChild(button);
+            buttons.push({ button, sound, isMuted: true });
+        });
+
+        // Create a test button to play a sample sound
+        const testButton = document.createElement('button');
+        testButton.innerText = 'Test Sound';
+        testButton.onclick = () => playTestSound();
+        controls.appendChild(testButton);
+
+        // Function to toggle sound play/mute
+        function toggleSound(button, sound) {
+            const index = button.dataset.index;
+            buttons[index].isMuted = !buttons[index].isMuted;
+
+            if (buttons[index].isMuted) {
+                sound.pause();
+                button.innerText = 'Play'; // Change to "Play" if muted
+            } else {
+                sound.loop = true; // Loop the sound
+                sound.play();
+                button.innerText = 'Mute'; // Change to "Mute" if playing
+            }
+        }
+
+        // Function to play a test sound
+        function playTestSound() {
+            const testSound = new Audio('https://www.soundjay.com/button/sounds/button-1.mp3');
+            testSound.play();
+        }
+
+        // Draw on canvas (optional)
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'lightblue';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Sound Player', 10, 30);
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>

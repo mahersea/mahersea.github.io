@@ -1,176 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resume Display</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sean Maher - Portfolio</title>
+  <link rel="stylesheet" href="css/styles.css" />
   <style>
-    body { 
-      margin: 0; 
-      overflow: hidden; 
-      font-family: 'Arial', sans-serif; 
-      background: linear-gradient(to right, #ff7e5f, #feb47b); /* Unique gradient background */
-      color: #333; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      height: 50vh; 
+    /* Additional styles for the hero canvas */
+    #hero-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
     }
-    canvas { 
-      display: block; 
-      border: 2px solid #333; /* Adds a border to the canvas */
-      border-radius: 10px; 
-      margin-bottom: 20px; 
+
+    #hero {
+      position: relative;
+      overflow: hidden;
+      /* Keep your existing hero styles */
     }
-    button { 
-      padding: 10px 20px; 
-      background-color: #333; 
-      color: white; 
-      border: none; 
-      border-radius: 5px; 
-      cursor: pointer; 
-      font-size: 16px; 
-      transition: background-color 0.3s; 
-      margin: 5px; /* Add margin for spacing */
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 2;
     }
-    button:hover { 
-      background-color: #555; 
+
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      /* Keep your existing hero-content styles */
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <canvas id="resumeCanvas"></canvas>
-  <div id="markdownContent"></div>
-  <button id="toggleEffect">Toggle Text Effect</button>
-  <button id="resetContent">Reset Content</button> <!-- New reset button -->
-  <button id="adminButton" style="display: none;">Admin</button> <!-- Changed to button -->
-  <button id="loginButton" style="display: none;">Log in</button> <!-- New login button -->
-  <button id="logoutButton" style="display: none;">Log out</button> <!-- New logout button -->
+  <!-- Header -->
+  <header id="header">
+    <div class="container header-container">
+	  <iframe src="cube/index.html" width="200px" height="200px" style="border:none;"></iframe>
+      <div class="logo">mahersea.github.io</div>
+      <nav>
+        <ul>
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const canvas = document.getElementById('resumeCanvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+  <!-- Hero Section with Animated Background -->
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Code Playground</h1>
+      <p>Showcasing my AI experiments with HTML/CSS/JavaScript</p>
+    </div>
+  </section>
 
-      // Function to retrieve or set default resume content
-      function getResumeContent() {
-        return localStorage.getItem('resumeContent') || '# Default Resume Content';
-      }
+  <!-- Projects Section -->
+  <section id="projects">
+    <div class="container">
+      <h2>Active Projects</h2>
+      <div class="projects-grid">
+        <!-- Project cards will be dynamically inserted here -->
+        <div class="loading-indicator">Loading projects...</div>
+      </div>
+    </div>
+  </section>
 
-      // Convert Markdown to HTML
-      function convertMarkdownToHTML(markdown) {
-        return marked.parse(markdown);
-      }
+  <!-- Project Detail Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <div class="modal-body">
+        <!-- Dynamically inserted content -->
+      </div>
+    </div>
+  </div>
 
-      // Get HTML from Markdown
-      const resumeMarkdown = getResumeContent();
-      const resumeHTML = convertMarkdownToHTML(resumeMarkdown);
-      document.getElementById('markdownContent').innerHTML = resumeHTML;
+  <!-- About Section -->
+  <section id="about">
+    <div class="container">
+      <h2>About Me</h2>
+      <p>
+        I'm a passionate web developer with a knack for solving real-world problems 
+		while improving my ability to create sleek, interactive designs and clean code. 
+		This portfolio showcases a selection of active projects, that may or may not be
+		functional at any given moment in time.
+      </p>
+    </div>
+  </section>
 
-      // Render text on the canvas
-      const renderTextOnCanvas = (text) => {
-        ctx.font = '30px Arial';
-        ctx.fillStyle = 'black';
-        const lines = text.split('\n');
+  <!-- Contact Section -->
+  <section id="contact">
+    <div class="container">
+      <h2>Contact</h2>
+      <p>Email: mahersea at the usual gmail dot com domain</p>
+      <p>
+        Connect with me on 
+        <a href="https://www.linkedin.com/in/sean-maher-8752894/" target="_blank">linkedin</a>
+      </p>
+    </div>
+  </section>
 
-        let lineHeight = 40; // adjust for spacing
-        lines.forEach((line, index) => {
-          ctx.fillText(line, 50, 100 + index * lineHeight);
-        });
-      };
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 MyPortfolio. All Rights Reserved.</p>
+    </div>
+  </footer>
 
-      // Blow/Dissolve effect
-      let particles = [];
-      let x = 50;
-      let y = 100;
-      let effectActive = false;
-
-      function createParticles() {
-        for (let i = 0; i < resumeMarkdown.length; i++) {
-          const char = resumeMarkdown[i];
-          const particle = {
-            x: x + i * 20,
-            y: y,
-            char: char,
-            alpha: 1,
-            dx: (Math.random() - 0.5) * 2,
-            dy: Math.random() * -2
-          };
-          particles.push(particle);
-        }
-      }
-
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((particle, index) => {
-          particle.x += particle.dx;
-          particle.y += particle.dy;
-          particle.alpha -= 0.01;
-          
-          if (particle.alpha <= 0) {
-            particles.splice(index, 1);
-          }
-
-          ctx.fillStyle = `rgba(0, 0, 0, ${particle.alpha})`;
-          ctx.fillText(particle.char, particle.x, particle.y);
-        });
-
-        if (effectActive && particles.length > 0) {
-          requestAnimationFrame(animate);
-        }
-      }
-
-      // Toggle effect button
-      document.getElementById('toggleEffect').addEventListener('click', () => {
-        effectActive = !effectActive; // Toggle the effect on/off
-        if (effectActive) {
-          particles = []; // Reset particles when effect is turned on
-          createParticles();
-          animate();
-        }
-      });
-
-      // Reset local storage content
-      document.getElementById('resetContent').addEventListener('click', () => {
-        localStorage.removeItem('resumeContent'); // Clear existing content
-        alert('Resume content has been reset to default.');
-        const newContent = '# Default Resume Content'; // Set default content
-        localStorage.setItem('resumeContent', newContent);
-        renderTextOnCanvas(convertMarkdownToHTML(newContent)); // Update canvas display
-      });
-
-      // Admin Button (Simulated login state)
-      let isLoggedIn = true; // Change this to simulate logged-in state
-      const adminButton = document.getElementById('adminButton');
-      const loginButton = document.getElementById('loginButton');
-      const logoutButton = document.getElementById('logoutButton');
-
-      if (isLoggedIn) {
-        adminButton.style.display = 'inline-block'; // Show the admin button
-        adminButton.addEventListener('click', () => {
-          window.location.href = "admin.html"; // Replace with actual admin link
-        });
-        logoutButton.style.display = 'inline-block'; // Show the logout button
-      } else {
-        loginButton.style.display = 'inline-block'; // Show the logout button
-        adminButton.style.display = 'none'; // Hide the admin button
-      }
-
-      // Logout button action
-      logoutButton.addEventListener('click', () => {
-        isLoggedIn = false; // Simulate logout
-        localStorage.removeItem('authenticated'); // Clear authentication state
-        alert('You have been logged out.');
-        adminButton.style.display = 'none'; // Hide admin button
-        logoutButton.style.display = 'none'; // Hide logout button
-      });
-
-      renderTextOnCanvas(resumeHTML); // Render HTML content on the canvas
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

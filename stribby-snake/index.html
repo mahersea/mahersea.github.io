@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caterpillar Game</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { background: #000; display: block; margin: 0 auto; border: green 2px solid; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="1200" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const gridSize = 25; // Size of each segment and food
+    const overlap = gridSize * 0.25; // 25% overlap between segments
+    let caterpillar = [{ x: 10, y: 10 }];
+    let direction = { x: 1, y: 0 }; // Initial movement direction
+    let food = { x: 15, y: 15 }; // Initial food position
+    let gameOver = false;
+    let interval = 100; // Interval for the game loop (in ms)
+
+    // Load images for the caterpillar
+    const headImg = new Image();
+    const bodyImg = new Image();
+    const bumImg = new Image();
+
+    headImg.src = 'head.png';
+    bodyImg.src = 'body.png';
+    bumImg.src = 'bum.png';
+
+    // Ensure images are fully loaded before starting the game
+    Promise.all([
+      new Promise(resolve => (headImg.onload = resolve)),
+      new Promise(resolve => (bodyImg.onload = resolve)),
+      new Promise(resolve => (bumImg.onload = resolve)),
+    ]).then(() => gameLoop());
+
+    // Listen for key presses to change direction
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowUp' && direction.y !== 1) direction = { x: 0, y: -1 };
+      if (event.key === 'ArrowDown' && direction.y !== -1) direction = { x: 0, y: 1 };
+      if (event.key === 'ArrowLeft' && direction.x !== 1) direction = { x: -1, y: 0 };
+      if (event.key === 'ArrowRight' && direction.x !== -1) direction = { x: 1, y: 0 };
+    });
+
+    // Main game loop
+    function gameLoop() {
+      if (gameOver) {
+        alert('Game Over!');
+        return;
+      }
+
+      // Move caterpillar head
+      let newHead = { 
+        x: caterpillar[0].x + direction.x, 
+        y: caterpillar[0].y + direction.y 
+      };
+
+      // Wrap the caterpillar around the canvas edges
+      newHead.x = (newHead.x + canvas.width / gridSize) % (canvas.width / gridSize);
+      newHead.y = (newHead.y + canvas.height / gridSize) % (canvas.height / gridSize);
+
+      // Check for collisions with itself
+      if (caterpillar.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+        gameOver = true;
+        return;
+      }
+
+      // Add new head to the front of the array
+      caterpillar.unshift(newHead);
+
+      // Check if the caterpillar eats food
+      if (newHead.x === food.x && newHead.y === food.y) {
+        // Generate new food position
+        do {
+          food = { 
+            x: Math.floor(Math.random() * canvas.width / gridSize),
+            y: Math.floor(Math.random() * canvas.height / gridSize)
+          };
+        } while (caterpillar.some(segment => segment.x === food.x && segment.y === food.y));
+      } else {
+        // Remove the last segment of the caterpillar (tail)
+        caterpillar.pop();
+      }
+
+      // Clear canvas and redraw caterpillar and food
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawCaterpillar();
+      drawFood();
+
+      // Call the next frame with a controlled interval
+      setTimeout(gameLoop, interval);
+    }
+
+    // Draw the caterpillar with images and overlap
+    function drawCaterpillar() {
+        for (let i = 0; i < caterpillar.length; i++) {
+            const segment = caterpillar[i];
+            const baseX = segment.x * gridSize;
+            const baseY = segment.y * gridSize;
+
+            let x = baseX;
+            let y = baseY;
+
+            // Overlap adjustment
+            if (i > 0) {
+            const prevSegment = caterpillar[i - 1];
+            const dx = (prevSegment.x - segment.x) * overlap;
+            const dy = (prevSegment.y - segment.y) * overlap;
+            x += dx;
+            y += dy;
+            }
+
+            // Draw the segment image
+            if (i === 0) {
+            ctx.drawImage(headImg, x, y, gridSize, gridSize);
+            } else if (i === caterpillar.length - 1) {
+            ctx.drawImage(bumImg, x, y, gridSize, gridSize);
+            } else {
+            ctx.drawImage(bodyImg, x, y, gridSize, gridSize);
+            }
+
+            // Add a green tint overlay
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-atop'; // Blend overlay with image
+            ctx.fillStyle = `rgba(0, 255, 0, 0.25)`; // Semi-transparent green
+            ctx.fillRect(x, y, gridSize, gridSize);
+            ctx.restore(); // Reset context to default
+        }
+        }
+
+
+    // Draw food
+    function drawFood() {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    }
+  </script>
+</body>
+</html>

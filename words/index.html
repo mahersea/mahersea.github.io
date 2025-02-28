@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sounds Words</title>
+    <script>
+        async function getWord() {
+            try {
+                const response = await fetch('words.json'); // Ensure the path is correct
+                const data = await response.json();
+                const words = data.words;
+
+                const randomIndex = Math.floor(Math.random() * words.length);
+                const randomWord = words[randomIndex];
+
+                console.log('Sound Word:', randomWord);
+                return randomWord; // Return the sound word
+            } catch (error) {
+                console.error('Error fetching the JSON file:', error);
+                return null; // Return null or handle the error as needed
+            }
+        }
+
+        // Example of how to use getWord()
+        document.addEventListener('DOMContentLoaded', async function() {
+            const randomWordElement = document.getElementById('soundWord');
+            const word = await getWord(); // Wait for the async function to complete
+            if (word) {
+                randomWordElement.innerText = word; // Update the DOM with the random sound word
+            }
+        });
+    </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+        .buttonRow {
+            display: flex;
+        }
+        .color-button {
+            width: 100px;
+            height: 100px;
+            border: none;
+            border-radius: 10px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+            outline: none;
+            transition: transform 0.1s;
+        }
+        .color-button:active {
+            transform: scale(0.55);
+        }
+        .soundWord {
+            font-family: 'Arial', sans-serif;
+            font-size: 34px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <!-- implement the get word script above -->
+    <h1>Sound Word Generator</h1>
+    <p id="soundWord" class="soundWord">Loading...</p>
+</body>
+</html>
