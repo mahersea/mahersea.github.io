@@ -363,76 +363,76 @@ function drawWaves() {
 
   // Signal Wave
   drawSignal(position + 10);
-  drawFormulaText(`shift = ${shift}`, position);
-  //drawFormulaText("y = pos + sin((x + t) * 0.1) * 5", position);
+  //drawFormulaText(`shift = ${shift}`, position);
+  drawFormulaText("y = pos + sin((x + t) * 0.1) * 5", position);
 
   // Pulsing Wave
-  drawPulsingWave(position + 30);
-  drawFormulaText(`shift = ${shift}`, position + 30);
-  //drawFormulaText("y = pos + sin((x + t) * 0.1) * A", position + shift);
+  drawPulsingWave(position + 40);
+  //drawFormulaText(`shift = ${shift}`, position + 30);
+  drawFormulaText("y = pos + sin((x + t) * 0.1) * A", position + 30);
 
   // Sine Wave
   drawSineWave(position + 60);
-  drawFormulaText(`shift = ${shift}`, position + 60);
-  //drawFormulaText("y = pos + sin((x + t) * 0.1) * 10", position + shift);
+  //drawFormulaText(`shift = ${shift}`, position + 60);
+  drawFormulaText("y = pos + sin((x + t) * 0.1) * 10", position + 65);
 
   // Square Wave
   drawSquareWave(position + 90);
-  drawFormulaText(`shift = ${shift}`, position + 90);
-  //drawFormulaText("y = pos + ((x + t) % 20 < 10 ? 10 : -10)", position + 100);
+  //drawFormulaText(`shift = ${shift}`, position + 90);
+  drawFormulaText("y = pos + ((x + t) % 20 < 10 ? 10 : -10)", position + 95);
 
   // Triangle Wave
   drawTriangleWave(position + 120);
-  drawFormulaText(`shift = ${shift}`, position + 120);
-  //drawFormulaText("y = pos + |((x + t) % 40) - 20| - 10", position + 130);
+  //drawFormulaText(`shift = ${shift}`, position + 120);
+  drawFormulaText("y = pos + |((x + t) % 40) - 20| - 10", position + 125);
 
   // Sawtooth Wave
   drawSawtoothWave(position + 160);
-  drawFormulaText(`shift = ${shift}`, position + 160);
-  //drawFormulaText("y = pos + ((x + t) % 40) - 20", position + 170);
+  //drawFormulaText(`shift = ${shift}`, position + 160);
+  drawFormulaText("y = pos + ((x + t) % 40) - 20", position + 160);
 
   // Noise Wave
   drawNoiseWave(position + 210);
-  drawFormulaText(`shift = ${shift}`, position + 210);
-  //drawFormulaText("y = pos + (rand() - 0.5) * 20", position + 220);
+  //drawFormulaText(`shift = ${shift}`, position + 210);
+  drawFormulaText("y = pos + (rand() - 0.5) * 20", position + 215);
 
   // Double Sine Wave
   drawDoubleSineWave(position + 250);
-  //drawFormulaText("y = pos + sin(x * 0.1) * 10 + sin(x * 0.05) * 5", position + 260);
+  drawFormulaText("y = pos + sin(x * 0.1) * 10 + sin(x * 0.05) * 5", position + 250);
 
   // Ripple Wave
   drawRippleWave(position + 310);
-  //drawFormulaText("y = pos + sin(√(x * 0.1)) * 10", position + 320);
+  drawFormulaText("y = pos + sin(√(x * 0.1)) * 10", position + 305);
 
   // Staggered Sine Waves
   drawStaggeredSineWaves(position + 340);
-  //drawFormulaText("y = pos + sin((x + t) * 0.1 + offset) * 10", position + 380);
+  drawFormulaText("y = pos + sin((x + t) * 0.1 + offset) * 10", position + 345);
 
   // Exotic Waves
-  
-  // Quantum Wave
-  drawQuantumWave(position + 620);
-  //drawFormulaText("y = pos + sin((x + t) * 0.1) * 10 * |cos(x * u * 0.01)|", position + 630);
-
+  //////////////////////////////////////////
   // Lorenz Attractor Wave
-  drawLorenzAttractorWave(position + 660);
+  drawLorenzAttractorWave(position + 420);
   //drawFormulaText("dx/dt = σ(y - x), dy/dt = x(ρ - z) - y", position + 670);
 
+  // Quantum Wave
+  drawQuantumWave(position + 520);
+  //drawFormulaText("y = pos + sin((x + t) * 0.1) * 10 * |cos(x * u * 0.01)|", position + 630);
+
   // Möbius Wave
-  drawMobiusWave(position + 700);
+  drawMobiusWave(position + 580);
   //drawFormulaText("y = pos + sin((x + t) * 0.1) * 10 * (1 + sin(twist * π))", position + 710);
 
   // Paradox Wave
-  drawParadoxWave(position + 740);
+  drawParadoxWave(position + 640);
   //drawFormulaText("y = pos + sin((x + t) * (1 + |si|) * 0.1) * (10 + si * 5)", position + 750);
 
   // Quantum Tunneling Wave
-  drawQuantumTunnelingWave(position + 780);
+  drawQuantumTunnelingWave(position + 700);
   //drawFormulaText("y = pos + sin((x + t) * 0.1) * 10 * exp(-b * |sin(x * 0.01)|)", position + 790);
 
   // Fractal Dimension Wave
-  drawFractalDimensionWave(position + 820);
-  drawFormulaText("y = pos + sin((x + t) * 0.1)^D * 20", position + 830);
+  drawFractalDimensionWave(position + 760);
+  //drawFormulaText("Fractal Dimension Wave: y = pos + sin((x + t) * 0.1)^D * 20", position + 830);
 
   wave_frame++;
   requestAnimationFrame(drawWaves);

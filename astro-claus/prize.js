@@ -1,4 +1,5 @@
 const canvas = document.getElementById('starWarsCanvas');
+//const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 canvas.width = window.innerWidth;
@@ -15,7 +16,11 @@ function drawBackground() {
 }
 
 function drawPrize() {
-    ctx.drawImage(prize, canvas.width / 2 - 900, canvas.height / 2 + 250, 200, 200);
+  const prizeWidth = 600;
+  const prizeHeight = 600;
+  const x = (prizeWidth - canvas.width ) / 3;
+  const y = (canvas.height - prizeHeight) - 35;
+  ctx.drawImage(prize, x, y, prizeWidth, prizeHeight);
 }
 
 function drawButton() {
@@ -23,7 +28,7 @@ function drawButton() {
   ctx.font = '16px Arial';
   ctx.textAlign = 'center';
   ctx.color = 'black';
-  ctx.fillText('Play Again', canvas.width / 2 + 7, canvas.height - 130,);
+  ctx.fillText('Play Again', canvas.width / 2 + 6, canvas.height - 150,);
   canvas.addEventListener('click', function() {
     window.location.href = 'game.html';
   });
@@ -31,33 +36,7 @@ function drawButton() {
 }
 
 const textLines = [
-"",
-"",
-"Your Fitness Adventure Awaits",
-"",
-"Dear Tracy,",
-"",
-"I'm excited to give you the gift of wellness: ",
-"together, we'll pick out a piece of exercise",
-"equipment that suits you perfectly. ",
-"",
-"Think of this note as your",
-"personal voucher—when you're ready, ",
-"we'll head out to find just the right",
-"item to support your fitness journey.",
-"Whether it's a magnetic drive exercsie bike,",
-"or something totally unexpected,",
-"we'll choose it together at a location",
-"yet to be determined.",
-"",
-"I can't wait to help you explore",
-"all the options and make a choice",
-"that keeps you motivated and having fun.",
-"Here's to a healthier, happier you!",
-"",
-"With excitement and love,",
-"",
-"Sean",
+  "",
 ];
 
 let scrollPosition = canvas.height; // Start below the canvas
