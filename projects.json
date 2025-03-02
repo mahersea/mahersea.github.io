@@ -5,112 +5,112 @@
         "title": "Astro-Claus",
         "description": "Astro-Claus is a festive space-themed game where you navigate through a starry sky, collecting gifts and avoiding obstacles.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "/astro-claus/"
+        "link": "/astro-claus/",
+        "thumbnail": "images/astro-claus.png"
       },
       {
         "id": "project2",
         "title": "Practice Exam",
         "description": "A practice exam format, designed to help users prepare for the any test with a variety of questions and explanations.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "/aws-practice/"
+        "link": "/aws-practice/",
+        "thumbnail": "images/exam.png"
       },
       {
         "id": "project3",
         "title": "Drifting Cube",
         "description": "A 3D simulation where a cube spins a virtual environment with 6 spacial vectors, showcasing basic physics and graphics.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "cube"
+        "link": "cube",
+        "thumbnail": "images/cube.png"
       },
       {
         "id": "project4",
         "title": "Flowing Pixels",
         "description": "An interactive art piece where pixels flow, creating a visual background for use in other contexts.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "flowing-pix"
+        "link": "flowing-pix",
+        "thumbnail": "images/pixel-flow.png"
       },
       {
         "id": "project5",
         "title": "GeoJSON",
         "description": "A simple Leaflet application that visualizes GeoJSON data on a map, allowing users to view GeoJSON geographical information in a graphical format.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "geojson/leaflet"
+        "link": "geojson/leaflet",
+        "thumbnail": "images/geojson.png"
       },
       {
         "id": "project6",
         "title": "Grid Out",
         "description": "A grid-based game where the user can fidget with colliding squares",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "gridout"
+        "link": "gridout",
+        "thumbnail": "images/pixels.png"
       },
       {
         "id": "project7",
         "title": "A* Pathfinding",
         "description": "An implementation of the A* pathfinding algorithm, using AI output to demonstrate how each LLM creates a solution to find the shortest path in a grid-based environment.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "pathfinding"
+        "link": "pathfinding",
+        "thumbnail": "images/pathfinding.png"
       },
       {
         "id": "project8",
         "title": "Planes",
         "description": "A artistic representation of an API of airplane arrivals to MSP, showcasing basic physics and graphics.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "planes"
+        "link": "planes",
+        "thumbnail": "images/airplane.png"
       },
       {
         "id": "project9",
         "title": "Radio",
         "description": "An initial attempt to model a series of 'radio stations'",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "radio"
+        "link": "radio",
+        "thumbnail": "images/radio.gif"
       },
       {
         "id": "project10",
         "title": "Resume MarkDown Interpreter",
         "description": "A simple application that interprets a Markdown formatted resume and displays it in an HTML format.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "resume"
+        "link": "resume",
+        "thumbnail": "images/resume.png"
       },
       {
         "id": "project11",
         "title": "Sound Matrix",
         "description": "An interactive sound matrix where users can click on squares to generate tones with a grid-based interface.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "sounds"
+        "link": "sounds",
+        "thumbnail": "images/sounds.png"
       },
       {
         "id": "project12",
         "title": "Snake Game",
         "description": "A classic snake game where users control the snake to eat food and grow in length, avoiding collisions with itself.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "stribby-snake"
+        "link": "stribby-snake",
+        "thumbnail": "images/stribby-flock.png"
       },
       {
         "id": "project13",
         "title": "Sound Word Generator",
         "description": "A simple application that generates random words from a predefined list, useful for brainstorming or creative writing.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "words"
+        "link": "words",
+        "thumbnail": "images/words.png"
       },
       {
         "id": "project14",
         "title": "Waveform Examples",
         "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
         "image": "https://via.placeholder.com/600x400",
-        "thumbnail": "https://via.placeholder.com/300x200",
-        "link": "waves"
+        "link": "waves",
+        "thumbnail": "images/waves.png"
       }
     ]
   }
