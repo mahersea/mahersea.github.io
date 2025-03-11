@@ -111,6 +111,22 @@
         "image": "https://via.placeholder.com/600x400",
         "link": "waves",
         "thumbnail": "images/waves.png"
+      },
+      {
+        "id": "project15",
+        "title": "Explosion Module",
+        "description": "An example of an explosion simulation, showcasing basic collision physics and graphics.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "explosion",
+        "thumbnail": "images/explosion.png"
+      },
+      {
+        "id": "project16",
+        "title": "Tailwind CSS Explorer",
+        "description": "A simple application that allows users to play with the Tailwind CSS classes in a visual.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "tailwind-explorer",
+        "thumbnail": "images/tailwindcss.png"
       }
     ]
   }

@@ -1,0 +1,35 @@
+{
+    "KDTW": {
+      "code": "KDTW",
+      "name": "Detroit Metropolitan Wayne County Airport",
+      "city": "Detroit",
+      "state": "MI",
+      "country": "USA",
+      "coordinates": [150, -40]
+    },
+    "KSFO": {
+      "code": "KSFO",
+      "name": "San Francisco International Airport",
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "USA",
+      "coordinates": [-270, 0]
+    },
+    "KSRQ": {
+      "code": "KSRQ",
+      "name": "Sarasota Bradenton International Airport",
+      "city": "Sarasota",
+      "state": "FL",
+      "country": "USA",
+      "coordinates": [180, 160]
+    },
+    "KSMF": {
+      "code": "KSMF",
+      "name": "Sacramento International Airport",
+      "city": "Sacramento",
+      "state": "CA",
+      "country": "USA",
+      "coordinates": [-250, -20]
+    }
+  }
+  

@@ -27,7 +27,8 @@ function createExplosion(x, y) {
 // Function to draw particles
 function drawParticles() {
     particles.forEach((particle, index) => {
-        ctx.fillStyle = `rgba(255, 69, 0, ${particle.alpha})`; // Fade out effect
+        ctx.fillStyle = `rgba(0, 211, 255, ${particle.alpha})`; // Fade out effect
+        //00d3ff
         ctx.fillRect(particle.x, particle.y, PARTICLE_SIZE, PARTICLE_SIZE);
 
         // Update particle position

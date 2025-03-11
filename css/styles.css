@@ -172,11 +172,13 @@
   }
   
   .project-card h3 {
+    color:#ece7fc;
     margin: 2px;
     font-size: 1.5rem;
     max-height: 20px;
     overflow: hidden;
     font-size: 14px;
+    z-index: 10;
   }
   
   .project-card p {

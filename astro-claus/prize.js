@@ -18,7 +18,8 @@ function drawBackground() {
 function drawPrize() {
   const prizeWidth = 600;
   const prizeHeight = 600;
-  const x = (prizeWidth - canvas.width ) / 3;
+  // center prize on canvas
+  const x = (prizeWidth - canvas.width * 0.95) / 3;
   const y = (canvas.height - prizeHeight) - 35;
   ctx.drawImage(prize, x, y, prizeWidth, prizeHeight);
 }
