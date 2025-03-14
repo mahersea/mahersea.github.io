@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fourier Series for a Square Wave</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #fff;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    input[type="range"] {
+      margin: 10px;
+    }
+    button {
+      margin: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fourier Series for a Square Wave</h1>
+  <div class="controls">
+    <label for="termsSlider">Number of Terms: </label>
+    <input type="range" id="termsSlider" min="1" max="25" value="5">
+    <span id="termsDisplay">5</span>
+    <button id="pauseBtn">Pause</button>
+  </div>
+  <canvas id="canvas" width="1200" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const termsSlider = document.getElementById('termsSlider');
+    const termsDisplay = document.getElementById('termsDisplay');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    let numTerms = parseInt(termsSlider.value);
+    termsDisplay.textContent = numTerms;
+
+    termsSlider.addEventListener('input', () => {
+      numTerms = parseInt(termsSlider.value);
+      termsDisplay.textContent = numTerms;
+    });
+
+    let time = 0;
+    let wave = [];
+    let isPaused = false;
+
+    pauseBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+      if (!isPaused) animate();
+    });
+
+    function animate() {
+      if (isPaused) return;
+      
+      // Clear the canvas
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Starting point for epicycles (left side of canvas)
+      const originX = 200;
+      const originY = canvas.height / 2;
+      let x = originX;
+      let y = originY;
+
+      // Draw the series of epicycles
+      for (let i = 0; i < numTerms; i++) {
+        let prevX = x;
+        let prevY = y;
+        // Only odd harmonics contribute: n = 2*i + 1
+        let n = 2 * i + 1;
+        // The radius for each term: scaling factor (75) adjusts the overall size.
+        let radius = (4 / (n * Math.PI)) * 75;
+        x += radius * Math.cos(n * time);
+        y += radius * Math.sin(n * time);
+
+        // Draw the circle representing this term
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(prevX, prevY, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw the vector (line) from the center of the circle to its tip
+        ctx.strokeStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+
+      // Draw a horizontal line from the tip of the final vector to the waveform graph
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(400, y);
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+
+      // Add the new value (y) to the beginning of the wave array
+      wave.unshift(y);
+
+      // Draw the waveform (square wave approximation) on the right side of canvas
+      ctx.beginPath();
+      ctx.moveTo(400, wave[0]);
+      for (let i = 1; i < wave.length; i++) {
+        ctx.lineTo(400 + i, wave[i]);
+      }
+      ctx.strokeStyle = '#ff0000';
+      ctx.stroke();
+
+      // Limit the length of the wave for performance
+      if (wave.length > 600) {
+        wave.pop();
+      }
+
+      // Increment time to animate the rotation of the epicycles
+      time += 0.05;
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lorenz Attractor Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    button, input[type="range"] {
+      padding: 5px 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .text {
+      text-align: left;
+      margin: 20px;
+      font-size: 18px;
+      width: 800px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lorenz Attractor Visualization</h1>
+  <div class="container">
+    <div class="text">
+        The differential equations:
+        x˙=σ(y−x),
+        y˙=x(ρ−z)−y,
+        and z˙=xy−βz,
+        are integrated using Euler’s method with a time step dt. σ, ρ, and β are constants.
+    </div>
+  </div>
+  <div class="controls">
+    <button id="pauseBtn">Pause</button>
+    <label for="dtRange">Time Step (dt): </label>
+    <input type="range" id="dtRange" min="1" max="100" value="10">
+    <span id="dtValue">0.010</span>
+    <label for="fadeCheck">Fade Trail: </label>
+    <input type="checkbox" id="fadeCheck" checked>
+  </div>
+  <canvas id="canvas" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const dtRange = document.getElementById('dtRange');
+    const dtValue = document.getElementById('dtValue');
+    const fadeCheck = document.getElementById('fadeCheck');
+
+    // Lorenz attractor parameters (classic values)
+    const sigma = 10;
+    const rho = 28;
+    const beta = 8 / 3;
+
+    // Initial conditions
+    let x = 0.1, y = 0, z = 0;
+
+    // Simulation parameters
+    let dt = dtRange.value / 1000; // dt in seconds
+    dtValue.textContent = dt.toFixed(3);
+
+    // Mapping parameters (projecting x and z onto the canvas)
+    // These values are chosen to roughly center and scale the attractor.
+    const scaleX = 16;   // scales x coordinate
+    const scaleZ = 10;   // scales z coordinate
+    const zCenter = 30;  // approximate center for z values
+
+    // Animation variables
+    let isAnimating = true;
+    let animationId;
+    let trailPoints = [];
+    const maxTrailLength = 20000;
+
+    // Update dt when the slider changes.
+    dtRange.addEventListener('input', () => {
+      dt = dtRange.value / 1000;
+      dtValue.textContent = dt.toFixed(3);
+    });
+
+    // Pause/Resume button.
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    });
+
+    // Function to map Lorenz attractor coordinates (x, z) to canvas coordinates.
+    function mapToCanvas(x, z) {
+      return {
+        x: canvas.width / 2 + x * scaleX,
+        y: canvas.height / 2 - (z - zCenter) * scaleZ
+      };
+    }
+
+    // Animation loop: update the system with Euler's method and draw the trail.
+    function animate() {
+      // Compute the next step using Euler integration.
+      let dx = sigma * (y - x);
+      let dy = x * (rho - z) - y;
+      let dz = x * y - beta * z;
+      x += dx * dt;
+      y += dy * dt;
+      z += dz * dt;
+
+      // Store the current (x, z) for the trail.
+      trailPoints.push({ x, z, age: 0 });
+      if (trailPoints.length > maxTrailLength) {
+        trailPoints.shift();
+      }
+
+      // Clear the canvas with a fading effect if enabled.
+      if (fadeCheck.checked) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Draw the trail.
+      for (let i = 0; i < trailPoints.length; i++) {
+        let pt = trailPoints[i];
+        pt.age++;  // Increase the age of the point.
+        // Calculate opacity based on age.
+        let opacity = fadeCheck.checked ? Math.max(0, 1 - pt.age / maxTrailLength) : 1;
+        const canvasPt = mapToCanvas(pt.x, pt.z);
+        // Vary hue along the trail for a dynamic effect.
+        const hue = (pt.age / maxTrailLength) * 360;
+        ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${opacity})`;
+        ctx.beginPath();
+        ctx.arc(canvasPt.x, canvasPt.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Highlight the current point with a larger, bright red dot.
+      const currentPt = mapToCanvas(x, z);
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(currentPt.x, currentPt.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Continue the animation if active.
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Initialize the canvas.
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Start the simulation.
+    animate();
+  </script>
+</body>
+</html>

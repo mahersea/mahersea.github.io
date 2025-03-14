@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Double Pendulum Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #fff;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Double Pendulum Simulation</h1>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <div class="controls">
+    <button id="pauseBtn">Pause</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Pendulum parameters
+    const g = 1;            // gravitational acceleration (adjusted for visual effect)
+    const m1 = 10, m2 = 10;  // masses of the two bobs
+    const l1 = 200, l2 = 200; // lengths of the pendulum arms
+
+    // Initial conditions (angles in radians, angular velocities)
+    let theta1 = Math.PI / 2;
+    let theta2 = Math.PI / 2;
+    let omega1 = 0;
+    let omega2 = 0;
+
+    const dt = 0.05; // time step
+
+    // Origin for the first pendulum (pivot point)
+    const originX = canvas.width / 2;
+    const originY = 100;
+
+    // For tracing the path of the second bob
+    let trace = [];
+    const maxTraceLength = 1000;
+
+    // Animation control variables
+    let isAnimating = true;
+    let animationId;
+
+    // Control buttons
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      // Reset the pendulum to initial conditions and clear the trace.
+      theta1 = Math.PI / 2;
+      theta2 = Math.PI / 2;
+      omega1 = 0;
+      omega2 = 0;
+      trace = [];
+      clearCanvas();
+    });
+
+    function clearCanvas() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function animate() {
+      // Calculate the difference in angles.
+      const delta = theta1 - theta2;
+      
+      // Compute angular acceleration for theta1 (using the full double pendulum equations)
+      const denom1 = l1 * (2 * m1 + m2 - m2 * Math.cos(2 * delta));
+      const a1 = (-g * (2 * m1 + m2) * Math.sin(theta1)
+                - m2 * g * Math.sin(theta1 - 2 * theta2)
+                - 2 * Math.sin(delta) * m2 * (omega2 * omega2 * l2 + omega1 * omega1 * l1 * Math.cos(delta)))
+                / denom1;
+      
+      // Compute angular acceleration for theta2
+      const denom2 = l2 * (2 * m1 + m2 - m2 * Math.cos(2 * delta));
+      const a2 = (2 * Math.sin(delta) * (omega1 * omega1 * l1 * (m1 + m2)
+                + g * (m1 + m2) * Math.cos(theta1)
+                + omega2 * omega2 * l2 * m2 * Math.cos(delta)))
+                / denom2;
+      
+      // Update angular velocities and angles using Euler's method.
+      omega1 += a1 * dt;
+      omega2 += a2 * dt;
+      theta1 += omega1 * dt;
+      theta2 += omega2 * dt;
+
+      // Compute the (x, y) positions of the bobs.
+      const x1 = originX + l1 * Math.sin(theta1);
+      const y1 = originY + l1 * Math.cos(theta1);
+      const x2 = x1 + l2 * Math.sin(theta2);
+      const y2 = y1 + l2 * Math.cos(theta2);
+
+      // Save the current position of the second bob for the trace.
+      trace.push({ x: x2, y: y2 });
+      if (trace.length > maxTraceLength) trace.shift();
+
+      // Draw everything.
+      clearCanvas();
+
+      // Draw the trace of the second bob.
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+      ctx.beginPath();
+      for (let i = 0; i < trace.length; i++) {
+        if (i === 0) ctx.moveTo(trace[i].x, trace[i].y);
+        else ctx.lineTo(trace[i].x, trace[i].y);
+      }
+      ctx.stroke();
+
+      // Draw first pendulum arm.
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(originX, originY);
+      ctx.lineTo(x1, y1);
+      ctx.stroke();
+
+      // Draw second pendulum arm.
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // Draw first bob.
+      ctx.fillStyle = '#0f0';
+      ctx.beginPath();
+      ctx.arc(x1, y1, m1, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw second bob.
+      ctx.fillStyle = '#ff0';
+      ctx.beginPath();
+      ctx.arc(x2, y2, m2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Continue the animation loop.
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // Start the simulation.
+    animate();
+  </script>
+</body>
+</html>

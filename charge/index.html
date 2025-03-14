@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Charge Circuit Simulation - Color-Coded Curve</title>
+    <!-- p5.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Global variables for the circuit simulation.
+      let voltage = 0;         // Capacitor voltage (in volts)
+      let charging = false;    // True while charging (mouse pressed)
+      const V0 = 5;            // Maximum voltage (volts)
+      const R = 1000;          // Resistance (ohms)
+      const C = 0.001;         // Capacitance (farads)
+      const tau = R * C;       // RC time constant
+      let lastTime = 0;        // Time tracker
+      
+      // Array to record voltage history for the voltage–time graph.
+      let voltageHistory = [];
+      
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        textSize(16);
+        lastTime = millis();
+      }
+      
+      function draw() {
+        // Black background.
+        background(0);
+        
+        // Compute elapsed time (in seconds) since last frame.
+        let currentTime = millis();
+        let dt = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+        
+        // Update voltage using the RC charging/discharging formulas.
+        if (charging) {
+          // Charging: Voltage increases toward V0.
+          voltage = voltage + (V0 - voltage) * (1 - exp(-dt / tau));
+        } else {
+          // Discharging: Voltage decays.
+          voltage = voltage * exp(-dt / tau);
+        }
+        
+        // Display the current voltage and instructions.
+        fill(255);
+        noStroke();
+        text("Capacitor Voltage: " + voltage.toFixed(2) + " V", 20, 30);
+        text("Hold mouse to charge the capacitor, release to discharge.", 20, 50);
+        
+        // Draw the capacitor as a vertical bar on the right side.
+        const capX = width - 120;
+        const capY = 50;
+        const capWidth = 50;
+        const capHeight = 300;
+        fill(30); // Dark gray background for the capacitor.
+        rect(capX, capY, capWidth, capHeight);
+        
+        // Use vivid green when charging and vivid red when discharging.
+        let fillColor = charging ? [50, 205, 50] : [255, 69, 0];
+        fill(fillColor);
+        let filledHeight = map(voltage, 0, V0, 0, capHeight);
+        rect(capX, capY + capHeight - filledHeight, capWidth, filledHeight);
+        
+        // Draw the capacitor border in bright white.
+        stroke(255);
+        noFill();
+        rect(capX, capY, capWidth, capHeight);
+        
+        // Record the current voltage in history (for the voltage–time graph).
+        voltageHistory.push(voltage);
+        if (voltageHistory.length > width - 150) {
+          voltageHistory.shift();
+        }
+        
+        // Draw the voltage graph on the left side.
+        // Each segment is colored green when rising and red when falling,
+        // with older segments fading in brightness.
+        strokeWeight(2);
+        for (let i = 0; i < voltageHistory.length - 1; i++) {
+          // Calculate an alpha that increases from 0.2 (oldest) to 1 (most recent).
+          let alpha = map(i, 0, voltageHistory.length - 1, 0.2, 1);
+          let v1 = voltageHistory[i];
+          let v2 = voltageHistory[i + 1];
+          let x1 = i + 20;
+          let y1 = map(v1, 0, V0, capY + capHeight, capY);
+          let x2 = i + 1 + 20;
+          let y2 = map(v2, 0, V0, capY + capHeight, capY);
+          // Choose color based on whether the voltage is rising or falling.
+          let col;
+          if (v2 > v1) {
+            col = `rgba(50,205,50,${alpha})`; // Vivid green for rising.
+          } else if (v2 < v1) {
+            col = `rgba(255,69,0,${alpha})`;  // Vivid red for falling.
+          } else {
+            col = `rgba(255,165,0,${alpha})`; // Fallback vivid orange.
+          }
+          stroke(col);
+          line(x1, y1, x2, y2);
+        }
+      }
+      
+      // When the mouse is pressed, start charging the capacitor.
+      function mousePressed() {
+        charging = true;
+      }
+      
+      // When the mouse is released, let the capacitor discharge.
+      function mouseReleased() {
+        charging = false;
+      }
+      
+      // Adjust canvas size if the window is resized.
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+    </script>
+  </body>
+</html>

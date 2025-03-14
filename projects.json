@@ -59,18 +59,18 @@
       {
         "id": "project8",
         "title": "Planes",
-        "description": "A artistic representation of an API of airplane arrivals to MSP, showcasing basic physics and graphics.",
+        "description": "A artistic representation of an API of airplane arrivals to Minneapolis/Saint Paul airport (MSP), showcasing basic physics and graphics.",
         "image": "https://via.placeholder.com/600x400",
         "link": "planes",
         "thumbnail": "images/airplane.png"
       },
       {
         "id": "project9",
-        "title": "Radio",
-        "description": "An initial attempt to model a series of 'radio stations'",
+        "title": "Charge",
+        "description": "An initial attempt to model capacitor 'charge' and 'discharge'",
         "image": "https://via.placeholder.com/600x400",
-        "link": "radio",
-        "thumbnail": "images/radio.gif"
+        "link": "charge",
+        "thumbnail": "images/charge.png"
       },
       {
         "id": "project10",
@@ -135,6 +135,78 @@
         "image": "https://via.placeholder.com/600x400",
         "link": "irrational-pi",
         "thumbnail": "images/irrational-pi.png"
+      },
+      {
+        "id": "project18",
+        "title": "Flocking Simulation",
+        "description": "A simulation of flocking behavior, where entities move together in a group, showcasing flocking physics.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "boids",  
+        "thumbnail": "images/boids.png"
+      },
+      {
+        "id": "project19",
+        "title": "Capacitor Charge",
+        "description": "A simulation of capacitor charge and discharge, demonstrating basic electrical principles.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "charge",
+        "thumbnail": "images/charge.png"
+      },
+      {
+        "id": "project20",
+        "title": "Double Pendulum",
+        "description": "A simulation of a double pendulum, showcasing chaotic motion and basic physics principles.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "double-pendulum",
+        "thumbnail": "images/double-pendulum.png"
+      },
+      {
+        "id": "project21",
+        "title": "Euler's Identity",
+        "description": "An animated visualization of Euler's Identity, showcasing the beauty of mathematics through animation.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "eulers-identity",
+        "thumbnail": "images/eulers-identity.png"
+      },
+      {
+        "id": "project22",
+        "title": "Fourier Transform",
+        "description": "An animated visualization of the Fourier Transform, showcasing the transformation of signals from time domain to frequency domain.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "fourier-transform",
+        "thumbnail": "images/fourier-transform.png"
+      },
+      {
+        "id": "project23",
+        "title": "Lorenz Attractor",
+        "description": "An animated visualization of the Lorenz Attractor, showcasing chaotic behavior in a three-dimensional space.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "lorenz-attractor",
+        "thumbnail": "images/lorenz-attractor.png"
+      },
+      {
+        "id": "project24",
+        "title": "Lissajous Curve",
+        "description": "An animated visualization of the Lissajous Curve, showcasing complex harmonic motion.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "lissajous",
+        "thumbnail": "images/lissajous.png"
+      },
+      {
+        "id": "project25",
+        "title": "Mandelbrot Set",
+        "description": "An staic visualization of the Mandelbrot Set, showcasing the beauty of fractals and complex numbers.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "mandelbrot",
+        "thumbnail": "images/mandelbrot.png"
+      },
+      {
+        "id": "project26",
+        "title": "Spirograph",
+        "description": "An animated visualization of a Spirograph, showcasing intricate geometric patterns.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "spirograph",
+        "thumbnail": "images/spirograph.png"
       }
     ]
   }

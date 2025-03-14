@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualization of Euler's Identity</title>
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000000; 
+    }
+    .controls { 
+      margin: 10px auto; 
+      color: #ffffff;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin: 0 5px;
+    }
+    select {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .equation {
+      font-size: 24px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Visualization of Euler's Identity</h1>
+  <p class="equation">e<sup>iθ</sup> = cos(θ) + i·sin(θ)</p>
+  <p class="equation">When θ = π: e<sup>iπ</sup> + 1 = 0</p>
+  <div class="controls">
+    <button id="pauseBtn">Pause</button>
+    <select id="visualizationMode">
+      <option value="unitCircle">Unit Circle Path</option>
+      <option value="complexPlane">Complex Plane</option>
+      <option value="eulerSpiral">Euler Spiral</option>
+    </select>
+  </div>
+  <canvas id="canvas"></canvas>
+  <script>
+    // Get the canvas and context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas dimensions
+    canvas.width = 800;
+    canvas.height = 800;
+
+    // Center of the canvas
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // Scale factor to map to our canvas
+    const scale = canvas.width / 4;
+
+    // Animation variables
+    let animationId;
+    let isAnimating = true;
+    let theta = 0;
+    let speed = 0.01;
+    let trailPoints = [];
+    const maxTrailLength = 500;
+    let mode = "unitCircle";
+
+    // Controls
+    const pauseBtn = document.getElementById('pauseBtn');
+    const visualizationMode = document.getElementById('visualizationMode');
+
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    });
+
+    visualizationMode.addEventListener('change', () => {
+      mode = visualizationMode.value;
+      // Reset animation state
+      theta = 0;
+      trailPoints = [];
+      // Clear canvas
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Function to compute e^(iθ) using Euler's formula
+    function computeEuler(t) {
+      const x = Math.cos(t);
+      const y = Math.sin(t);
+      return { x, y };
+    }
+
+    // Function to map complex coordinates to canvas coordinates
+    function mapToCanvas(point) {
+      return {
+        x: cx + point.x * scale,
+        y: cy - point.y * scale  // Canvas y-axis is inverted
+      };
+    }
+
+    // Draw coordinate system
+    function drawCoordinateSystem() {
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)';
+      ctx.lineWidth = 1;
+      
+      // Draw axes
+      ctx.beginPath();
+      ctx.moveTo(0, cy);
+      ctx.lineTo(canvas.width, cy);
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, canvas.height);
+      ctx.stroke();
+      
+      // Draw unit circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, scale, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Label real and imaginary axes
+      ctx.fillStyle = 'rgba(200, 200, 200, 0.7)';
+      ctx.font = '16px Arial';
+      ctx.fillText('Re', canvas.width - 30, cy - 10);
+      ctx.fillText('Im', cx + 10, 30);
+      
+      // Mark points of interest
+      const points = [
+        { x: 1, y: 0, label: '1' },
+        { x: -1, y: 0, label: '-1' },
+        { x: 0, y: 1, label: 'i' },
+        { x: 0, y: -1, label: '-i' }
+      ];
+      
+      points.forEach(point => {
+        const canvasPoint = mapToCanvas(point);
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.7)';
+        ctx.fillText(point.label, canvasPoint.x + 10, canvasPoint.y - 10);
+      });
+    }
+
+    // Draw Euler visualization based on current mode
+    function drawEulerVisualization() {
+      switch(mode) {
+        case "unitCircle":
+          drawUnitCircleVisualization();
+          break;
+        case "complexPlane":
+          drawComplexPlaneVisualization();
+          break;
+        case "eulerSpiral":
+          drawEulerSpiralVisualization();
+          break;
+      }
+    }
+
+    // Unit Circle Visualization - showing e^(iθ) moving around the unit circle
+    function drawUnitCircleVisualization() {
+      // Compute the current point on the unit circle
+      const current = computeEuler(theta);
+      trailPoints.push({ point: current, age: 0 });
+      
+      if (trailPoints.length > maxTrailLength) {
+        trailPoints.shift();
+      }
+      
+      // Fade out
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw coordinate system
+      drawCoordinateSystem();
+      
+      // Draw trail
+      trailPoints.forEach(item => {
+        const canvasPoint = mapToCanvas(item.point);
+        item.age++;
+        
+        const opacity = 1 - (item.age / maxTrailLength);
+        const hue = (theta * 30) % 360;
+        ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${opacity})`;
+        
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Draw current point as a red dot
+      const canvasPoint = mapToCanvas(current);
+      
+      // Draw line from origin to current point
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(canvasPoint.x, canvasPoint.y);
+      ctx.stroke();
+      
+      // Draw red pen tip
+      const gradient = ctx.createRadialGradient(
+        canvasPoint.x, canvasPoint.y, 0,
+        canvasPoint.x, canvasPoint.y, 12
+      );
+      gradient.addColorStop(0, 'rgba(255, 50, 50, 1)');
+      gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.5)');
+      gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Show current angle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '18px Arial';
+      ctx.fillText(`θ = ${(theta % (2 * Math.PI)).toFixed(2)} radians`, 20, 30);
+      
+      // Highlight when θ = π (Euler's Identity)
+      const piDistance = Math.abs((theta % (2 * Math.PI)) - Math.PI);
+      if (piDistance < 0.05) {
+        ctx.fillStyle = `rgba(255, 215, 0, ${1 - piDistance / 0.05})`;
+        ctx.font = '24px Arial';
+        ctx.fillText("e^(iπ) = -1", cx - 60, cy - 40);
+      }
+    }
+
+    // Complex Plane Visualization - showing real and imaginary parts separately
+    function drawComplexPlaneVisualization() {
+      // Compute the current point
+      const current = computeEuler(theta);
+      
+      // Add to trail
+      trailPoints.push({ point: current, age: 0 });
+      
+      if (trailPoints.length > maxTrailLength) {
+        trailPoints.shift();
+      }
+      
+      // Fade out
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw coordinate system
+      drawCoordinateSystem();
+      
+      // Draw trail
+      trailPoints.forEach(item => {
+        const canvasPoint = mapToCanvas(item.point);
+        item.age++;
+        
+        const opacity = 1 - (item.age / maxTrailLength);
+        ctx.fillStyle = `rgba(100, 200, 255, ${opacity})`;
+        
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Get canvas point
+      const canvasPoint = mapToCanvas(current);
+      
+      // Draw projection lines to axes
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.setLineDash([5, 5]);
+      
+      // Projection to real axis
+      ctx.beginPath();
+      ctx.moveTo(canvasPoint.x, canvasPoint.y);
+      ctx.lineTo(canvasPoint.x, cy);
+      ctx.stroke();
+      
+      // Projection to imaginary axis
+      ctx.beginPath();
+      ctx.moveTo(canvasPoint.x, canvasPoint.y);
+      ctx.lineTo(cx, canvasPoint.y);
+      ctx.stroke();
+      
+      // Reset line dash
+      ctx.setLineDash([]);
+      
+      // Draw real and imaginary components
+      ctx.fillStyle = 'rgba(100, 255, 100, 0.8)'; // Green for real
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255, 100, 255, 0.8)'; // Purple for imaginary
+      ctx.beginPath();
+      ctx.arc(cx, canvasPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Label the components
+      ctx.fillStyle = 'rgba(100, 255, 100, 0.8)';
+      ctx.font = '16px Arial';
+      ctx.fillText(`cos(θ) = ${current.x.toFixed(2)}`, canvasPoint.x + 10, cy - 10);
+      
+      ctx.fillStyle = 'rgba(255, 100, 255, 0.8)';
+      ctx.fillText(`sin(θ) = ${current.y.toFixed(2)}`, cx + 10, canvasPoint.y - 10);
+      
+      // Draw the current point as a red dot
+      const gradient = ctx.createRadialGradient(
+        canvasPoint.x, canvasPoint.y, 0,
+        canvasPoint.x, canvasPoint.y, 12
+      );
+      gradient.addColorStop(0, 'rgba(255, 50, 50, 1)');
+      gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.5)');
+      gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Show current angle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '18px Arial';
+      ctx.fillText(`θ = ${(theta % (2 * Math.PI)).toFixed(2)} radians`, 20, 30);
+      
+      // Highlight when θ = π (Euler's Identity)
+      const piDistance = Math.abs((theta % (2 * Math.PI)) - Math.PI);
+      if (piDistance < 0.05) {
+        ctx.fillStyle = `rgba(255, 215, 0, ${1 - piDistance / 0.05})`;
+        ctx.font = '24px Arial';
+        ctx.fillText("e^(iπ) = -1", cx - 60, cy - 40);
+      }
+    }
+
+    // Euler Spiral Visualization - showing e^(it) for varying t
+    function drawEulerSpiralVisualization() {
+      // In this mode, we transform theta to create a spiral
+      // by multiplying the radius by a factor that increases with theta
+      const spiralFactor = 0.01;
+      const current = computeEuler(theta);
+      
+      // Scale the point to create a spiral effect
+      const spiralTheta = theta % (10 * Math.PI);
+      const scaleFactor = 1 + spiralTheta * spiralFactor;
+      const spiralPoint = {
+        x: current.x * scaleFactor,
+        y: current.y * scaleFactor
+      };
+      
+      trailPoints.push({ point: spiralPoint, age: 0 });
+      
+      if (trailPoints.length > maxTrailLength * 2) {
+        trailPoints.shift();
+      }
+      
+      // Fade out
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw a simpler coordinate system
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(0, cy);
+      ctx.lineTo(canvas.width, cy);
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, canvas.height);
+      ctx.stroke();
+      
+      // Draw trail with color gradient based on position
+      trailPoints.forEach(item => {
+        const canvasPoint = mapToCanvas(item.point);
+        item.age++;
+        
+        const distanceFromOrigin = Math.sqrt(item.point.x * item.point.x + item.point.y * item.point.y);
+        const hue = (distanceFromOrigin * 20) % 360;
+        const opacity = 1 - (item.age / (maxTrailLength * 2));
+        
+        ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${opacity})`;
+        
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Draw the current point as a red dot
+      const canvasPoint = mapToCanvas(spiralPoint);
+      
+      const gradient = ctx.createRadialGradient(
+        canvasPoint.x, canvasPoint.y, 0,
+        canvasPoint.x, canvasPoint.y, 12
+      );
+      gradient.addColorStop(0, 'rgba(255, 50, 50, 1)');
+      gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.5)');
+      gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Show current position info
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '18px Arial';
+      ctx.fillText(`θ = ${(theta % (2 * Math.PI)).toFixed(2)} radians`, 20, 30);
+      ctx.fillText(`r = ${scaleFactor.toFixed(2)}`, 20, 60);
+      
+      // Show explanation
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.font = '16px Arial';
+      ctx.fillText(`This spiral visualizes e^(iθ) with increasing radius`, 20, canvas.height - 30);
+    }
+
+    // Animation loop
+    function animate() {
+      drawEulerVisualization();
+      
+      // Increment theta
+      theta += speed;
+      
+      // Continue animation
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Start the animation
+    animate();
+  </script>
+</body>
+</html>
