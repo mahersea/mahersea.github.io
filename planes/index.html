@@ -1,144 +1,643 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSP Flight Visualization Over Time</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #1c1c1c;
-            color: white;
-            text-align: center;
-        }
-        h3 {
-            margin-top: 20px;
-            font-family: 'Arial', sans-serif;
-        }
-        #canvas-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 80vh;
-            margin-top: 20px;
-        }
-        canvas {
-            border: 2px solid white;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSP Flight Arrivals and Departures</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #121824;
+      color: white;
+      font-family: 'Arial', sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h3 {
+      margin-top: 20px;
+      text-align: center;
+    }
+    p {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+      margin-top: 20px;
+    }
+    canvas {
+      border: 2px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 100, 255, 0.2);
+    }
+    .loading {
+      color: #4285f4;
+      font-size: 24px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .error {
+      color: #ea4335;
+      text-align: center;
+      margin-top: 40px;
+      padding: 15px;
+      background-color: rgba(234, 67, 53, 0.1);
+      border-radius: 5px;
+      display: none;
+    }
+    #legend {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .btn-control {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn-control:hover {
+      background-color: #34495e;
+    }
+    .btn-control.active {
+      background-color: #3498db;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <h3>MSP Flight Visualization Over Time</h3>
-        <p>This project visualizes flights departing from MSP with colorful streaks fading over 5 minutes, using flight data from the OpenSky API. Each plane’s streak will appear gradually over the period, including the departure time.</p>
-
-        <div id="canvas-container">
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-            <script>
-                let planes = [];
-                let planeIndex = 0;
-                let totalTime = 200; // Total time in seconds (5 minutes)
-                let interval;
-
-                function setup() {
-                  let canvas = createCanvas(windowWidth * 0.8, windowHeight * 0.7);
-                  canvas.parent('canvas-container');
-                  fetchFlightData(); // Fetch flight data from OpenSky API
-                }
-
-
-                function draw() {
-                  background(0); // Set dark background
-                  for (let i = 0; i < planes.length; i++) {
-                      planes[i].update();
-                      planes[i].show();
-                  }
-                }
-
-                class Plane {
-                  constructor(x, y, flightNumber, airline, destination, speed, time) {
-                    this.x = x;
-                    this.y = y;
-                    this.flightNumber = flightNumber;
-                    this.airline = airline;
-                    this.destination = destination;
-                    this.speed = .3; // Speed default if not provided
-                    this.verticalSpeed = random(0.2, 1); // Vertical speed for downward movement
-                    this.opacity = 255; // Opacity for fading effect
-                    this.time = time; // Departure time
-                  }
-
-                  update() {
-                      this.x += this.speed; // Move the plane horizontally
-                      this.y += this.verticalSpeed; // Drift the plane downward
-                      this.opacity -= .5; // Gradually fade the line
-                  }
-
-                  show() {
-                      stroke(255, this.opacity); // Set stroke with fading opacity
-                      line(this.x, this.y, this.x - 20, this.y); // Draw streak
-
-                      textSize(12);
-                      fill(255, this.opacity);
-                      text(`${this.flightNumber} to ${this.destination}`, this.x - 30, this.y - 10);
-                      
-                      // Display the time below the flight number in dark red and larger
-                      // padding on top of the text
-                      textSize(28);
-                      fill(139, 0, 0, this.opacity); // Dark red with fading effect
-                      text(this.time, this.x - 30, this.y + 15);
-                  }
-              }
-
-
-                // Fetch flight data from OpenSky API
-                async function fetchFlightData() {
-                    const apiUrl = 'https://opensky-network.org/api/flights/arrival?airport=KMSP&begin=1609459200&end=1609545600';
-                    
-                    try {
-                        const response = await fetch(apiUrl);
-                        const data = await response.json();
-                        console.log(data); // Log data for debugging
-                        
-                        // Spread flight introductions over 5 minutes
-                        let delayBetweenPlanes = (totalTime * 3000) / data.length;
-                        
-                        interval = setInterval(() => {
-                            if (planeIndex < data.length) {
-                                let flight = data[planeIndex];
-
-                                // Convert Unix timestamp to readable time format
-                                let departureTime = flight.firstSeen ? new Date(flight.firstSeen * 1000).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: true }) : 'Unknown Time';
-
-                                // Add a new plane at random vertical positions
-                                planes.push(new Plane(
-                                  100, // Starting x position
-                                  random(0, height * 0.2), // Starting y position near the top of the canvas
-                                  flight.callsign || 'Unknown', // Flight number
-                                  'MSP', // Origin MSP
-                                  flight.estArrivalAirport || 'Unknown Destination', // Destination
-                                  2, // Speed
-                                  departureTime
-                                ));
-
-                                planeIndex++;
-                            } else {
-                                clearInterval(interval); // Stop after all planes are added
-                            }
-                        }, delayBetweenPlanes); // Interval calculated based on number of flights
-
-                    } catch (error) {
-                        console.error('Error fetching flight data:', error);
-                    }
-                }
-
-            </script>
-        </div>
+  <div class="container">
+    <h3>MSP Flight Arrivals and Departures</h3>
+    <p>
+      This visualization shows both arriving (green) and departing (blue) flights at Minneapolis-Saint Paul International Airport (MSP). Data sourced from the OpenSky Network API.
+    </p>
+    
+    <div class="controls">
+      <button id="btn-both" class="btn-control active">Show Both</button>
+      <button id="btn-arrivals" class="btn-control">Arrivals Only</button>
+      <button id="btn-departures" class="btn-control">Departures Only</button>
+      <button id="btn-toggle-labels" class="btn-control">Toggle Labels</button>
+      <button id="btn-reload" class="btn-control" onclick="window.location.reload();">Relresh</button>
+      <!-- Slider Control for Time Speed -->
+      <div class="slider-container" style="display: flex; align-items: center; gap: 10px;">
+        <label for="timeSlider" style="margin: 0; color: white;">Time Warp:</label>
+        <input type="range" id="timeSlider" min=".1" max="10" step="0.1" value=".5">
+        <span id="timeSpeedValue">1.0x</span>
+      </div>
     </div>
+    
+    <div id="loading" class="loading">Loading flight data...</div>
+    <div id="error" class="error">Error loading flight data. Using sample data instead.</div>
+    
+    <div id="canvas-container">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+      <script>
+        let planes = [];
+        let planeIndex = 0;
+        let totalTime = 300; // Total time in seconds (5 minutes)
+        let interval;
+        let airportCoordinates = {};
+        let mapCenterX, mapCenterY;
+        let showLabels = true;
+        let showArrivals = true;
+        let showDepartures = true;
+        let timeMultiplier = 1; // Global multiplier for speeding up time
+        
+        // Flight board arrays
+        let arrivalList = [];
+        let departureList = [];
+        
+        // Sample data in case API fails
+        const sampleArrivals = [
+          {callsign: "DAL1234", estDepartureAirport: "KJFK", estArrivalAirport: "KMSP", firstSeen: Date.now()/1000 - 3600},
+          {callsign: "UAL789", estDepartureAirport: "KORD", estArrivalAirport: "KMSP", firstSeen: Date.now()/1000 - 3500},
+          {callsign: "AAL456", estDepartureAirport: "KDFW", estArrivalAirport: "KMSP", firstSeen: Date.now()/1000 - 3400},
+          {callsign: "SWA123", estDepartureAirport: "KDEN", estArrivalAirport: "KMSP", firstSeen: Date.now()/1000 - 3300},
+          {callsign: "JBU567", estDepartureAirport: "KBOS", estArrivalAirport: "KMSP", firstSeen: Date.now()/1000 - 3200}
+        ];
+        
+        const sampleDepartures = [
+          {callsign: "DAL5678", estDepartureAirport: "KMSP", estArrivalAirport: "KJFK", lastSeen: Date.now()/1000 - 3600},
+          {callsign: "UAL9012", estDepartureAirport: "KMSP", estArrivalAirport: "KORD", lastSeen: Date.now()/1000 - 3500},
+          {callsign: "AAL3456", estDepartureAirport: "KMSP", estArrivalAirport: "KDFW", lastSeen: Date.now()/1000 - 3400},
+          {callsign: "SWA7890", estDepartureAirport: "KMSP", estArrivalAirport: "KDEN", lastSeen: Date.now()/1000 - 3300},
+          {callsign: "JBU1234", estDepartureAirport: "KMSP", estArrivalAirport: "KBOS", lastSeen: Date.now()/1000 - 3200}
+        ];
+        
+        // Airport coordinates (simplified for visualization purposes)
+        function setupAirportCoordinates() {
+          // This is a simplified map for visualization - not geographically accurate
+            const eastWestIndex = 2;
+            const northSouthIndex = 2;
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+          airportCoordinates = {
+            "KMSP": [0, 0], // Center (MSP)
+            "KJFK": [200, -50], // New York
+            "KORD": [120, 20], // Chicago
+            "KDFW": [-50, 150], // Dallas
+            "KDEN": [-100, 50], // Denver
+            "KSEA": [-250, -150], // Seattle
+            "KPHX": [-150, 150], // Phoenix
+            "KBOS": [220, -80], // Boston
+            "KSFO": [-270, 0], // San Francisco
+            "KLAX": [-250, 100], // Los Angeles
+            "KATL": [150, 120], // Atlanta
+            "KLAS": [-200, 100], // Las Vegas
+            "KMIA": [180, 180], // Miami
+            "UNKNOWN": [0, 0] // For airports without coordinates
+          };
+
+          // scale airport coordinates based on eastWestIndex and northSouthIndex
+            for (const [code, coords] of Object.entries(airportCoordinates)) {
+                airportCoordinates[code] = [coords[0] * eastWestIndex, coords[1] * northSouthIndex];
+            }
+        }
+        
+        // Map airport codes to friendly names
+        function getAirportName(code) {
+          const airportNames = {
+            "KMSP": "Minneapolis",
+            "KJFK": "New York JFK",
+            "KORD": "Chicago",
+            "KDFW": "Dallas",
+            "KDEN": "Denver",
+            "KSEA": "Seattle",
+            "KPHX": "Phoenix",
+            "KBOS": "Boston",
+            "KSFO": "San Francisco",
+            "KLAX": "Los Angeles",
+            "KATL": "Atlanta",
+            "KLAS": "Las Vegas",
+            "KMIA": "Miami"
+          };
+          return airportNames[code] || code;
+        }
+        
+        // Get airline name from callsign
+        function getAirlineName(callsign) {
+          if (!callsign) return "Unknown";
+          
+          const prefixes = {
+            "DAL": "Delta",
+            "UAL": "United",
+            "AAL": "American",
+            "SWA": "Southwest",
+            "JBU": "JetBlue",
+            "ASA": "Alaska",
+            "FFT": "Frontier",
+            "SKW": "SkyWest",
+            "SCX": "Sun Country"
+          };
+          
+          for (const prefix in prefixes) {
+            if (callsign.startsWith(prefix)) {
+              return prefixes[prefix];
+            }
+          }
+          
+          return callsign.substring(0, 3);
+        }
+        
+        // Generate a color based on the airline
+        function getAirlineColor(callsign) {
+          if (!callsign) return [255, 255, 255]; // White for unknown
+          
+          const airlineColors = {
+            "DAL": [215, 0, 0],
+            "UAL": [0, 0, 215],
+            "AAL": [0, 0, 255],
+            "SWA": [240, 135, 0],
+            "JBU": [0, 180, 255],
+            "ASA": [0, 175, 80],
+            "FFT": [0, 200, 80],
+            "SKW": [150, 150, 255],
+            "SCX": [255, 165, 0]
+          };
+          
+          for (const prefix in airlineColors) {
+            if (callsign.startsWith(prefix)) {
+              return airlineColors[prefix];
+            }
+          }
+          
+          // Generate a random but consistent color based on first 3 letters
+          const hash = callsign.substring(0, 3).split('').reduce((a, b) => {
+            a = ((a << 5) - a) + b.charCodeAt(0);
+            return a & a;
+          }, 0);
+          
+          return [
+            (hash & 0xFF0000) >> 16,
+            (hash & 0x00FF00) >> 8,
+            hash & 0x0000FF
+          ];
+        }
+        
+        function setup() {
+          let canvas = createCanvas(windowWidth * 0.8, windowHeight * 0.7);
+          canvas.parent('canvas-container');
+          
+          setupAirportCoordinates();
+          mapCenterX = width / 2;
+          mapCenterY = height / 2;
+          
+          // Set up button event listeners
+          document.getElementById('btn-both').addEventListener('click', function() {
+            showArrivals = true;
+            showDepartures = true;
+            setActiveButton('btn-both');
+          });
+          
+          document.getElementById('btn-arrivals').addEventListener('click', function() {
+            showArrivals = true;
+            showDepartures = false;
+            setActiveButton('btn-arrivals');
+          });
+          
+          document.getElementById('btn-departures').addEventListener('click', function() {
+            showArrivals = false;
+            showDepartures = true;
+            setActiveButton('btn-departures');
+          });
+          
+          document.getElementById('btn-toggle-labels').addEventListener('click', function() {
+            showLabels = !showLabels;
+            this.classList.toggle('active');
+          });
+          
+          // Slider for time speed
+          document.getElementById('timeSlider').addEventListener('input', function() {
+            timeMultiplier = parseFloat(this.value);
+            document.getElementById('timeSpeedValue').textContent = timeMultiplier.toFixed(1) + 'x';
+          });
+          
+          // Fetch flight data from OpenSky API
+          fetchFlightData();
+          
+          // Hide loading indicator after 10 seconds if still visible
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+          }, 10000);
+        }
+        
+        // Set active button state
+        function setActiveButton(buttonId) {
+          document.querySelectorAll('.btn-control').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          document.getElementById(buttonId).classList.add('active');
+        }
+        
+        function draw() {
+          background(30, 0, 90);
+          
+          // Draw a subtle grid
+          stroke(30, 40, 60);
+          strokeWeight(1);
+          for (let i = 0; i < width; i += 50) {
+            line(i, 0, i, height);
+          }
+          for (let i = 0; i < height; i += 50) {
+            line(0, i, width, i);
+          }
+          
+          // Draw other airport locations
+          for (const [code, coords] of Object.entries(airportCoordinates)) {
+            if (code !== "KMSP" && code !== "UNKNOWN") {
+              const x = mapCenterX + coords[0];
+              const y = mapCenterY + coords[1];
+              stroke(80, 100, 140);
+              strokeWeight(1);
+              fill(40, 60, 100);
+              ellipse(x, y, 8, 8);
+              
+              if (showLabels) {
+                noStroke();
+                fill(150, 170, 200);
+                textSize(10);
+                textAlign(CENTER, CENTER);
+                text(getAirportName(code), x, y - 12);
+              }
+            }
+          }
+          
+          // Draw MSP at center
+          stroke(100, 200, 255);
+          strokeWeight(2);
+          fill(0, 100, 200);
+          ellipse(mapCenterX, mapCenterY, 15, 15);
+          
+          noStroke();
+          fill(255);
+          textSize(14);
+          textAlign(CENTER, CENTER);
+          text("MSP", mapCenterX, mapCenterY - 20);
+          
+          // Draw all planes (only if they meet the filter conditions)
+          for (let i = 0; i < planes.length; i++) {
+            if ((planes[i].isArrival && showArrivals) || (!planes[i].isArrival && showDepartures)) {
+              planes[i].update();
+              planes[i].show();
+            }
+          }
+          
+          // Remove planes that have completely faded
+          planes = planes.filter(plane => plane.opacity > 0);
+          
+          // Draw flight board overlay on top 30% of the canvas
+          drawFlightBoard();
+        }
+        
+        // Flight board overlay drawing function
+        function drawFlightBoard() {
+          push();
+          fill(0, 0, 0, 100); // Semi-transparent dark background
+          noStroke();
+          rect(0, 0, width, height * 0.1);
+          
+          // small green text
+          fill(0, 100, 0);
+          textSize(4);
+          textAlign(LEFT, TOP);
+          
+          const padding = 5;
+          const rowHeight = 8;
+          //const maxRows = Math.floor((height * 0.3 - 20) / rowHeight);
+          maxRows = 100;
+          console.log('planes.length:', planes.length);
+          
+          // Column headings
+          text("Departures", padding, padding);
+          text("Arrivals", width - 80 + padding, padding);
+          
+          // Departures list (left column)
+          for (let i = 0; i < Math.min(departureList.length, maxRows); i++) {
+            const flight = departureList[i];
+            const timeStr = flight.lastSeen ? 
+              new Date(flight.lastSeen * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 
+              'Unknown';
+            const dest = flight.estArrivalAirport || "Unknown";
+            const lineStr = `${flight.callsign} to ${dest} (${timeStr})`;
+            text(lineStr, padding, padding + rowHeight * (i + 1));
+          }
+          
+          // Arrivals list (right column)
+          for (let i = 0; i < Math.min(arrivalList.length, maxRows); i++) {
+            const flight = arrivalList[i];
+            const timeStr = flight.firstSeen ? 
+              new Date(flight.firstSeen * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 
+              'Unknown';
+            const origin = flight.estDepartureAirport || "Unknown";
+            const lineStr = `${flight.callsign} from ${origin} (${timeStr})`;
+            text(lineStr, width - 80 + padding, padding + rowHeight * (i + 1));
+          }
+          pop();
+        }
+        
+        class Plane {
+          constructor(flight, isArrival) {
+            this.isArrival = isArrival;
+            if (isArrival) {
+              const originCode = flight.estDepartureAirport || "UNKNOWN";
+              let originCoords = airportCoordinates[originCode];
+              if (!originCoords) {
+                const angle = random(0, TWO_PI);
+                const distance = random(150, 300);
+                originCoords = [cos(angle) * distance, sin(angle) * distance];
+              }
+              this.startX = mapCenterX + originCoords[0];
+              this.startY = mapCenterY + originCoords[1];
+              this.x = this.startX;
+              this.y = this.startY;
+              this.targetX = mapCenterX;
+              this.targetY = mapCenterY;
+              this.origin = getAirportName(flight.estDepartureAirport || "Unknown");
+              this.destination = "Minneapolis (MSP)";
+              this.flightTime = flight.firstSeen ? 
+                new Date(flight.firstSeen * 1000).toLocaleTimeString('en-US', 
+                { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: true }) : 
+                'Unknown';
+              this.baseColor = [0, 180, 120]; // Green for arrivals
+            } else {
+              const destCode = flight.estArrivalAirport || "UNKNOWN";
+              let destCoords = airportCoordinates[destCode];
+              if (!destCoords) {
+                const angle = random(0, TWO_PI);
+                const distance = random(150, 300);
+                destCoords = [cos(angle) * distance, sin(angle) * distance];
+              }
+              this.startX = mapCenterX;
+              this.startY = mapCenterY;
+              this.x = this.startX;
+              this.y = this.startY;
+              this.targetX = mapCenterX + destCoords[0];
+              this.targetY = mapCenterY + destCoords[1];
+              this.origin = "Minneapolis (MSP)";
+              this.destination = getAirportName(flight.estArrivalAirport || "Unknown");
+              this.flightTime = flight.lastSeen ? 
+                new Date(flight.lastSeen * 1000).toLocaleTimeString('en-US', 
+                { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: true }) : 
+                'Unknown';
+              this.baseColor = [50, 120, 255]; // Blue for departures
+            }
+            
+            this.dirX = this.targetX - this.startX;
+            this.dirY = this.targetY - this.startY;
+            const length = sqrt(this.dirX * this.dirX + this.dirY * this.dirY);
+            this.dirX = (this.dirX / length) * 0.5;
+            this.dirY = (this.dirY / length) * 0.5;
+            
+            this.callsign = flight.callsign || "Unknown";
+            this.airline = getAirlineName(flight.callsign);
+            let airlineColor = getAirlineColor(flight.callsign);
+            this.color = [
+              (airlineColor[0] * 0.7 + this.baseColor[0] * 0.3),
+              (airlineColor[1] * 0.7 + this.baseColor[1] * 0.3),
+              (airlineColor[2] * 0.7 + this.baseColor[2] * 0.3)
+            ];
+            
+            this.opacity = 255;
+            this.fadingRate = random(0.3, 0.7);
+            this.thickness = random(1.5, 3);
+            this.trail = [];
+            this.maxTrailLength = 50;
+            this.progress = 0;
+          }
+          
+          update() {
+            // Multiply movement by timeMultiplier for accelerated motion
+            this.x += this.dirX * timeMultiplier;
+            this.y += this.dirY * timeMultiplier;
+            
+            this.trail.push({x: this.x, y: this.y});
+            if (this.trail.length > this.maxTrailLength) {
+              this.trail.shift();
+            }
+            
+            const dx = this.x - this.startX;
+            const dy = this.y - this.startY;
+            const totalDx = this.targetX - this.startX;
+            const totalDy = this.targetY - this.startY;
+            this.progress = Math.min(1.0, (dx*dx + dy*dy) / (totalDx*totalDx + totalDy*totalDy));
+            
+            if (this.progress > 0.8) {
+              this.opacity -= this.fadingRate * 2;
+            } else {
+              this.opacity -= this.fadingRate * 0.5;
+            }
+          }
+          
+          show() {
+            noFill();
+            for (let i = 1; i < this.trail.length; i++) {
+              const segmentOpacity = map(i, 0, this.trail.length, 0, this.opacity);
+              stroke(this.color[0], this.color[1], this.color[2], segmentOpacity);
+              strokeWeight(map(i, 0, this.trail.length, 0, this.thickness));
+              line(this.trail[i-1].x, this.trail[i-1].y, this.trail[i].x, this.trail[i].y);
+            }
+            
+            fill(this.color[0], this.color[1], this.color[2], this.opacity);
+            noStroke();
+            push();
+            translate(this.x, this.y);
+            const angle = atan2(this.dirY, this.dirX);
+            rotate(angle);
+            triangle(0, 0, -10, -4, -10, 4);
+            pop();
+            
+            if (showLabels) {
+              textAlign(LEFT, CENTER);
+              let flightInfo = this.isArrival ? `${this.callsign} from ${this.origin}` : `${this.callsign} to ${this.destination}`;
+              fill(0, 0, 0, this.opacity * 0.7);
+              textSize(11);
+              text(flightInfo, this.x + 12, this.y - 1);
+              fill(this.color[0], this.color[1], this.color[2], this.opacity);
+              text(flightInfo, this.x + 11, this.y - 2);
+              let timeLabel = this.isArrival ? "Arr: " : "Dep: ";
+              fill(255, 255, 255, this.opacity);
+              textSize(10);
+              text(timeLabel + this.flightTime, this.x + 11, this.y + 12);
+            }
+          }
+        }
+        
+        // Fetch flight data from OpenSky API and process it
+        async function fetchFlightData() {
+          const end = Math.floor(Date.now() / 1000);
+          const begin = end - 146400; 
+          
+          const arrivalPromise = fetch(`https://opensky-network.org/api/flights/arrival?airport=KMSP&begin=${begin}&end=${end}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Arrival API failed');
+              }
+              return response.json();
+            })
+            .catch(error => {
+              console.error('Error fetching arrival data:', error);
+              return sampleArrivals;
+            });
+          
+          const departurePromise = fetch(`https://opensky-network.org/api/flights/departure?airport=KMSP&begin=${begin}&end=${end}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Departure API failed');
+              }
+              return response.json();
+            })
+            .catch(error => {
+              console.error('Error fetching departure data:', error);
+              return sampleDepartures;
+            });
+          
+          try {
+            const [arrivalData, departureData] = await Promise.all([arrivalPromise, departurePromise]);
+            document.getElementById('loading').style.display = 'none';
+            
+            if ((Array.isArray(arrivalData) && arrivalData.length === 0) && 
+                (Array.isArray(departureData) && departureData.length === 0)) {
+              document.getElementById('error').style.display = 'block';
+              document.getElementById('error').textContent = 'No flights found in the API. Using sample data instead.';
+            } else if (arrivalData === sampleArrivals || departureData === sampleDepartures) {
+              document.getElementById('error').style.display = 'block';
+              document.getElementById('error').textContent = 'Some API requests failed. Using partial sample data.';
+            }
+            
+            const finalArrivalData = (Array.isArray(arrivalData) && arrivalData.length > 0) ? arrivalData : sampleArrivals;
+            const finalDepartureData = (Array.isArray(departureData) && departureData.length > 0) ? departureData : sampleDepartures;
+            
+            // Prepare flight board arrays sorted chronologically
+            arrivalList = finalArrivalData.slice().sort((a, b) => a.firstSeen - b.firstSeen);
+            departureList = finalDepartureData.slice().sort((a, b) => a.lastSeen - b.lastSeen);
+            
+            const limitedArrivals = finalArrivalData.slice(0, 500);
+            const limitedDepartures = finalDepartureData.slice(0, 500);
+            
+            // Combine flights using a unified time property for proper chronological order
+            let combinedData = [];
+            for (let flight of limitedArrivals) {
+              combinedData.push({ flight: flight, isArrival: true, time: flight.firstSeen });
+            }
+            for (let flight of limitedDepartures) {
+              combinedData.push({ flight: flight, isArrival: false, time: flight.lastSeen });
+            }
+            combinedData.sort((a, b) => a.time - b.time);
+            
+            let delayBetweenPlanes = (totalTime * 1000) / combinedData.length;
+            interval = setInterval(() => {
+              if (planeIndex < combinedData.length) {
+                let item = combinedData[planeIndex];
+                planes.push(new Plane(item.flight, item.isArrival));
+                planeIndex++;
+                console.log('Plane Index:', planeIndex);
+              } else {
+                clearInterval(interval);
+              }
+            }, delayBetweenPlanes);
+          } catch (error) {
+            console.error('Error processing flight data:', error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            // Fallback using sample data can be added here if needed.
+          }
+        }
+        
+        // Adjust canvas size on window resize
+        function windowResized() {
+          resizeCanvas(windowWidth * 0.8, windowHeight * 0.3);
+          mapCenterX = width / 2;
+          mapCenterY = height / 2;
+        }
+      </script>
+    </div>
+    
+    <div id="legend">
+      <div style="margin-bottom: 5px;">
+        <span style="color: rgb(50, 120, 255); font-weight: bold;">■</span> Departures from MSP&nbsp;&nbsp;
+        <span style="color: rgb(0, 180, 120); font-weight: bold;">■</span> Arrivals to MSP
+      </div>
+      <div>
+        Airlines: Delta (red), United (blue), American (dark blue), Southwest (orange), JetBlue (light blue), Alaska (green)
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 </body>
 </html>
