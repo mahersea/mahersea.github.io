@@ -122,11 +122,19 @@
       },
       {
         "id": "project16",
-        "title": "Tailwind CSS Explorer",
-        "description": "A simple application that allows users to play with the Tailwind CSS classes in a visual.",
+        "title": "Math-Graph",
+        "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
         "image": "https://via.placeholder.com/600x400",
-        "link": "tailwind-explorer",
-        "thumbnail": "images/tailwindcss.png"
+        "link": "math-graph",
+        "thumbnail": "images/graph-math.png"
+      },
+      {
+        "id": "project17",
+        "title": "Irrrational Pi",
+        "description": "Animated Visualization of z(θ) = e^iθ + e^iπθ.",
+        "image": "https://via.placeholder.com/600x400",
+        "link": "irrational-pi",
+        "thumbnail": "images/irrational-pi.png"
       }
     ]
   }
