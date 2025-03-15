@@ -122,10 +122,10 @@
       },
       {
         "id": "project16",
-        "title": "Math-Graph",
+        "title": "Graph-Math",
         "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
         "image": "https://via.placeholder.com/600x400",
-        "link": "math-graph",
+        "link": "graph-math",
         "thumbnail": "images/graph-math.png"
       },
       {
