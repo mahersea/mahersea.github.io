@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Solar System with Oblique Comet Orbits (Adjusted Speed)</title>
+  <style>
+    body { 
+      margin: 0; 
+      background: #000; 
+      color: #fff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000; 
+    }
+    .controls { 
+      margin: 10px auto; 
+    }
+    button, input[type="checkbox"], input[type="range"] {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Solar System with Oblique Comet Orbits (Adjusted Speed)</h1>
+  <div class="controls">
+    <button id="pauseBtn">Pause</button>
+    <label for="speedSlider">Speed: </label>
+    <input type="range" id="speedSlider" min="0.1" max="5" step="0.1" value="1">
+    <label for="toggleOrbits">Show Orbits: </label>
+    <input type="checkbox" id="toggleOrbits" checked>
+    <label for="toggleLabels">Show Labels: </label>
+    <input type="checkbox" id="toggleLabels" checked>
+  </div>
+  <canvas id="canvas" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const toggleOrbits = document.getElementById('toggleOrbits');
+    const toggleLabels = document.getElementById('toggleLabels');
+
+    let isAnimating = true;
+    let animationId;
+    let time = 0; // simulation time
+    let globalSpeed = parseFloat(speedSlider.value);
+    speedSlider.addEventListener('input', () => {
+      globalSpeed = parseFloat(speedSlider.value);
+    });
+
+    // Define the solar system bodies (Sun and planets).
+    const bodies = [
+      { name: 'Sun', baseColor: 'yellow', radius: 30, orbitRadius: 0, orbitPeriod: 0 },
+      { name: 'Mercury', baseColor: 'gray', radius: 4, orbitRadius: 50, orbitPeriod: 88 },
+      { name: 'Venus', baseColor: 'orange', radius: 7, orbitRadius: 80, orbitPeriod: 225 },
+      { name: 'Earth', baseColor: 'blue', radius: 8, orbitRadius: 110, orbitPeriod: 365 },
+      { name: 'Mars', baseColor: 'red', radius: 6, orbitRadius: 140, orbitPeriod: 687 },
+      { name: 'Jupiter', baseColor: 'sienna', radius: 12, orbitRadius: 200, orbitPeriod: 4333 },
+      { name: 'Saturn', baseColor: 'goldenrod', radius: 10, orbitRadius: 250, orbitPeriod: 10759 },
+      { name: 'Uranus', baseColor: 'lightblue', radius: 8, orbitRadius: 300, orbitPeriod: 30687 },
+      { name: 'Neptune', baseColor: 'purple', radius: 8, orbitRadius: 350, orbitPeriod: 60190 }
+    ];
+    
+    // Center of canvas (sun's position)
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    
+    // Utility: Create a radial gradient for a celestial body.
+    function createGradient(x, y, radius, baseColor) {
+      const grad = ctx.createRadialGradient(x, y, radius * 0.1, x, y, radius);
+      grad.addColorStop(0, baseColor);
+      grad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
+      grad.addColorStop(1, 'black');
+      return grad;
+    }
+    
+    // Generate asteroids for the asteroid belt.
+    const numAsteroids = 150;
+    const asteroids = [];
+    for (let i = 0; i < numAsteroids; i++) {
+      asteroids.push({
+        orbitRadius: 150 + Math.random() * 40,
+        angle: Math.random() * 2 * Math.PI,
+        speedFactor: 0.8 + Math.random() * 0.4,
+        size: 1 + Math.random() * 2
+      });
+    }
+    
+    // Random period generator for comets.
+    function randomPeriod() {
+      const r = Math.random();
+      if (r < 0.33) return 30 + Math.random() * 90;    // 30 to 120 seconds
+      else if (r < 0.66) return 300 + Math.random() * 300; // 300 to 600 seconds
+      else return 900 + Math.random() * 900;               // 900 to 1800 seconds
+    }
+    
+    // Generate comets with highly elliptical orbits.
+    const numComets = 3;
+    const comets = [];
+    for (let i = 0; i < numComets; i++) {
+      const a = 400 + Math.random() * 200; // semi-major axis between 400 and 600
+      const factor = 0.1 + Math.random() * 0.2; // high eccentricity (0.1 to 0.3)
+      const b = a * factor;
+      const period = randomPeriod();
+      comets.push({
+        a,
+        b,
+        period,
+        phase: Math.random() * 2 * Math.PI,
+        orientation: Math.random() * 2 * Math.PI,
+        size: 4
+      });
+    }
+    
+    // Draw the entire system.
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw orbits if enabled (skip the Sun).
+      if (toggleOrbits.checked) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        bodies.forEach((body, i) => {
+          if (i === 0) return;
+          ctx.beginPath();
+          ctx.arc(cx, cy, body.orbitRadius, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+      }
+      
+      // Draw Sun and planets.
+      bodies.forEach(body => {
+        let x = cx, y = cy;
+        if (body.orbitRadius > 0) {
+          const angle = (time / body.orbitPeriod) * 2 * Math.PI;
+          x = cx + body.orbitRadius * Math.cos(angle);
+          y = cy + body.orbitRadius * Math.sin(angle);
+        }
+        const grad = createGradient(x, y, body.radius, body.baseColor);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, body.radius, 0, Math.PI * 2);
+        ctx.fill();
+        if (toggleLabels.checked) {
+          ctx.fillStyle = '#fff';
+          ctx.font = "12px Arial";
+          ctx.fillText(body.name, x + body.radius + 4, y - body.radius - 4);
+        }
+      });
+      
+      // Draw asteroid belt.
+      asteroids.forEach(asteroid => {
+        asteroid.angle += globalSpeed * asteroid.speedFactor * 0.005;
+        const ax = cx + asteroid.orbitRadius * Math.cos(asteroid.angle);
+        const ay = cy + asteroid.orbitRadius * Math.sin(asteroid.angle);
+        const grad = ctx.createRadialGradient(ax, ay, asteroid.size * 0.2, ax, ay, asteroid.size);
+        grad.addColorStop(0, '#888');
+        grad.addColorStop(1, 'black');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(ax, ay, asteroid.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Draw comets with elliptical orbits.
+      comets.forEach(comet => {
+        // Compute the angular position based on its period.
+        // Multiply by 0.5 so that comets move at half the speed.
+        const theta = 0.5 * (2 * Math.PI * (time / comet.period)) + comet.phase;
+        const x = cx + comet.a * Math.cos(theta) * Math.cos(comet.orientation)
+                      - comet.b * Math.sin(theta) * Math.sin(comet.orientation);
+        const y = cy + comet.a * Math.cos(theta) * Math.sin(comet.orientation)
+                      + comet.b * Math.sin(theta) * Math.cos(comet.orientation);
+        
+        // Tail always points away from the Sun.
+        const dx = x - cx;
+        const dy = y - cy;
+        const d = Math.hypot(dx, dy) || 1;
+        const tailLength = 30;
+        const tailEndX = x + (dx / d) * tailLength;
+        const tailEndY = y + (dy / d) * tailLength;
+        
+        const tailGrad = ctx.createLinearGradient(x, y, tailEndX, tailEndY);
+        tailGrad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+        tailGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.strokeStyle = tailGrad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(tailEndX, tailEndY);
+        ctx.stroke();
+        
+        const cometGrad = createGradient(x, y, comet.size, 'white');
+        ctx.fillStyle = cometGrad;
+        ctx.beginPath();
+        ctx.arc(x, y, comet.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      time += globalSpeed;
+    }
+    
+    function animate() {
+      if (isAnimating) {
+        draw();
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+    
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+    
+    animate();
+  </script>
+</body>
+</html>

@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sean Maher - Portfolio</title>
-  <link rel="stylesheet" href="css/styles.css" />
   <style>
     /* Additional styles for the hero canvas */
     #hero-canvas {
@@ -14,7 +13,7 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-    }
+    }   
 
     #hero {
       position: relative;
@@ -37,8 +36,51 @@
       z-index: 3;
       /* Keep your existing hero-content styles */
     }
+
+    /* full text, left justified */
+    .full-text {
+      text-align: left;
+      margin: 20px;
+      font-size: 16px;
+      max-width: 800px;
+    }
+
+    a {
+      color: rgb(152, 47, 42);
+      text-decoration: none;
+    }
+
+    .category-filter {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .category-filter label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .category-filter select {
+      padding: 8px;
+      font-size: 16px;
+    }
   </style>
+  <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>//
+    function showMe(){
+      var moreText = document.getElementById("more-about-me");
+      if (moreText.style.display === "none") {
+        moreText.style.display = "block";
+      } else {
+        moreText.style.display = "none";
+      }
+    }
+    document.getElementById('categorySelect').addEventListener('change', function(event) {
+      const selectedCategory = event.target.value;
+      filterProjects(selectedCategory); // Your function to update the project list based on the category
+    });
+  </script>
 </head>
 <body>
   <!-- Header -->
@@ -67,16 +109,18 @@
     </div>
   </section>
 
-  <!-- Projects Section -->
-  <section id="projects">
-    <div class="container">
-      <h2>Active Projects</h2>
-      <div class="projects-grid">
-        <!-- Project cards will be dynamically inserted here -->
-        <div class="loading-indicator">Loading projects...</div>
-      </div>
+<!-- Projects Section -->
+<section id="projects">
+  <div class="container">
+    <h2>Active Projects</h2>
+    <div class="projects-grid">
+      <!-- Project cards will be dynamically inserted here -->
+      <div class="loading-indicator">Loading projects...</div>
     </div>
-  </section>
+  </div>
+</section>
+
+
 
   <!-- Project Detail Modal -->
   <div id="modal" class="modal">
@@ -92,16 +136,18 @@
   <section id="about">
     <div class="container">
       <h2>About Me</h2>
-      <p>
+      <p class="full-text">
         I'm a passionate web developer with a knack for solving real-world problems. 
 		I strive to improve my skills with play&mdash;the results of which return sleek, interactive designs and clean code. AI trigger
     warning: there will be slop.
       </p>
-      <p> 
+      <p class="full-text"> 
 		This portfolio showcases a selection of active projects, that may or may not be
 		functional at any given moment in time.
       </p>
-      <p>More about me:<br>
+      <br><br>
+      <p class="full-text"><a id="me"></a><strong><a href="#me" onclick="showMe()">More about me</a></strong></p>
+      <p class="full-text" id="more-about-me" style="display:none;">
         I was born in San Francisco and shaped by a diverse set of experiences. I am a seasoned software engineer and wanna-be data journalist. 
         Growing up, I explored the rugged coast of Mendocino with my crusty pipe-smoking English uncle, and sailed with him to Hawaii on a 1926 Alden Sloop. 
         Later, I contributed to the founding of Michigan State University’s first water polo team. 

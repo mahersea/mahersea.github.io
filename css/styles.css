@@ -125,14 +125,14 @@
   #projects {
     padding: 4rem 0;
     background: #2d2d2d;
-    color: #806e6e;
+    color: #bababa;
   }
 
   #projects h2 {
     text-align: center;
     margin-bottom: 2rem;
     font-size: 2rem;
-    color:#333;
+    color:#c6c4c4;
   }
   
   #projects h3 {
@@ -257,7 +257,7 @@
   #about p {
     max-width: 800px;
     margin: auto;
-    text-align: center;
+    text-align: left;
   }
   
   /* Contact Section */

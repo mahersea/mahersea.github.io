@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pendulum Wave Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #444;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    button, input[type="range"] {
+      padding: 5px 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pendulum Wave Simulation</h1>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <div class="controls">
+    <button id="pauseBtn">Pause</button>
+    <label for="speedRange">Speed: </label>
+    <input type="range" id="speedRange" min="10" max="1000" value="20">
+    <span id="speedDisplay">0.020</span>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const speedRange = document.getElementById('speedRange');
+    const speedDisplay = document.getElementById('speedDisplay');
+
+    let isAnimating = true;
+    let animationId;
+    let time = 0;
+    // Base speed factor (time increment) controlled by the slider.
+    let speed = parseFloat(speedRange.value) / 100;
+    speedDisplay.textContent = speed.toFixed(3);
+
+    speedRange.addEventListener('input', () => {
+      speed = parseFloat(speedRange.value) / 1000;
+      speedDisplay.textContent = speed.toFixed(3);
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+
+    // Pendulum parameters
+    const numPendulums = 10;
+    const pivotY = 100;         // Vertical position for all pivots.
+    const L_min = 200;          // Minimum length (in pixels).
+    const deltaL = 5;           // Increase in length per pendulum.
+    const g = 9.81;             // Gravitational acceleration.
+    const thetaMax = 0.2;       // Maximum swing amplitude (radians).
+
+    // Create an array of pendulum objects.
+    // Each pendulum is assigned a pivotX position (evenly spaced) and a length.
+    // We also assign each a unique color hue for vivid contrast.
+    let pendulums = [];
+    for (let i = 0; i < numPendulums; i++) {
+      let pivotX = (canvas.width / (numPendulums + 1)) * (i + 1);
+      let L = L_min + i * deltaL;
+      // Map index to a hue (0 to 360 degrees).
+      let hue = map(i, 0, numPendulums - 1, 0, 360);
+      pendulums.push({ pivotX, pivotY, L, hue });
+    }
+
+    // Utility: maps a value from one range to another.
+    function map(value, in_min, in_max, out_min, out_max) {
+      return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
+    function animate() {
+      // Clear the canvas with a solid black background.
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Update time.
+      time += speed;
+
+      // For each pendulum, compute its current angle and bob position.
+      for (let i = 0; i < pendulums.length; i++) {
+        let p = pendulums[i];
+        // Angular frequency: ω = √(g / L)
+        let omega = Math.sqrt(g / p.L);
+        // Small-angle motion: θ(t) = θ_max * cos(ω * t)
+        let theta = thetaMax * Math.cos(omega * time);
+        // Bob position using simple pendulum geometry.
+        let bobX = p.pivotX + p.L * Math.sin(theta);
+        let bobY = p.pivotY + p.L * Math.cos(theta);
+
+        // Draw the rod.
+        ctx.strokeStyle = `hsl(${p.hue}, 100%, 50%)`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(p.pivotX, p.pivotY);
+        ctx.lineTo(bobX, bobY);
+        ctx.stroke();
+
+        // Draw the pivot as a small white circle.
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(p.pivotX, p.pivotY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw the bob as a vivid circle (using a slightly brighter hue).
+        ctx.fillStyle = `hsl(${p.hue}, 100%, 60%)`;
+        ctx.beginPath();
+        ctx.arc(bobX, bobY, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    animate();
+  </script>
+</body>
+</html>
