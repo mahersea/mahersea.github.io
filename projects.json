@@ -1,212 +1,274 @@
 {
-    "projects": [
-      {
-        "id": "project1",
-        "title": "Astro-Claus",
-        "description": "Astro-Claus is a festive space-themed game where you navigate through a starry sky, collecting gifts and avoiding obstacles.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "/astro-claus/",
-        "thumbnail": "images/astro-claus.png"
-      },
-      {
-        "id": "project2",
-        "title": "Practice Exam",
-        "description": "A practice exam format, designed to help users prepare for the any test with a variety of questions and explanations.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "/aws-practice/",
-        "thumbnail": "images/exam.png"
-      },
-      {
-        "id": "project3",
-        "title": "Drifting Cube",
-        "description": "A 3D simulation where a cube spins a virtual environment with 6 spacial vectors, showcasing basic physics and graphics.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "cube",
-        "thumbnail": "images/cube.png"
-      },
-      {
-        "id": "project4",
-        "title": "Flowing Pixels",
-        "description": "An interactive art piece where pixels flow, creating a visual background for use in other contexts.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "flowing-pix",
-        "thumbnail": "images/pixel-flow.png"
-      },
-      {
-        "id": "project5",
-        "title": "GeoJSON",
-        "description": "A simple Leaflet application that visualizes GeoJSON data on a map, allowing users to view GeoJSON geographical information in a graphical format.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "geojson/leaflet",
-        "thumbnail": "images/geojson.png"
-      },
-      {
-        "id": "project6",
-        "title": "Grid Out",
-        "description": "A grid-based game where the user can fidget with colliding squares",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "gridout",
-        "thumbnail": "images/pixels.png"
-      },
-      {
-        "id": "project7",
-        "title": "A* Pathfinding",
-        "description": "An implementation of the A* pathfinding algorithm, using AI output to demonstrate how each LLM creates a solution to find the shortest path in a grid-based environment.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "pathfinding",
-        "thumbnail": "images/pathfinding.png"
-      },
-      {
-        "id": "project8",
-        "title": "Planes",
-        "description": "A artistic representation of an API of airplane arrivals to Minneapolis/Saint Paul airport (MSP), showcasing basic physics and graphics.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "planes",
-        "thumbnail": "images/airplane.png"
-      },
-      {
-        "id": "project9",
-        "title": "Charge",
-        "description": "An initial attempt to model capacitor 'charge' and 'discharge'",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "charge",
-        "thumbnail": "images/charge.png"
-      },
-      {
-        "id": "project10",
-        "title": "Resume MarkDown Interpreter",
-        "description": "A simple application that interprets a Markdown formatted resume and displays it in an HTML format.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "resume",
-        "thumbnail": "images/resume.png"
-      },
-      {
-        "id": "project11",
-        "title": "Sound Matrix",
-        "description": "An interactive sound matrix where users can click on squares to generate tones with a grid-based interface.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "sounds",
-        "thumbnail": "images/sounds.png"
-      },
-      {
-        "id": "project12",
-        "title": "Snake Game",
-        "description": "A classic snake game where users control the snake to eat food and grow in length, avoiding collisions with itself.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "stribby-snake",
-        "thumbnail": "images/stribby-flock.png"
-      },
-      {
-        "id": "project13",
-        "title": "Sound Word Generator",
-        "description": "A simple application that generates random words from a predefined list, useful for brainstorming or creative writing.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "words",
-        "thumbnail": "images/words.png"
-      },
-      {
-        "id": "project14",
-        "title": "Waveform Examples",
-        "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "waves",
-        "thumbnail": "images/waves.png"
-      },
-      {
-        "id": "project15",
-        "title": "Explosion Module",
-        "description": "An example of an explosion simulation, showcasing basic collision physics and graphics.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "explosion",
-        "thumbnail": "images/explosion.png"
-      },
-      {
-        "id": "project16",
-        "title": "Graph-Math",
-        "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "graph-math",
-        "thumbnail": "images/graph-math.png"
-      },
-      {
-        "id": "project17",
-        "title": "Irrrational Pi",
-        "description": "Animated Visualization of z(θ) = e^iθ + e^iπθ.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "irrational-pi",
-        "thumbnail": "images/irrational-pi.png"
-      },
-      {
-        "id": "project18",
-        "title": "Flocking Simulation",
-        "description": "A simulation of flocking behavior, where entities move together in a group, showcasing flocking physics.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "boids",  
-        "thumbnail": "images/boids.png"
-      },
-      {
-        "id": "project19",
-        "title": "Capacitor Charge",
-        "description": "A simulation of capacitor charge and discharge, demonstrating basic electrical principles.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "charge",
-        "thumbnail": "images/charge.png"
-      },
-      {
-        "id": "project20",
-        "title": "Double Pendulum",
-        "description": "A simulation of a double pendulum, showcasing chaotic motion and basic physics principles.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "double-pendulum",
-        "thumbnail": "images/double-pendulum.png"
-      },
-      {
-        "id": "project21",
-        "title": "Euler's Identity",
-        "description": "An animated visualization of Euler's Identity, showcasing the beauty of mathematics through animation.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "eulers-identity",
-        "thumbnail": "images/eulers-identity.png"
-      },
-      {
-        "id": "project22",
-        "title": "Fourier Transform",
-        "description": "An animated visualization of the Fourier Transform, showcasing the transformation of signals from time domain to frequency domain.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "fourier-transform",
-        "thumbnail": "images/fourier-transform.png"
-      },
-      {
-        "id": "project23",
-        "title": "Lorenz Attractor",
-        "description": "An animated visualization of the Lorenz Attractor, showcasing chaotic behavior in a three-dimensional space.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "lorenz-attractor",
-        "thumbnail": "images/lorenz-attractor.png"
-      },
-      {
-        "id": "project24",
-        "title": "Lissajous Curve",
-        "description": "An animated visualization of the Lissajous Curve, showcasing complex harmonic motion.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "lissajous",
-        "thumbnail": "images/lissajous.png"
-      },
-      {
-        "id": "project25",
-        "title": "Mandelbrot Set",
-        "description": "An staic visualization of the Mandelbrot Set, showcasing the beauty of fractals and complex numbers.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "mandelbrot",
-        "thumbnail": "images/mandelbrot.png"
-      },
-      {
-        "id": "project26",
-        "title": "Spirograph",
-        "description": "An animated visualization of a Spirograph, showcasing intricate geometric patterns.",
-        "image": "https://via.placeholder.com/600x400",
-        "link": "spirograph",
-        "thumbnail": "images/spirograph.png"
-      }
-    ]
-  }
+  "projects": [
+    {
+      "id": "astro-claus",
+      "title": "Astro-Claus",
+      "description": "Astro-Claus is a festive space-themed game where you navigate through a starry sky, collecting gifts and avoiding obstacles.",
+      "image": "images/astro-claus.png",
+      "link": "/astro-claus/",
+      "thumbnail": "images/astro-claus_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "practice-exam",
+      "title": "Practice Exam",
+      "description": "A practice exam format, designed to help users prepare for the any test with a variety of questions and explanations.",
+      "image": "images/exam.png",
+      "link": "/aws-practice/",
+      "thumbnail": "images/exam_thumb.png",
+      "category": "Tools"
+    },
+    {
+      "id": "drifting-cube",
+      "title": "Drifting Cube",
+      "description": "A 3D simulation where a cube spins a virtual environment with 6 spacial vectors, showcasing basic physics and graphics.",
+      "image": "images/cube.png",
+      "link": "cube",
+      "thumbnail": "images/cube_thumb.png",
+      "category": "Medium Sized Games"
+    },
+    {
+      "id": "flowing-pix",
+      "title": "Flowing Pixels",
+      "description": "An interactive art piece where pixels flow, creating a visual background for use in other contexts.",
+      "image": "images/pixel-flow.png",
+      "link": "flowing-pix",
+      "thumbnail": "images/pixel-flow_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "geojson",
+      "title": "GeoJSON",
+      "description": "A simple Leaflet application that visualizes GeoJSON data on a map, allowing users to view GeoJSON geographical information in a graphical format.",
+      "image": "images/geojson.png",
+      "link": "geojson/leaflet",
+      "thumbnail": "images/geojson_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "gridout",
+      "title": "Grid Out",
+      "description": "A grid-based game where the user can fidget with colliding squares",
+      "image": "images/pixels.png",
+      "link": "gridout",
+      "thumbnail": "images/pixels_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "a*-pathfinding",
+      "title": "A* Pathfinding",
+      "description": "An implementation of the A* pathfinding algorithm, using AI output to demonstrate how each LLM creates a solution to find the shortest path in a grid-based environment.",
+      "image": "images/pathfinding.png",
+      "link": "pathfinding",
+      "thumbnail": "images/pathfinding_thumb.png",
+      "category": "Tools"
+    },
+    {
+      "id": "planes",
+      "title": "Planes",
+      "description": "A artistic representation of an API of airplane arrivals to Minneapolis/Saint Paul airport (MSP), showcasing basic physics and graphics.",
+      "image": "images/airplane.png",
+      "link": "planes",
+      "thumbnail": "images/airplane_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "charge",
+      "title": "Charge",
+      "description": "An initial attempt to model capacitor 'charge' and 'discharge'",
+      "image": "images/charge.png",
+      "link": "charge",
+      "thumbnail": "images/charge_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "resume",
+      "title": "Resume MarkDown Interpreter",
+      "description": "A simple application that interprets a Markdown formatted resume and displays it in an HTML format.",
+      "image": "images/resume.png",
+      "link": "resume",
+      "thumbnail": "images/resume_thumb.png",
+      "category": "Tools"
+    },
+    {
+      "id": "sound-matrix",
+      "title": "Sound Matrix",
+      "description": "An interactive sound matrix where users can click on squares to generate tones with a grid-based interface.",
+      "image": "images/sounds.png",
+      "link": "sounds",
+      "thumbnail": "images/sounds_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "snake-game",
+      "title": "Snake Game",
+      "description": "A classic snake game where users control the snake to eat food and grow in length, avoiding collisions with itself.",
+      "image": "images/stribby-flock.png",
+      "link": "stribby-flock",
+      "thumbnail": "images/stribby-flock_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "sound-words",
+      "title": "Sound Word Generator",
+      "description": "A simple application that generates random words from a predefined list, useful for brainstorming or creative writing.",
+      "image": "images/words.png",
+      "link": "words",
+      "thumbnail": "images/words_thumb.png",
+      "category": "Tools"
+    },
+    {
+      "id": "waves",
+      "title": "Waveform Examples",
+      "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
+      "image": "images/waves.png",
+      "link": "waves",
+      "thumbnail": "images/waves_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "exlosion",
+      "title": "Explosion Module",
+      "description": "An example of an explosion simulation, showcasing basic collision physics and graphics.",
+      "image": "images/explosion.png",
+      "link": "explosion",
+      "thumbnail": "images/explosion_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "graph-math",
+      "title": "Graph-Math",
+      "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
+      "image": "images/graph-math.png",
+      "link": "graph-math",
+      "thumbnail": "images/graph-math_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "project17",
+      "title": "Irrrational Pi",
+      "description": "Animated Visualization of z(θ) = e^iθ + e^iπθ.",
+      "image": "images/irrational-pi.png",
+      "link": "irrational-pi",
+      "thumbnail": "images/irrational-pi_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "flocking",
+      "title": "Flocking Simulation",
+      "description": "A simulation of flocking behavior, where entities move together in a group, showcasing flocking physics.",
+      "image": "images/boids.png",
+      "link": "boids",
+      "thumbnail": "images/boids_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "capacitor-charge",
+      "title": "Capacitor Charge",
+      "description": "A simulation of capacitor charge and discharge, demonstrating basic electrical principles.",
+      "image": "images/charge.png",
+      "link": "charge",
+      "thumbnail": "images/charge_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "double-pendulum",
+      "title": "Double Pendulum",
+      "description": "A simulation of a double pendulum, showcasing chaotic motion and basic physics principles.",
+      "image": "images/double-pendulum.png",
+      "link": "double-pendulum",
+      "thumbnail": "images/double-pendulum_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "euler-identity",
+      "title": "Euler's Identity",
+      "description": "An animated visualization of Euler's Identity, showcasing the beauty of mathematics through animation.",
+      "image": "images/eulers-identity.png",
+      "link": "eulers-identity",
+      "thumbnail": "images/eulers-identity_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "fourier-transform",
+      "title": "Fourier Transform",
+      "description": "An animated visualization of the Fourier Transform, showcasing the transformation of signals from time domain to frequency domain.",
+      "image": "images/fourier-transform.png",
+      "link": "fourier-transform",
+      "thumbnail": "images/fourier-transform_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "lorenz-attractor",
+      "title": "Lorenz Attractor",
+      "description": "An animated visualization of the Lorenz Attractor, showcasing chaotic behavior in a three-dimensional space.",
+      "image": "images/lorenz-attractor.png",
+      "link": "lorenz-attractor",
+      "thumbnail": "images/lorenz-attractor_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "lissajous",
+      "title": "Lissajous Curve",
+      "description": "An animated visualization of the Lissajous Curve, showcasing complex harmonic motion.",
+      "image": "images/lissajous.png",
+      "link": "lissajous",
+      "thumbnail": "images/lissajous_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "mandelbrot",
+      "title": "Mandelbrot Set",
+      "description": "An staic visualization of the Mandelbrot Set, showcasing the beauty of fractals and complex numbers.",
+      "image": "images/mandelbrot.png",
+      "link": "mandelbrot",
+      "thumbnail": "images/mandelbrot_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "spriograph",
+      "title": "Spirograph",
+      "description": "An animated visualization of a Spirograph, showcasing intricate geometric patterns.",
+      "image": "images/spirograph.png",
+      "link": "spirograph",
+      "thumbnail": "images/spirograph_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "wave-interference",
+      "title": "Wave Interference",
+      "description": "An animated visualization of wave interference, showcasing the superposition of waves and their resulting patterns.",
+      "image": "images/wave-interference.png",
+      "link": "wave-interference",
+      "thumbnail": "images/wave-interference_thumb.png",
+      "category": "Mathematical Expressions"
+    },
+    {
+      "id": "solar-system",
+      "title": "Solar System",
+      "description": "An animated visualization of the solar system, simulating the orbits of planets and comets around the sun.",
+      "image": "images/solar-system.png",
+      "link": "solar-system",
+      "thumbnail": "images/solar-system_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "pendulum-wave",
+      "title": "Pendulum Wave",
+      "description": "An animated visualization of a pendulum wave, showcasing the synchronized motion of multiple pendulums.",
+      "image": "images/pendulum-wave.png",
+      "link": "pendulum-wave",
+      "thumbnail": "images/pendulum-wave_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "foerster",
+      "title": "Foerster Resonance",
+      "description": "An animated visualization of Foerster Resonance, showcasing energy transfer between molecules.",
+      "image": "images/foerster.png",
+      "link": "foerster",
+      "thumbnail": "images/foerster_thumb.png",
+      "category": "Mathematical Expressions"
+    }
+  ]
+}

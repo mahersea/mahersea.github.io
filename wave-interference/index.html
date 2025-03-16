@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wave Interference Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #fff;
+    }
+    .controls {
+      margin: 10px auto;
+      max-width: 800px;
+    }
+    .controls label, .controls input, .controls span, .controls button {
+      margin: 5px;
+      font-size: 16px;
+    }
+    .cta {
+    margin-top: 20px;
+      font-size: 14px;
+      color: #b87e7e;
+    }
+    .cta:hover {
+      color: #28277d;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wave Interference Visualization</h1>
+  <div class="controls">
+    <label for="wavelengthSlider">Wavelength:</label>
+    <input type="range" id="wavelengthSlider" min="5" max="100" value="11">
+    <span id="wavelengthValue">30</span>
+    <br>
+    <label for="speedSlider">Speed:</label>
+    <input type="range" id="speedSlider" min="1" max="100" value="15">
+    <span id="speedValue">1.0</span>
+    <br>
+    <label for="scaleFactorSlider">Resolution Factor:</label>
+    <input type="range" id="scaleFactorSlider" min="1" max="10" value="3">
+    <span id="scaleFactorValue">4</span>
+    <br>
+    <button id="clearSlitsBtn">Clear Slits</button>
+    <button id="defaultSlitsBtn">Default Slits</button>
+    <label for="showSlitsCheck">Show Slits:</label>
+    <input type="checkbox" id="showSlitsCheck" checked>
+    <br>
+    <div class="cta">Click on the canvas to add a point.</div>
+  </div>
+  <canvas id="canvas" width="800" height="800"></canvas>
+  <script>
+    // Get canvas and context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Create an offscreen canvas to compute the interference pattern at a lower resolution.
+    const offCanvas = document.createElement('canvas');
+    let scaleFactor = parseFloat(document.getElementById('scaleFactorSlider').value);
+    offCanvas.width = canvas.width / scaleFactor;
+    offCanvas.height = canvas.height / scaleFactor;
+    const offCtx = offCanvas.getContext('2d');
+
+    // Get control elements
+    const wavelengthSlider = document.getElementById('wavelengthSlider');
+    const wavelengthValue = document.getElementById('wavelengthValue');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+    const scaleFactorSlider = document.getElementById('scaleFactorSlider');
+    const scaleFactorValue = document.getElementById('scaleFactorValue');
+    const clearSlitsBtn = document.getElementById('clearSlitsBtn');
+    const defaultSlitsBtn = document.getElementById('defaultSlitsBtn');
+    const showSlitsCheck = document.getElementById('showSlitsCheck');
+
+    // Simulation parameters
+    let wavelength = parseFloat(wavelengthSlider.value);
+    let speed = parseFloat(speedSlider.value) / 10; // Adjust slider value to a usable speed factor.
+    wavelengthValue.textContent = wavelength;
+    speedValue.textContent = speed.toFixed(1);
+    scaleFactorValue.textContent = scaleFactor;
+
+    // Update controls on change
+    wavelengthSlider.addEventListener('input', () => {
+      wavelength = parseFloat(wavelengthSlider.value);
+      wavelengthValue.textContent = wavelength;
+    });
+    speedSlider.addEventListener('input', () => {
+      speed = parseFloat(speedSlider.value) / 10;
+      speedValue.textContent = speed.toFixed(1);
+    });
+    scaleFactorSlider.addEventListener('input', () => {
+      scaleFactor = parseFloat(scaleFactorSlider.value);
+      scaleFactorValue.textContent = scaleFactor;
+      offCanvas.width = canvas.width / scaleFactor;
+      offCanvas.height = canvas.height / scaleFactor;
+    });
+
+    // Set up slits array; each slit is an object with x and y coordinates.
+    let slits = [];
+    function setDefaultSlits(){
+      slits = [];
+      // Two default slits: placed at the left quarter of the canvas, vertically separated.
+      slits.push({ x: canvas.width / 4, y: canvas.height / 2 - 30 });
+      slits.push({ x: canvas.width / 4, y: canvas.height / 2 + 30 });
+    }
+    setDefaultSlits();
+
+    clearSlitsBtn.addEventListener('click', () => {
+      slits = [];
+    });
+    defaultSlitsBtn.addEventListener('click', () => {
+      setDefaultSlits();
+    });
+
+    // Allow user to add a slit by clicking on the canvas.
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      slits.push({ x, y });
+    });
+
+    // Time parameter for animation.
+    let t = 0;
+    let dt = 0.1; // Base time increment; actual dt is scaled by the speed parameter.
+
+    function animate() {
+      // Update time (dt scales with the speed slider)
+      t += dt * speed;
+
+      // Create new ImageData for the offscreen canvas.
+      const offWidth = offCanvas.width;
+      const offHeight = offCanvas.height;
+      const imageData = offCtx.createImageData(offWidth, offHeight);
+      const data = imageData.data;
+      const k = 2 * Math.PI / wavelength;  // Wave number
+      const omega = speed * k;             // Angular frequency
+
+      // For each pixel in the offscreen canvas, compute the superposed wave amplitude.
+      for (let j = 0; j < offHeight; j++){
+        for (let i = 0; i < offWidth; i++){
+          const index = (j * offWidth + i) * 4;
+          // Map the offscreen pixel to the main canvas coordinate.
+          const x = i * scaleFactor;
+          const y = j * scaleFactor;
+          let sum = 0;
+          if (slits.length > 0) {
+            for (let slit of slits) {
+              const dx = x - slit.x;
+              const dy = y - slit.y;
+              const r = Math.sqrt(dx * dx + dy * dy);
+              // Sum the cosine contributions from each slit.
+              sum += Math.cos(k * r - omega * t);
+            }
+            // Normalize the sum to range from -1 to 1.
+            const avg = sum / slits.length;
+            // Map from [-1, 1] to [0, 1] for intensity.
+            const intensity = (avg + 1) / 2;
+            const brightness = Math.floor(intensity * 255);
+            data[index] = brightness;
+            data[index + 1] = brightness;
+            data[index + 2] = brightness;
+            data[index + 3] = 255;
+          } else {
+            // If there are no slits, make the pixel black.
+            data[index] = 0;
+            data[index + 1] = 0;
+            data[index + 2] = 0;
+            data[index + 3] = 255;
+          }
+        }
+      }
+      // Update the offscreen canvas with the computed interference pattern.
+      offCtx.putImageData(imageData, 0, 0);
+      // Draw the offscreen canvas scaled to fill the main canvas.
+      ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height);
+
+      // If enabled, draw red circles to indicate slit positions.
+      if (showSlitsCheck.checked) {
+        ctx.fillStyle = 'red';
+        for (let slit of slits) {
+          ctx.beginPath();
+          ctx.arc(slit.x, slit.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         projectCard.innerHTML = `
           <img src="${project.thumbnail}" alt="" />
-          <h3>${project.title}</h3>
+          <h3 class="project-title">${project.title}</h3>
         `;
         
         projectsGrid.appendChild(projectCard);

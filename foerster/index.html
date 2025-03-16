@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Foerster Fractal (Fractal Tree) Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #444;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    label, input, span {
+      margin: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Foerster Fractal (Fractal Tree) Visualization</h1>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <div class="controls">
+    <label for="angleSlider">Branch Angle:</label>
+    <input type="range" id="angleSlider" min="10" max="80" value="30">
+    <span id="angleDisplay">30°</span>
+    <br>
+    <label for="depthSlider">Recursion Depth:</label>
+    <input type="range" id="depthSlider" min="1" max="12" value="10">
+    <span id="depthDisplay">10</span>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const angleSlider = document.getElementById('angleSlider');
+    const angleDisplay = document.getElementById('angleDisplay');
+    const depthSlider = document.getElementById('depthSlider');
+    const depthDisplay = document.getElementById('depthDisplay');
+
+    // Convert slider values and update displays.
+    let branchAngle = parseInt(angleSlider.value) * Math.PI / 180;
+    let maxDepth = parseInt(depthSlider.value);
+
+    angleDisplay.textContent = angleSlider.value + "°";
+    depthDisplay.textContent = depthSlider.value;
+
+    angleSlider.addEventListener('input', () => {
+      branchAngle = parseInt(angleSlider.value) * Math.PI / 180;
+      angleDisplay.textContent = angleSlider.value + "°";
+      drawTree();
+    });
+
+    depthSlider.addEventListener('input', () => {
+      maxDepth = parseInt(depthSlider.value);
+      depthDisplay.textContent = depthSlider.value;
+      drawTree();
+    });
+
+    // Main function to clear the canvas and draw the fractal tree.
+    function drawTree() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Fill background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Start from the bottom center of the canvas.
+      let startX = canvas.width / 2;
+      let startY = canvas.height;
+      let length = 170;  // Initial branch length.
+      // Start with an upward angle (-90° in radians).
+      drawBranch(startX, startY, -Math.PI / 2, length, 0);
+    }
+
+    // Recursive function to draw a branch.
+    function drawBranch(x, y, angle, length, depth) {
+      if (depth > maxDepth) return;
+
+      // Calculate end point of the branch.
+      const x2 = x + length * Math.cos(angle);
+      const y2 = y + length * Math.sin(angle);
+
+      // Set line color based on depth.
+      // Here we map depth to a hue value to produce a vivid gradient.
+      let hue = map(depth, 0, maxDepth, 0, 120);  // 0: red; 120: green.
+      ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+      ctx.lineWidth = Math.max(2, (maxDepth - depth) / 2);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // Recursively draw two branches from the current branch's end.
+      let newLength = length * 0.7;  // Reduce branch length.
+      drawBranch(x2, y2, angle - branchAngle, newLength, depth + 1);
+      drawBranch(x2, y2, angle + branchAngle, newLength, depth + 1);
+    }
+
+    // Utility function: map a value from one range to another.
+    function map(value, in_min, in_max, out_min, out_max) {
+      return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
+    // Initial drawing of the tree.
+    drawTree();
+  </script>
+</body>
+</html>
