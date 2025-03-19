@@ -47,15 +47,11 @@ document.addEventListener("DOMContentLoaded", function () {
         card.addEventListener("click", function () {
           const projectId = card.getAttribute("data-project");
           const project = projectsData.projects.find(p => p.id === projectId);
-          
+          // go directly to the project link: `project.link`
           if (project) {
-            modalBody.innerHTML = `
-              <h2>${project.title}</h2>
-              <a href="${project.link}" target="_blank" style="display:block; margin-bottom:1rem;">
-              <img src="${project.image}" alt="${project.title}" style="width:100%; border-radius:5px; margin-bottom:1rem;"></a>
-              <p>${project.description}</p>
-            `;
-            modal.style.display = "block";
+            window.location.href =
+            project.link;
+            return;
           }
         });
       });
