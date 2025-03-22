@@ -1,25 +1,420 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Drifting Squares</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: black; /* Set background to black */
-        }
-        canvas {
-            border: 1px solid #333;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbital Chaos - Generative Art</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas {
+      display: block;
+      background: transparent;
+    }
+    .info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .controls div {
+      margin-bottom: 8px;
+    }
+    .controls label {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .controls input[type="range"],
+    .controls select {
+      width: 200px;
+    }
+  </style>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <script src="script.js"></script>
+  <div class="info">Move your mouse to interact | Click on canvas to regenerate particles</div>
+  <canvas id="canvas"></canvas>
+  <div class="controls">
+    <div>
+      <label>Time Scale: <span id="timeScaleVal">0.010</span></label>
+      <input type="range" id="timeScaleSlider" min="0.001" max="0.05" step="0.005" value="0.01">
+    </div>
+    <div>
+      <label>Orbit Tightness: <span id="orbitTightnessVal">1.0</span></label>
+      <input type="range" id="orbitTightnessSlider" min="0.01" max="25.0" step="0.1" value="1.0">
+    </div>
+    <div>
+      <label>Gravitational Constant: <span id="GVal">200</span></label>
+      <input type="range" id="GSlider" min="0" max="2000" step="10" value="200">
+    </div>
+    <div>
+      <label>Interaction Radius: <span id="interactionRadiusVal">50</span></label>
+      <input type="range" id="interactionRadiusSlider" min="10" max="100" step="1" value="50">
+    </div>
+    <div>
+      <label>Particle Count: <span id="particleCountVal">300</span></label>
+      <input type="range" id="particleCountSlider" min="10" max="1000" step="50" value="300">
+    </div>
+    <div>
+      <label>Color Theme:</label>
+      <select id="colorThemeSelect">
+        <option value="pi">White</option>
+        <option value="golden">Pastel</option>
+        <option value="solar">Solar Flare</option>
+        <option value="aurora">Aurora Borealis</option>
+      </select>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    
+    // Resize canvas to fill the window
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Simulation variables (adjustable via sliders)
+    let timeScale = 0.01;
+    let orbitTightness = 1.0;
+    let G = 200;
+    let interactionRadius = 50;
+    let particleCount = 300;
+    
+    // Default color theme is "White"
+    let currentTheme = 'pi';
+    
+    // Color palette functions for each theme
+    function getWhite(i) {
+      return `hsl(180, 90%, 90%)`;
+    }
+    
+    function getGoldenRatioColor(i) {
+      const hue = (i * 137.508) % 360;
+      return `hsl(${hue}, 70%, 65%)`;
+    }
+    
+    function getSolarFlareColor(i) {
+      const hue = (i * 15) % 60; // warm hues (0-60)
+      return `hsl(${hue}, 90%, 50%)`;
+    }
+    
+    function getAuroraColor(i) {
+      const hue = (i * 17) % 120 + 150; // cool hues (150-270)
+      return `hsl(${hue}, 80%, 60%)`;
+    }
+    
+    // Get color function based on current theme
+    function getColor(i) {
+      switch (currentTheme) {
+        case 'pi': return getWhite(i);
+        case 'golden': return getGoldenRatioColor(i);
+        case 'solar': return getSolarFlareColor(i);
+        case 'aurora': return getAuroraColor(i);
+        default: return getWhite(i);
+      }
+    }
+    
+    // Utility: random value between min and max
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    
+    // Explosion effect: Each explosion spawns a burst of particles.
+    function randomFireColor() {
+      const colors = ['#FF4500', '#FF8C00', '#FFD700', '#FF0000', '#FFA500'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    class Explosion {
+      constructor(x, y) {
+        this.particles = [];
+        const count = 50; // Number of explosion particles
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = randomBetween(2, 7);
+          const vx = Math.cos(angle) * speed;
+          const vy = Math.sin(angle) * speed;
+          this.particles.push({
+            x: x,
+            y: y,
+            vx: vx,
+            vy: vy,
+            radius: randomBetween(20, 40),
+            life: 30, // Frames to live
+            maxLife: 60,
+            color: randomFireColor()
+          });
+        }
+        this.isFinished = false;
+      }
+      
+      update() {
+        this.particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          // Decelerate particles slightly
+          p.vx *= 0.95;
+          p.vy *= 0.95;
+          // Slowly expand the particle radius
+          p.radius *= 1.01;
+          p.life--;
+        });
+        // Remove particles that have expired
+        this.particles = this.particles.filter(p => p.life > 0);
+        if (this.particles.length === 0) {
+          this.isFinished = true;
+        }
+      }
+      
+      draw(ctx) {
+        this.particles.forEach(p => {
+          const opacity = p.life / p.maxLife;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+          gradient.addColorStop(0, p.color);
+          gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = gradient;
+          ctx.globalAlpha = opacity;
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+    }
+    
+    // Particle class with fuzzy, round appearance, gravity, explosion timer,
+    // and extra friction applied once the particle becomes an attractor.
+    class Particle {
+      constructor(index) {
+        this.index = index;
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = 10 + Math.random() * 5;
+        this.baseSize = this.size;
+        this.dx = (Math.random() - 0.5) * 2;
+        this.dy = (Math.random() - 0.5) * 2;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+        this.color = getColor(index);
+        this.isAttractor = false;
+        this.exploded = false;
+        this.explosionTime = null; // Timestamp when explosion will trigger (ms)
+      }
+      
+      update() {
+        // If this is an attractor, check its explosion timer
+        if (this.isAttractor && this.explosionTime && Date.now() >= this.explosionTime) {
+          // Trigger explosion effect
+          explosions.push(new Explosion(this.x, this.y));
+          this.exploded = true;
+          return; // Skip further update
+        }
+        
+        // If already an attractor, apply extra friction to slow motion
+        if (this.isAttractor) {
+          this.dx *= 0.95;
+          this.dy *= 0.95;
+          this.rotationSpeed *= 0.98;
+        }
+        
+        // Update motion using timeScale
+        this.x += this.dx * timeScale;
+        this.y += this.dy * timeScale;
+        this.rotation += this.rotationSpeed * timeScale;
+        
+        // Bounce off canvas edges
+        if (this.x < 0 || this.x > width) this.dx *= -1;
+        if (this.y < 0 || this.y > height) this.dy *= -1;
+      }
+      
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        const radius = this.size / 2;
+        const gradient = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
+        gradient.addColorStop(0, this.color);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      
+      // On mouse interaction, become an attractor and set an explosion timer.
+      interact(mouseX, mouseY) {
+        const dist = Math.hypot(mouseX - this.x, mouseY - this.y);
+        if (dist < interactionRadius && !this.isAttractor) {
+          this.isAttractor = true;
+          this.size = this.baseSize * 1.8;
+          this.color = randomFireColor();
+          // Set explosion timer based on color for variability.
+          this.explosionTime = Date.now() + randomBetween(10000, 5000);
+          switch(this.color) {
+            case '#FF4500':
+              this.explosionTime = Date.now() + randomBetween(5000, 10000);
+              break;
+            case '#FF8C00':
+              this.explosionTime = Date.now() + randomBetween(7000, 12000);
+              break;
+            case '#FFD700':
+              this.explosionTime = Date.now() + randomBetween(12000, 15000);
+              break;
+            case '#FF0000':
+              this.explosionTime = Date.now() + randomBetween(15000, 30000);
+              break;
+            case '#FFA500':
+              this.explosionTime = Date.now() + randomBetween(30000, 60000);
+              break;
+          }
+          console.log("Explosion Time: " + this.explosionTime);
+          console.log("Color: " + this.color);
+        }
+      }
+      
+      // Update color if theme changes (only if not an attractor)
+      updateColor() {
+        if (!this.isAttractor) {
+          this.color = getColor(this.index);
+        }
+      }
+    }
+    
+    let particles = [];
+    function createParticles() {
+      particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle(i));
+      }
+    }
+    createParticles();
+    
+    // Global array to hold explosion effects
+    const explosions = [];
+    
+    // Apply gravitational pull from attractors to non-attractor particles.
+    function applyGravity() {
+      particles.forEach(p => {
+        if (!p.isAttractor) {
+          particles.forEach(a => {
+            if (a.isAttractor) {
+              const dx = a.x - p.x;
+              const dy = a.y - p.y;
+              const distSq = dx * dx + dy * dy;
+              if (distSq > 0) {
+                const force = (G * orbitTightness) / (distSq + 1000);
+                p.dx += force * dx * timeScale;
+                p.dy += force * dy * timeScale;
+              }
+            }
+          });
+        }
+      });
+    }
+    
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      
+      // Remove exploded particles from the simulation.
+      particles = particles.filter(p => !p.exploded);
+      
+      applyGravity();
+      
+      // Update and draw particles
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      
+      // Update and draw explosion effects
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        explosions[i].update();
+        explosions[i].draw(ctx);
+        if (explosions[i].isFinished) {
+          explosions.splice(i, 1);
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    animate();
+    
+    // Mouse interaction for activating attractors.
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      particles.forEach(p => p.interact(mouseX, mouseY));
+    });
+    
+    // Click regenerates the particles.
+    canvas.addEventListener('click', () => {
+      createParticles();
+    });
+    
+    // Slider event listeners
+    document.getElementById("timeScaleSlider").addEventListener("input", function(e) {
+      timeScale = parseFloat(e.target.value);
+      document.getElementById("timeScaleVal").textContent = timeScale.toFixed(3);
+    });
+    
+    document.getElementById("orbitTightnessSlider").addEventListener("input", function(e) {
+      orbitTightness = parseFloat(e.target.value);
+      document.getElementById("orbitTightnessVal").textContent = orbitTightness.toFixed(1);
+    });
+    
+    document.getElementById("GSlider").addEventListener("input", function(e) {
+      G = parseFloat(e.target.value);
+      document.getElementById("GVal").textContent = G;
+    });
+    
+    document.getElementById("interactionRadiusSlider").addEventListener("input", function(e) {
+      interactionRadius = parseFloat(e.target.value);
+      document.getElementById("interactionRadiusVal").textContent = interactionRadius;
+    });
+    
+    document.getElementById("particleCountSlider").addEventListener("input", function(e) {
+      particleCount = parseInt(e.target.value);
+      document.getElementById("particleCountVal").textContent = particleCount;
+      createParticles();
+    });
+    
+    // Drop-down event listener for color themes
+    document.getElementById("colorThemeSelect").addEventListener("change", function(e) {
+      currentTheme = e.target.value;
+      particles.forEach(p => p.updateColor());
+    });
+  </script>
 </body>
 </html>
