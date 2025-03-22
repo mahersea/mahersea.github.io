@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ohm's Law - Advanced Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      margin: 20px;
+    }
+    .controls {
+      margin: 10px auto;
+      max-width: 600px;
+      text-align: left;
+    }
+    .controls select, .controls input[type="range"] {
+      margin: 5px;
+    }
+    .slider-group {
+      margin: 10px 0;
+    }
+    .slider-group label {
+      display: inline-block;
+      width: 100px;
+    }
+    .slider-group input[type="range"] {
+      width: 200px;
+    }
+    .values {
+      margin: 20px auto;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .values > div {
+      width: 130px;
+      background: #222;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 5px;
+      text-align: center;
+    }
+    #canvasContainer {
+      margin: 0 auto 20px;
+      width: 900px;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      background: #111;
+      margin: 0 auto;
+      border: 1px solid #444;
+    }
+    .warning {
+      color: #ff5555;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Ohm's Law - Advanced Visualization</h1>
+
+<div class="controls">
+  <label for="controlPairSelect"><strong>Choose which two variables to control:</strong></label>
+  <select id="controlPairSelect">
+    <option value="V-R">Voltage (V) &amp; Resistance (R)</option>
+    <option value="V-I">Voltage (V) &amp; Current (I)</option>
+    <option value="I-R">Current (I) &amp; Resistance (R)</option>
+    <option value="P-R">Power (P) &amp; Resistance (R)</option>
+    <option value="P-I">Power (P) &amp; Current (I)</option>
+    <option value="P-V">Power (P) &amp; Voltage (V)</option>
+  </select>
+
+  <!-- Sliders for V, I, R, P (only some will be visible depending on the selected pair) -->
+  <div class="slider-group" id="sliderV">
+    <label for="voltageSlider">Voltage (V):</label>
+    <input type="range" id="voltageSlider" min="0" max="100" step="1" value="20">
+    <span id="voltageValue">20 V</span>
+  </div>
+
+  <div class="slider-group" id="sliderI">
+    <label for="currentSlider">Current (I):</label>
+    <input type="range" id="currentSlider" min="0" max="10" step="0.1" value="1">
+    <span id="currentValue">1 A</span>
+  </div>
+
+  <div class="slider-group" id="sliderR">
+    <label for="resistanceSlider">Resistance (Ω):</label>
+    <input type="range" id="resistanceSlider" min="1" max="100" step="1" value="10">
+    <span id="resistanceValue">10 Ω</span>
+  </div>
+
+  <div class="slider-group" id="sliderP">
+    <label for="powerSlider">Power (W):</label>
+    <input type="range" id="powerSlider" min="0" max="500" step="5" value="50">
+    <span id="powerValue">50 W</span>
+  </div>
+</div>
+
+<div class="warning" id="warningMsg" style="display: none;"></div>
+
+<div class="values">
+  <div>
+    <strong>Voltage (V)</strong>
+    <div id="voltageDisplay">--</div>
+  </div>
+  <div>
+    <strong>Current (I)</strong>
+    <div id="currentDisplay">--</div>
+  </div>
+  <div>
+    <strong>Resistance (R)</strong>
+    <div id="resistanceDisplay">--</div>
+  </div>
+  <div>
+    <strong>Power (P)</strong>
+    <div id="powerDisplay">--</div>
+  </div>
+</div>
+
+<div id="canvasContainer">
+  <canvas id="ohmsWheel" width="900" height="600"></canvas>
+</div>
+
+<script>
+  // -----------------------------------
+  // Grab HTML elements
+  // -----------------------------------
+  const controlPairSelect = document.getElementById('controlPairSelect');
+  const voltageSlider = document.getElementById('voltageSlider');
+  const currentSlider = document.getElementById('currentSlider');
+  const resistanceSlider = document.getElementById('resistanceSlider');
+  const powerSlider = document.getElementById('powerSlider');
+
+  const voltageValueSpan = document.getElementById('voltageValue');
+  const currentValueSpan = document.getElementById('currentValue');
+  const resistanceValueSpan = document.getElementById('resistanceValue');
+  const powerValueSpan = document.getElementById('powerValue');
+
+  const voltageDisplay = document.getElementById('voltageDisplay');
+  const currentDisplay = document.getElementById('currentDisplay');
+  const resistanceDisplay = document.getElementById('resistanceDisplay');
+  const powerDisplay = document.getElementById('powerDisplay');
+
+  const sliderV = document.getElementById('sliderV');
+  const sliderI = document.getElementById('sliderI');
+  const sliderR = document.getElementById('sliderR');
+  const sliderP = document.getElementById('sliderP');
+
+  const warningMsg = document.getElementById('warningMsg');
+
+  const canvas = document.getElementById('ohmsWheel');
+  const ctx = canvas.getContext('2d');
+
+  // -----------------------------------
+  // Main variables
+  // -----------------------------------
+  let V = parseFloat(voltageSlider.value);  // Voltage
+  let I = parseFloat(currentSlider.value);  // Current
+  let R = parseFloat(resistanceSlider.value); // Resistance
+  let P = parseFloat(powerSlider.value);    // Power
+
+  // Keep track of previous highlight color for animation
+  let highlightAlpha = 0;
+  let highlightSegmentIndex = -1;
+
+  // For simple transition on the wheel, we can track time
+  let lastTimestamp = 0;
+
+  // -----------------------------------
+  // Show/Hide sliders based on selection
+  // -----------------------------------
+  function updateSlidersVisibility() {
+    // Hide all first
+    sliderV.style.display = 'none';
+    sliderI.style.display = 'none';
+    sliderR.style.display = 'none';
+    sliderP.style.display = 'none';
+
+    // Show the two we need
+    const pair = controlPairSelect.value;
+    if (pair.includes('V')) sliderV.style.display = 'block';
+    if (pair.includes('I')) sliderI.style.display = 'block';
+    if (pair.includes('R')) sliderR.style.display = 'block';
+    if (pair.includes('P')) sliderP.style.display = 'block';
+  }
+
+  // -----------------------------------
+  // Compute the other two variables
+  // based on which pair is controlled
+  // -----------------------------------
+  function computeValues() {
+    // First read the slider values
+    V = parseFloat(voltageSlider.value);
+    I = parseFloat(currentSlider.value);
+    R = parseFloat(resistanceSlider.value);
+    P = parseFloat(powerSlider.value);
+
+    const pair = controlPairSelect.value;
+
+    // If user controls (V, R): compute I, P
+    if (pair === 'V-R') {
+      I = (R === 0) ? 0 : V / R;
+      P = V * I;
+    }
+    // If user controls (V, I): compute R, P
+    else if (pair === 'V-I') {
+      R = (I === 0) ? 0 : V / I;
+      P = V * I;
+    }
+    // If user controls (I, R): compute V, P
+    else if (pair === 'I-R') {
+      V = I * R;
+      P = V * I;
+    }
+    // If user controls (P, R): compute I, V
+    else if (pair === 'P-R') {
+      // I = sqrt(P / R), then V = I*R
+      I = (R === 0) ? 0 : Math.sqrt(P / R);
+      V = I * R;
+    }
+    // If user controls (P, I): compute V, R
+    else if (pair === 'P-I') {
+      // V = P / I, then R = V / I
+      V = (I === 0) ? 0 : P / I;
+      R = (I === 0) ? 0 : V / I;
+    }
+    // If user controls (P, V): compute I, R
+    else if (pair === 'P-V') {
+      // I = P / V, then R = V / I
+      I = (V === 0) ? 0 : P / V;
+      R = (I === 0) ? 0 : V / I;
+    }
+
+    // Reassign to main variables to ensure they're updated
+    // (some might be re-computed as floats that differ from the slider)
+    voltageSlider.value = V;
+    currentSlider.value = I;
+    resistanceSlider.value = R;
+    powerSlider.value = P;
+  }
+
+  // -----------------------------------
+  // Update displayed text
+  // -----------------------------------
+  function updateDisplays() {
+    voltageDisplay.textContent = V.toFixed(2);
+    currentDisplay.textContent = I.toFixed(2);
+    resistanceDisplay.textContent = R.toFixed(2);
+    powerDisplay.textContent = P.toFixed(2);
+
+    voltageValueSpan.textContent = V.toFixed(2) + ' V';
+    currentValueSpan.textContent = I.toFixed(2) + ' A';
+    resistanceValueSpan.textContent = R.toFixed(2) + ' Ω';
+    powerValueSpan.textContent = P.toFixed(2) + ' W';
+  }
+
+  // -----------------------------------
+  // Simple warnings for extreme values
+  // -----------------------------------
+  function checkWarnings() {
+    let msg = '';
+    if (I > 10) {
+      msg = 'Warning: Very high current!';
+    } else if (P > 400) {
+      msg = 'Warning: High power dissipation!';
+    }
+    if (msg) {
+      warningMsg.style.display = 'block';
+      warningMsg.textContent = msg;
+    } else {
+      warningMsg.style.display = 'none';
+    }
+  }
+
+  // -----------------------------------
+  // Draw a basic circuit diagram
+  // -----------------------------------
+  function drawCircuit() {
+    // The canvas is 900 x 600. We'll draw near the left side.
+    const batteryX = 50, batteryY = 250;
+    const batteryWidth = 40, batteryHeight = 100;
+    const wireLength = 200;
+    const resistorX = batteryX + batteryWidth + wireLength;
+    const resistorY = 280;
+    const resistorWidth = 60;
+    const resistorHeight = 40;
+
+    // Wipe the area where the circuit is drawn
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Battery
+    ctx.fillStyle = '#666';
+    ctx.fillRect(batteryX, batteryY, batteryWidth, batteryHeight);
+    ctx.fillStyle = '#999';
+    ctx.fillRect(batteryX + 10, batteryY, 5, batteryHeight); // negative plate
+    ctx.fillRect(batteryX + 25, batteryY, 5, batteryHeight); // positive plate
+
+    // Wires from battery to resistor
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // top wire
+    ctx.moveTo(batteryX + batteryWidth, batteryY + 10);
+    ctx.lineTo(batteryX + batteryWidth + wireLength, batteryY + 10);
+    // bottom wire
+    ctx.moveTo(batteryX + batteryWidth, batteryY + batteryHeight - 10);
+    ctx.lineTo(batteryX + batteryWidth + wireLength, batteryY + batteryHeight - 10);
+    ctx.stroke();
+
+    // Resistor color based on power: fade from #444 (low) to #ff0000 (high)
+    const maxPower = 500; // scale reference
+    const powerRatio = Math.min(P / maxPower, 1); 
+    // simple linear interpolation between #444 and #f00
+    const r = Math.floor(0x44 + (0xff - 0x44) * powerRatio);
+    const g = Math.floor(0x44 + (0x00 - 0x44) * powerRatio);
+    const b = Math.floor(0x44 + (0x00 - 0x44) * powerRatio);
+    const resistorColor = `rgb(${r},${g},${b})`;
+
+    // Resistor block
+    ctx.fillStyle = resistorColor;
+    ctx.fillRect(resistorX, resistorY, resistorWidth, resistorHeight);
+
+    // Wires continuing from resistor
+    const wireEndX = resistorX + resistorWidth + wireLength;
+    ctx.beginPath();
+    // top wire
+    ctx.moveTo(resistorX + resistorWidth, resistorY + 5);
+    ctx.lineTo(wireEndX, resistorY + 5);
+    // bottom wire
+    ctx.moveTo(resistorX + resistorWidth, resistorY + resistorHeight - 5);
+    ctx.lineTo(wireEndX, resistorY + resistorHeight - 5);
+    ctx.stroke();
+
+    // A simple "ammeter" on the right side
+    const ammeterX = wireEndX + 30;
+    const ammeterY = 300;
+    const ammeterRadius = 30;
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(ammeterX, ammeterY, ammeterRadius, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+
+    // "A" text
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('A', ammeterX, ammeterY);
+
+    // Indicate current direction (arrow)
+    ctx.beginPath();
+    ctx.moveTo(ammeterX - ammeterRadius - 20, ammeterY);
+    ctx.lineTo(ammeterX - ammeterRadius, ammeterY);
+    ctx.stroke();
+    // arrowhead
+    ctx.beginPath();
+    ctx.moveTo(ammeterX - ammeterRadius - 5, ammeterY - 5);
+    ctx.lineTo(ammeterX - ammeterRadius, ammeterY);
+    ctx.lineTo(ammeterX - ammeterRadius - 5, ammeterY + 5);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+  }
+
+  // -----------------------------------
+  // Draw the Ohm's Law wheel on top
+  // -----------------------------------
+  function drawWheel(deltaTime) {
+    // We'll place the wheel in the top-right corner
+    const wheelCenterX = 650;
+    const wheelCenterY = 200;
+    const outerRadius = 120;
+    const segments = 12;
+    const anglePerSegment = (2 * Math.PI) / segments;
+
+    // Formulas for each segment
+    const formulas = [
+      'P = VI',   'V = IR',   'I = V/R',   'R = V/I',
+      'P = I²R',  'I = √(P/R)', 'R = P/I²',  'I = √(P/R)',
+      'P = V²/R', 'V = √(P·R)', 'R = V²/P',  'V = √(P·R)'
+    ];
+
+    // Determine which segment to highlight based on which pair is chosen
+    // (Just a simple example; you can refine the logic)
+    const pair = controlPairSelect.value;
+    // We'll pick a simple mapping from pair to segment index or range
+    highlightSegmentIndex = -1;
+    if (pair === 'V-R') highlightSegmentIndex = 2;   // "I = V/R"
+    if (pair === 'V-I') highlightSegmentIndex = 1;   // "V = IR" or "P = VI"
+    if (pair === 'I-R') highlightSegmentIndex = 3;   // "R = V/I"
+    if (pair === 'P-R') highlightSegmentIndex = 6;   // "R = P/I²"
+    if (pair === 'P-I') highlightSegmentIndex = 5;   // "I = √(P/R)"
+    if (pair === 'P-V') highlightSegmentIndex = 9;   // "V = √(P·R)"
+
+    // We animate the highlightAlpha to create a pulse effect
+    // If highlightSegmentIndex >= 0, increment highlightAlpha
+    if (highlightSegmentIndex >= 0) {
+      highlightAlpha += (deltaTime * 0.002); // speed of pulse
+    }
+
+    for (let i = 0; i < segments; i++) {
+      const startAngle = i * anglePerSegment;
+      const endAngle = startAngle + anglePerSegment;
+
+      // If this segment is the highlighted one, give it a color pulse
+      let baseColor = '#333';
+      if (i === highlightSegmentIndex) {
+        // create a pulsing brightness between 0.5 and 1.0
+        const pulse = 0.5 + 0.5 * Math.sin(highlightAlpha);
+        const gray = Math.floor(0x33 + pulse * (0xaa));
+        baseColor = `rgb(${gray}, ${gray}, ${gray})`;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(wheelCenterX, wheelCenterY);
+      ctx.arc(wheelCenterX, wheelCenterY, outerRadius, startAngle, endAngle);
+      ctx.closePath();
+      ctx.fillStyle = baseColor;
+      ctx.fill();
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Text in the segment
+      const midAngle = startAngle + anglePerSegment / 2;
+      const textRadius = outerRadius * 0.65;
+      const textX = wheelCenterX + textRadius * Math.cos(midAngle);
+      const textY = wheelCenterY + textRadius * Math.sin(midAngle);
+
+      ctx.save();
+      ctx.translate(textX, textY);
+      ctx.rotate(midAngle);
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(formulas[i], 0, 0);
+      ctx.restore();
+    }
+
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(wheelCenterX, wheelCenterY, 35, 0, 2 * Math.PI);
+    ctx.fillStyle = '#555';
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText("Ohm's\nLaw", wheelCenterX, wheelCenterY);
+  }
+
+  // -----------------------------------
+  // Master update function
+  // -----------------------------------
+  function update() {
+    computeValues();
+    updateDisplays();
+    checkWarnings();
+  }
+
+  // -----------------------------------
+  // Animation loop
+  // -----------------------------------
+  function animate(timestamp) {
+    const deltaTime = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+
+    // Redraw circuit
+    drawCircuit();
+    // Then draw the wheel on top
+    drawWheel(deltaTime);
+
+    requestAnimationFrame(animate);
+  }
+
+  // -----------------------------------
+  // Event Listeners
+  // -----------------------------------
+  controlPairSelect.addEventListener('change', () => {
+    updateSlidersVisibility();
+    update();
+  });
+  voltageSlider.addEventListener('input', update);
+  currentSlider.addEventListener('input', update);
+  resistanceSlider.addEventListener('input', update);
+  powerSlider.addEventListener('input', update);
+
+  // -----------------------------------
+  // Initial Setup
+  // -----------------------------------
+  updateSlidersVisibility();
+  update();
+  requestAnimationFrame(animate);
+
+</script>
+</body>
+</html>

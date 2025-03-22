@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Putt Golf Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #333;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Define the round green.
+    const greenCenter = { x: width / 2, y: height / 2 };
+    const greenRadius = 250;
+
+    // Hole parameters.
+    const holeRadius = 15;
+    let holePosition = { x: 0, y: 0 };
+
+    // White ball parameters.
+    const ballRadius = 10;
+    let ball = { x: 0, y: 0, vx: 0, vy: 0 };
+
+    // Physics parameters.
+    const friction = 0.98; // moderate friction
+    const forceMultiplier = 0.1;
+
+    let isDragging = false;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    // Reset the game: randomly place the hole on the green and position the ball.
+    function resetGame() {
+      // Randomly position the hole within the green (with margin so it’s not too close to the edge)
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * (greenRadius - holeRadius - 20);
+      holePosition.x = greenCenter.x + radius * Math.cos(angle);
+      holePosition.y = greenCenter.y + radius * Math.sin(angle);
+
+      // Place the ball near the bottom of the green.
+      ball.x = greenCenter.x;
+      ball.y = greenCenter.y + greenRadius - 50;
+      ball.vx = 0;
+      ball.vy = 0;
+    }
+
+    // Draw the background: fill canvas with a brown "out-of-green" color and then draw the round green.
+    function drawBackground() {
+      ctx.fillStyle = "#654321"; // brown background
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.beginPath();
+      ctx.arc(greenCenter.x, greenCenter.y, greenRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "#006400"; // dark green
+      ctx.fill();
+      ctx.strokeStyle = "#228B22"; // forest green border
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }
+
+    // Draw the hole as a small black circle.
+    function drawHole() {
+      ctx.beginPath();
+      ctx.arc(holePosition.x, holePosition.y, holeRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "#000";
+      ctx.fill();
+    }
+
+    // Draw the white ball.
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+    }
+
+    // Draw a cue line from the ball to the mouse while dragging.
+    function drawCue() {
+      if (isDragging) {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(ball.x, ball.y);
+        ctx.lineTo(mouseX, mouseY);
+        ctx.stroke();
+      }
+    }
+
+    // Update ball physics: move the ball, apply friction, and optionally bounce off the green edge.
+    function updatePhysics() {
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.vx *= friction;
+      ball.vy *= friction;
+
+      // If the ball leaves the green, reflect it back in.
+      let dx = ball.x - greenCenter.x;
+      let dy = ball.y - greenCenter.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist + ballRadius > greenRadius) {
+        let nx = dx / dist;
+        let ny = dy / dist;
+        ball.x = greenCenter.x + (greenRadius - ballRadius) * nx;
+        ball.y = greenCenter.y + (greenRadius - ballRadius) * ny;
+        let dot = ball.vx * nx + ball.vy * ny;
+        ball.vx = ball.vx - 2 * dot * nx;
+        ball.vy = ball.vy - 2 * dot * ny;
+      }
+    }
+
+    // Check if the ball falls into the hole.
+    function checkHole() {
+      let dx = ball.x - holePosition.x;
+      let dy = ball.y - holePosition.y;
+      if (Math.sqrt(dx * dx + dy * dy) < holeRadius) {
+        setTimeout(() => {
+          alert("Hole in one!");
+          resetGame();
+        }, 100);
+      }
+    }
+
+    // Main game loop.
+    function gameLoop() {
+      updatePhysics();
+      checkHole();
+      drawBackground();
+      drawHole();
+      drawBall();
+      drawCue();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Mouse events: click on the ball to start dragging, update drag position, and release to shoot.
+    canvas.addEventListener('mousedown', (e) => {
+      let rect = canvas.getBoundingClientRect();
+      let clickX = e.clientX - rect.left;
+      let clickY = e.clientY - rect.top;
+      let dx = clickX - ball.x;
+      let dy = clickY - ball.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= ballRadius) {
+        isDragging = true;
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        let rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+      }
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (isDragging) {
+        isDragging = false;
+        let rect = canvas.getBoundingClientRect();
+        let releaseX = e.clientX - rect.left;
+        let releaseY = e.clientY - rect.top;
+        let dx = ball.x - releaseX;
+        let dy = ball.y - releaseY;
+        ball.vx += dx * forceMultiplier;
+        ball.vy += dy * forceMultiplier;
+      }
+    });
+
+    resetGame();
+    gameLoop();
+  </script>
+</body>
+</html>

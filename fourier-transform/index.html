@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fourier Series for a Square Wave</title>
+  <title>Fourier Series Visualization</title>
   <style>
     body {
       margin: 0;
@@ -20,8 +20,11 @@
     .controls {
       margin: 10px auto;
     }
-    input[type="range"] {
+    input[type="range"],
+    select {
       margin: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
     }
     button {
       margin: 10px;
@@ -31,8 +34,14 @@
   </style>
 </head>
 <body>
-  <h1>Fourier Series for a Square Wave</h1>
+  <h1>Fourier Series Visualization</h1>
   <div class="controls">
+    <label for="waveType">Wave Type: </label>
+    <select id="waveType">
+      <option value="square">Square Wave</option>
+      <option value="sawtooth">Sawtooth Wave</option>
+      <option value="triangle">Triangle Wave</option>
+    </select>
     <label for="termsSlider">Number of Terms: </label>
     <input type="range" id="termsSlider" min="1" max="25" value="5">
     <span id="termsDisplay">5</span>
@@ -42,10 +51,10 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-
     const termsSlider = document.getElementById('termsSlider');
     const termsDisplay = document.getElementById('termsDisplay');
     const pauseBtn = document.getElementById('pauseBtn');
+    const waveTypeSelect = document.getElementById('waveType');
 
     let numTerms = parseInt(termsSlider.value);
     termsDisplay.textContent = numTerms;
@@ -77,43 +86,93 @@
       const originY = canvas.height / 2;
       let x = originX;
       let y = originY;
+      
+      // Get the selected wave type
+      const waveType = waveTypeSelect.value;
 
-      // Draw the series of epicycles
-      for (let i = 0; i < numTerms; i++) {
-        let prevX = x;
-        let prevY = y;
-        // Only odd harmonics contribute: n = 2*i + 1
-        let n = 2 * i + 1;
-        // The radius for each term: scaling factor (75) adjusts the overall size.
-        let radius = (4 / (n * Math.PI)) * 75;
-        x += radius * Math.cos(n * time);
-        y += radius * Math.sin(n * time);
+      if (waveType === 'square') {
+        // Fourier series for square wave (only odd harmonics)
+        for (let i = 0; i < numTerms; i++) {
+          let prevX = x;
+          let prevY = y;
+          let n = 2 * i + 1;
+          let radius = (4 / (n * Math.PI)) * 75;
+          x += radius * Math.cos(n * time);
+          y += radius * Math.sin(n * time);
 
-        // Draw the circle representing this term
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-        ctx.beginPath();
-        ctx.arc(prevX, prevY, radius, 0, Math.PI * 2);
-        ctx.stroke();
+          // Draw the circle for this harmonic
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.beginPath();
+          ctx.arc(prevX, prevY, radius, 0, Math.PI * 2);
+          ctx.stroke();
 
-        // Draw the vector (line) from the center of the circle to its tip
-        ctx.strokeStyle = '#fff';
-        ctx.beginPath();
-        ctx.moveTo(prevX, prevY);
-        ctx.lineTo(x, y);
-        ctx.stroke();
+          // Draw the vector
+          ctx.strokeStyle = '#fff';
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+      } else if (waveType === 'sawtooth') {
+        // Fourier series for sawtooth wave (all harmonics with alternating sign)
+        for (let n = 1; n <= numTerms; n++) {
+          let prevX = x;
+          let prevY = y;
+          let coeff = (2 / (n * Math.PI)) * 75;
+          let sign = Math.pow(-1, n + 1);
+          x += coeff * sign * Math.cos(n * time);
+          y += coeff * sign * Math.sin(n * time);
+
+          // Draw the circle for this harmonic
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.beginPath();
+          ctx.arc(prevX, prevY, Math.abs(coeff), 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Draw the vector
+          ctx.strokeStyle = '#fff';
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+      } else if (waveType === 'triangle') {
+        // Fourier series for triangle wave (only odd harmonics with squared denominator)
+        for (let i = 0; i < numTerms; i++) {
+          let prevX = x;
+          let prevY = y;
+          let n = 2 * i + 1;
+          // Coefficient for triangle wave: (8/π²) * (1/n²) scaled
+          let coeff = (8 / (Math.PI * Math.PI)) * (1 / (n * n)) * 75;
+          // Alternating sign: (-1)^((n-1)/2) simplifies to (-1)^i when n = 2*i+1
+          let sign = Math.pow(-1, i);
+          x += coeff * sign * Math.cos(n * time);
+          y += coeff * sign * Math.sin(n * time);
+
+          // Draw the circle for this harmonic
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.beginPath();
+          ctx.arc(prevX, prevY, Math.abs(coeff), 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Draw the vector
+          ctx.strokeStyle = '#fff';
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
       }
 
-      // Draw a horizontal line from the tip of the final vector to the waveform graph
+      // Draw a horizontal line from the tip of the epicycles to the waveform graph
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(400, y);
       ctx.strokeStyle = '#fff';
       ctx.stroke();
 
-      // Add the new value (y) to the beginning of the wave array
+      // Add the new value to the wave array and draw the waveform
       wave.unshift(y);
-
-      // Draw the waveform (square wave approximation) on the right side of canvas
       ctx.beginPath();
       ctx.moveTo(400, wave[0]);
       for (let i = 1; i < wave.length; i++) {
@@ -127,7 +186,7 @@
         wave.pop();
       }
 
-      // Increment time to animate the rotation of the epicycles
+      // Increment time for animation
       time += 0.05;
 
       requestAnimationFrame(animate);
