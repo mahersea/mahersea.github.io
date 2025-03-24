@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Two.js Interactive Playground</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    #container { display: flex; height: 100vh; }
+    #editor {
+      flex: 1; 
+      padding: 10px; 
+      border-right: 1px solid #ccc; 
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    #preview {
+      flex: 2; 
+      position: relative;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    #console {
+      height: 150px; 
+      border-top: 1px solid #ccc; 
+      padding: 10px; 
+      overflow-y: auto; 
+      background: #f5f5f5;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+    #codeArea {
+      width: 100%; 
+      height: 100px;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+    #runButton { margin-top: 5px; }
+    #twoContainer canvas { border: 1px solid #ccc; }
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 5px; }
+    a { text-decoration: none; color: #0645ad; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="editor">
+      <h2>Interactive Console</h2>
+      <textarea id="codeArea" placeholder="Type your Two.js code here..."></textarea><br>
+      <button id="runButton">Run Code</button>
+      
+      <h3>Predefined Examples</h3>
+      <ul>
+        <li>
+          <a href="#" onclick="loadExample('var circle = two.makeCircle(300, 200, 50);\ncircle.fill = \'#FF8000\';\ncircle.stroke = \'orangered\';\ncircle.linewidth = 5;'); return false;">
+            Create Circle
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var rect = two.makeRectangle(200, 200, 100, 50);\nrect.fill = \'#00FF00\';\nrect.stroke = \'blue\';\nrect.linewidth = 3;'); return false;">
+            Create Rectangle
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var ellipse = two.makeEllipse(300, 200, 80, 40);\nellipse.fill = \'#AA00FF\';\nellipse.stroke = \'purple\';\nellipse.linewidth = 4;'); return false;">
+            Create Ellipse
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var polygon = two.makePolygon(300, 200, 60, 5);\npolygon.fill = \'#FFD700\';\npolygon.stroke = \'#DAA520\';\npolygon.linewidth = 2;'); return false;">
+            Create Polygon
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var star = two.makeStar(300, 200, 40, 80, 5);\nstar.fill = \'#00FFFF\';\nstar.stroke = \'cyan\';\nstar.linewidth = 4;'); return false;">
+            Create Star
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var shape = two.makeCircle(300, 200, 30);\nshape.fill = \'#FF1493\';\nfunction animate() {\n  shape.rotation += 0.01;\n  two.update();\n  requestAnimationFrame(animate);\n}\nanimate();'); return false;">
+            Animate Shape
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('document.getElementById(\'twoContainer\').style.background = \'#f0f0f0\';'); return false;">
+            Change Background
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var group = two.makeGroup();\nvar a = two.makeCircle(250, 200, 30);\nvar b = two.makeRectangle(350, 200, 60, 40);\ngroup.add(a, b);\ngroup.translation.set(50, 50);\ntwo.update();'); return false;">
+            Create Group
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('var original = two.makeCircle(200, 150, 25);\nvar duplicate = original.clone();\nduplicate.translation.x += 100;\nduplicate.fill = \'#8A2BE2\';\ntwo.update();'); return false;">
+            Duplicate Shape
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="loadExample('two.clear();\nvar circle = two.makeCircle(300, 200, 50);\ncircle.fill = \'#FF8000\';\ntwo.update();'); return false;">
+            Clear and Reset
+          </a>
+        </li>
+      </ul>
+      
+      <h3>Basic Two.js API Properties</h3>
+      <ul id="apiList"></ul>
+      
+      <div id="console"></div>
+    </div>
+    <div id="preview">
+      <h2>Preview</h2>
+      <!-- Two.js will render its scene into this container -->
+      <div id="twoContainer"></div>
+    </div>
+  </div>
+
+  <!-- Include Two.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.7.0/two.min.js"></script>
+  <script>
+    // Create a Two.js instance and attach it to the #twoContainer element.
+    var container = document.getElementById('twoContainer');
+    var params = { width: 600, height: 400 };
+    var two = new Two(params).appendTo(container);
+
+    // Set up a basic demo: create and display a circle.
+    var circle = two.makeCircle(300, 200, 50);
+    circle.fill = '#FF8000';
+    circle.stroke = 'orangered';
+    circle.linewidth = 5;
+    two.update();
+
+    // Utility: Append messages to the console display.
+    function logMessage(message) {
+      var consoleDiv = document.getElementById('console');
+      var p = document.createElement('p');
+      p.textContent = message;
+      consoleDiv.appendChild(p);
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    // Override console.log to also display messages in our console area.
+    (function(){
+      var originalLog = console.log;
+      console.log = function() {
+        originalLog.apply(console, arguments);
+        var msg = Array.from(arguments).join(' ');
+        logMessage(msg);
+      };
+    })();
+
+    // Execute code entered in the textarea when the "Run Code" button is clicked.
+    document.getElementById('runButton').addEventListener('click', function(){
+      var code = document.getElementById('codeArea').value;
+      try {
+        // 'two' is available in the evaluation context.
+        eval(code);
+        two.update();
+      } catch(e) {
+        logMessage('Error: ' + e.message);
+      }
+    });
+
+    // Function to load predefined example code into the textarea.
+    function loadExample(code) {
+      document.getElementById('codeArea').value = code;
+    }
+
+    // Populate a basic list of API properties from the Two.js instance.
+    function populateAPIList(obj, parentElement) {
+        for (var key in obj) {
+            var li = document.createElement('li');
+            li.textContent = key;
+            parentElement.appendChild(li);
+        }
+    }
+    var apiListElement = document.getElementById('apiList');
+    logMessage('Listing properties of the Two instance...');
+    populateAPIList(two, apiListElement);
+
+    // You can now experiment by clicking on the links above or by typing your own code!
+  </script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sudoku Game</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      margin-top: 20px;
+    }
+    canvas {
+      border: 2px solid #333;
+      margin-bottom: 10px;
+    }
+    #controls {
+      margin-top: 10px;
+    }
+    button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sudokuCanvas" width="450" height="450"></canvas>
+  <div id="controls">
+    <button id="resetBtn">Reset Puzzle</button>
+    <button id="solveBtn">Solve Puzzle</button>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    const canvas = document.getElementById("sudokuCanvas");
+    const ctx = canvas.getContext("2d");
+    const resetBtn = document.getElementById("resetBtn");
+    const solveBtn = document.getElementById("solveBtn");
+    const messageEl = document.getElementById("message");
+    const SIZE = 9;
+    const CELL_SIZE = canvas.width / SIZE;
+
+    // Preset puzzle (0 represents an empty cell)
+    const puzzle = [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      [0, 9, 8, 0, 0, 0, 0, 6, 0],
+      [8, 0, 0, 0, 6, 0, 0, 0, 3],
+      [4, 0, 0, 8, 0, 3, 0, 0, 1],
+      [7, 0, 0, 0, 2, 0, 0, 0, 6],
+      [0, 6, 0, 0, 0, 0, 2, 8, 0],
+      [0, 0, 0, 4, 1, 9, 0, 0, 5],
+      [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ];
+
+    // Clone the puzzle to maintain current board state.
+    let board = [];
+    // Keep track of fixed cells from the original puzzle.
+    let fixedCells = [];
+    let selectedCell = { row: -1, col: -1 };
+
+    function initBoard() {
+      board = [];
+      fixedCells = [];
+      for (let i = 0; i < SIZE; i++) {
+        board.push([]);
+        fixedCells.push([]);
+        for (let j = 0; j < SIZE; j++) {
+          board[i].push(puzzle[i][j]);
+          fixedCells[i].push(puzzle[i][j] !== 0);
+        }
+      }
+      selectedCell = { row: -1, col: -1 };
+      messageEl.textContent = "Click a cell and press a number (1-9) to play.";
+      drawBoard();
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw cells
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          const x = col * CELL_SIZE;
+          const y = row * CELL_SIZE;
+          // Draw selected cell highlight
+          if (row === selectedCell.row && col === selectedCell.col) {
+            ctx.fillStyle = "#e0e0e0";
+            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+          }
+          // Draw number if cell is not empty
+          if (board[row][col] !== 0) {
+            ctx.fillStyle = fixedCells[row][col] ? "#000" : "#007BFF";
+            ctx.font = "bold 30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(board[row][col], x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+          }
+        }
+      }
+
+      // Draw grid lines
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= SIZE; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL_SIZE, 0);
+        ctx.lineTo(i * CELL_SIZE, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * CELL_SIZE);
+        ctx.lineTo(canvas.width, i * CELL_SIZE);
+        ctx.stroke();
+      }
+
+      // Thicker lines for 3x3 subgrids
+      ctx.lineWidth = 3;
+      for (let i = 0; i <= SIZE; i += 3) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL_SIZE, 0);
+        ctx.lineTo(i * CELL_SIZE, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * CELL_SIZE);
+        ctx.lineTo(canvas.width, i * CELL_SIZE);
+        ctx.stroke();
+      }
+    }
+
+    // Handle canvas click to select cell
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const col = Math.floor(x / CELL_SIZE);
+      const row = Math.floor(y / CELL_SIZE);
+      // Only allow selection if cell is not fixed (or you may allow selecting all)
+      if (!fixedCells[row][col]) {
+        selectedCell = { row, col };
+      } else {
+        selectedCell = { row: -1, col: -1 };
+      }
+      drawBoard();
+    });
+
+    // Handle key presses for numbers and clearing a cell
+    document.addEventListener("keydown", (e) => {
+      if (selectedCell.row === -1 || selectedCell.col === -1) return;
+      // Allow numbers 1-9. Also, allow 0, Backspace, or Delete to clear a cell.
+      if (/^[1-9]$/.test(e.key)) {
+        board[selectedCell.row][selectedCell.col] = parseInt(e.key, 10);
+      } else if (e.key === "0" || e.key === "Backspace" || e.key === "Delete") {
+        board[selectedCell.row][selectedCell.col] = 0;
+      }
+      drawBoard();
+      if (checkSolved()) {
+        messageEl.textContent = "Congratulations! You solved the puzzle.";
+      }
+    });
+
+    // Check if the board is completely filled and valid
+    function checkSolved() {
+      // Check for any empty cells
+      for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE; j++) {
+          if (board[i][j] === 0) return false;
+        }
+      }
+      // Validate rows, columns, and 3x3 blocks
+      for (let i = 0; i < SIZE; i++) {
+        if (!isValidGroup(board[i])) return false;
+        let col = [];
+        for (let j = 0; j < SIZE; j++) {
+          col.push(board[j][i]);
+        }
+        if (!isValidGroup(col)) return false;
+      }
+      for (let row = 0; row < SIZE; row += 3) {
+        for (let col = 0; col < SIZE; col += 3) {
+          let block = [];
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              block.push(board[row + i][col + j]);
+            }
+          }
+          if (!isValidGroup(block)) return false;
+        }
+      }
+      return true;
+    }
+
+    // Helper to check if a group (row, column, or block) contains numbers 1-9 exactly once.
+    function isValidGroup(group) {
+      let nums = new Set();
+      for (let num of group) {
+        if (num < 1 || num > 9 || nums.has(num)) return false;
+        nums.add(num);
+      }
+      return true;
+    }
+
+    // Backtracking Sudoku solver
+    function solveSudoku(bd) {
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          if (bd[row][col] === 0) {
+            for (let num = 1; num <= 9; num++) {
+              if (isSafe(bd, row, col, num)) {
+                bd[row][col] = num;
+                if (solveSudoku(bd)) {
+                  return true;
+                }
+                bd[row][col] = 0;
+              }
+            }
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    // Check if it's safe to place num in cell (row, col)
+    function isSafe(bd, row, col, num) {
+      // Check row and column
+      for (let x = 0; x < SIZE; x++) {
+        if (bd[row][x] === num || bd[x][col] === num) return false;
+      }
+      // Check 3x3 block
+      const startRow = row - row % 3;
+      const startCol = col - col % 3;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (bd[startRow + i][startCol + j] === num) return false;
+        }
+      }
+      return true;
+    }
+
+    // Solve button event handler
+    solveBtn.addEventListener("click", () => {
+      // Clone current board to solve (so we don't modify fixed cells unnecessarily)
+      let boardCopy = board.map(row => row.slice());
+      if (solveSudoku(boardCopy)) {
+        board = boardCopy;
+        messageEl.textContent = "Puzzle solved!";
+      } else {
+        messageEl.textContent = "No solution found.";
+      }
+      selectedCell = { row: -1, col: -1 };
+      drawBoard();
+    });
+
+    // Reset button event handler
+    resetBtn.addEventListener("click", initBoard);
+
+    // Start the game for the first time
+    initBoard();
+  </script>
+</body>
+</html>

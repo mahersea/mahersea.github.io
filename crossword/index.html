@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Absurd News Crossword Puzzle</title>
+  <style>
+    canvas {
+      border: 1px solid #000;
+    }
+    #controls {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Absurd News Crossword Puzzle</h1>
+  <canvas id="crosswordCanvas" width="500" height="500"></canvas>
+  <div id="controls">
+    <button id="solveBtn">Solve</button>
+  </div>
+
+  <script>
+    // Basic configuration for the crossword grid.
+    const rows = 10;
+    const cols = 10;
+    const cellSize = 50;
+    const canvas = document.getElementById('crosswordCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Create a simple 2D array to hold user entries.
+    const grid = [];
+    for (let i = 0; i < rows; i++) {
+      grid[i] = [];
+      for (let j = 0; j < cols; j++) {
+        grid[i][j] = ""; // initially empty
+      }
+    }
+
+    // Draw the grid with the current letters.
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "20px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          const x = j * cellSize;
+          const y = i * cellSize;
+          ctx.strokeRect(x, y, cellSize, cellSize);
+          // Display letter or a dot if empty.
+          const letter = grid[i][j] ? grid[i][j].toUpperCase() : ".";
+          ctx.fillText(letter, x + cellSize / 2, y + cellSize / 2);
+        }
+      }
+    }
+    
+    drawGrid();
+
+    // Allow user input by clicking on a cell.
+    canvas.addEventListener('click', function(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const col = Math.floor(x / cellSize);
+      const row = Math.floor(y / cellSize);
+      
+      // Prompt the user for a letter or word.
+      const letter = prompt("Enter a letter or word for cell (" + row + ", " + col + "):");
+      if (letter !== null && letter.length > 0) {
+        grid[row][col] = letter[0]; // take only the first character for simplicity
+        drawGrid();
+      }
+    });
+
+    // "Solve" button event handler: redraws the grid showing the solution.
+    document.getElementById('solveBtn').addEventListener('click', function() {
+      // For this example, we simply re-draw the grid with current letters.
+      // You can add any additional styling or logic to indicate it's the final solution.
+      drawGrid();
+      // Optionally, you could also display a message on the canvas.
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+      ctx.fillStyle = "#000";
+      ctx.font = "16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Final Solution Displayed", canvas.width / 2, canvas.height - 15);
+    });
+
+    // (Optional) Load the JSON file of absurd news stories.
+    fetch('stories.json')
+      .then(response => response.json())
+      .then(data => {
+        console.log("Loaded stories:", data.stories);
+        // Use the stories and their keywords to generate the crossword puzzle words.
+      })
+      .catch(error => console.error("Error loading stories:", error));
+  </script>
+</body>
+</html>

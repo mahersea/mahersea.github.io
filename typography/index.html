@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML Special Characters Index</title>
+  <style>
+    /* Theme variables for light mode */
+    :root {
+      --primary1: #FF4500;
+      --primary2: #FF8C00;
+      --primary3: #FFD700;
+      --primary4: #FF0000;
+      --primary5: #FFA500;
+      --bg-color: #ffffff;
+      --text-color: #000000;
+    }
+    /* Dark mode: inverted colors */
+    body.dark-mode {
+      --primary1: #00BAFF;
+      --primary2: #0073FF;
+      --primary3: #0028FF;
+      --primary4: #00FFFF;
+      --primary5: #005AFF;
+      --bg-color: #121212;
+      --text-color: #ffffff;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    #themeToggle {
+      background-color: var(--primary1);
+      border: none;
+      color: var(--text-color);
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    .panel {
+      padding: 10px;
+      border: 1px solid var(--primary2);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    .panel.index {
+      width: 40%;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+    .panel.preview {
+      width: 60%;
+    }
+    .character-item {
+      padding: 8px;
+      border-bottom: 1px solid var(--primary3);
+      cursor: pointer;
+    }
+    .character-item:hover {
+      background-color: var(--primary3);
+      color: var(--bg-color);
+    }
+    .display-char {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .display-char span {
+      font-size: 4em;
+      display: inline-block;
+    }
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <button id="themeToggle">Toggle Dark/Light Mode</button>
+  <h1>HTML Special Characters &amp; Math Symbols Index</h1>
+  <div class="container">
+    <!-- Left panel: Index list -->
+    <div class="panel index" id="indexPanel">
+      <!-- Dynamic list of special characters -->
+    </div>
+    <!-- Right panel: Preview -->
+    <div class="panel preview" id="previewPanel">
+      <h2>Preview</h2>
+      <div id="previewContent">
+        <p>Select a character from the list to see its preview.</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const specialCharacters = [
+      {name: "Non-breaking Space", entity: "&nbsp;", code: "&#160;", symbol: "\u00A0"},
+      {name: "Less-than", entity: "&lt;", code: "&#60;", symbol: "<"},
+      {name: "Greater-than", entity: "&gt;", code: "&#62;", symbol: ">"},
+      {name: "Ampersand", entity: "&amp;", code: "&#38;", symbol: "&"},
+      {name: "Double Quote", entity: "&quot;", code: "&#34;", symbol: "\""},
+      {name: "Single Quote", entity: "&apos;", code: "&#39;", symbol: "'"},
+      {name: "Cent", entity: "&cent;", code: "&#162;", symbol: "¢"},
+      {name: "Pound", entity: "&pound;", code: "&#163;", symbol: "£"},
+      {name: "Yen", entity: "&yen;", code: "&#165;", symbol: "¥"},
+      {name: "Euro", entity: "&euro;", code: "&#8364;", symbol: "€"},
+      {name: "Copyright", entity: "&copy;", code: "&#169;", symbol: "©"},
+      {name: "Registered", entity: "&reg;", code: "&#174;", symbol: "®"},
+      {name: "Trademark", entity: "&trade;", code: "&#8482;", symbol: "™"},
+      {name: "En Dash", entity: "&ndash;", code: "&#8211;", symbol: "–"},
+      {name: "Em Dash", entity: "&mdash;", code: "&#8212;", symbol: "—"},
+      {name: "Left Double Quote", entity: "&ldquo;", code: "&#8220;", symbol: "“"},
+      {name: "Right Double Quote", entity: "&rdquo;", code: "&#8221;", symbol: "”"},
+      {name: "Left Single Quote", entity: "&lsquo;", code: "&#8216;", symbol: "‘"},
+      {name: "Right Single Quote", entity: "&rsquo;", code: "&#8217;", symbol: "’"},
+      {name: "Ellipsis", entity: "&hellip;", code: "&#8230;", symbol: "…"},
+      {name: "Left Angle Quote", entity: "&laquo;", code: "&#171;", symbol: "«"},
+      {name: "Right Angle Quote", entity: "&raquo;", code: "&#187;", symbol: "»"},
+      {name: "Section", entity: "&sect;", code: "&#167;", symbol: "§"},
+      {name: "Paragraph", entity: "&para;", code: "&#182;", symbol: "¶"},
+      {name: "Degree", entity: "&deg;", code: "&#176;", symbol: "°"},
+      {name: "Plus-Minus", entity: "&plusmn;", code: "&#177;", symbol: "±"},
+      {name: "Micro", entity: "&micro;", code: "&#181;", symbol: "µ"},
+      {name: "Middle Dot", entity: "&middot;", code: "&#183;", symbol: "·"},
+      {name: "One Quarter", entity: "&frac14;", code: "&#188;", symbol: "¼"},
+      {name: "One Half", entity: "&frac12;", code: "&#189;", symbol: "½"},
+      {name: "Three Quarters", entity: "&frac34;", code: "&#190;", symbol: "¾"},
+      // Math symbols
+      {name: "Multiplication", entity: "&times;", code: "&#215;", symbol: "×"},
+      {name: "Division", entity: "&divide;", code: "&#247;", symbol: "÷"},
+      {name: "Superscript Two", entity: "&sup2;", code: "&#178;", symbol: "²"},
+      {name: "Superscript Three", entity: "&sup3;", code: "&#179;", symbol: "³"},
+      {name: "Subscript One", entity: "N/A", code: "&#8321;", symbol: "₁"},
+      {name: "Subscript Two", entity: "N/A", code: "&#8322;", symbol: "₂"}
+    ];
+
+    const indexPanel = document.getElementById("indexPanel");
+    const previewContent = document.getElementById("previewContent");
+
+    // Generate the list of special characters
+    specialCharacters.forEach(char => {
+      const item = document.createElement("div");
+      item.className = "character-item";
+      item.innerHTML = `<strong>${char.entity}</strong> (${char.name})`;
+      item.addEventListener("click", () => {
+        previewContent.innerHTML = `
+          <h2>${char.name}</h2>
+          <p><strong>Entity:</strong> ${char.entity}</p>
+          <p><strong>Numeric Code:</strong> <code>${char.code.replace(/&/g, "&amp;")}</code></p>
+          <div class="display-char">
+            <span>${char.symbol}</span>
+          </div>
+        `;
+      });
+      indexPanel.appendChild(item);
+    });
+
+    // Theme toggle functionality
+    document.getElementById("themeToggle").addEventListener("click", function() {
+      document.body.classList.toggle("dark-mode");
+    });
+  </script>
+</body>
+</html>

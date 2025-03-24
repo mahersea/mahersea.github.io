@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Bomber Game - Scrolling Background</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: #228B22; /* Base field color */
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Canvas dimensions
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // Create an offscreen canvas for the background (taller than visible canvas)
+    const BG_HEIGHT = HEIGHT * 2;
+    const bgCanvas = document.createElement("canvas");
+    bgCanvas.width = WIDTH;
+    bgCanvas.height = BG_HEIGHT;
+    const bgCtx = bgCanvas.getContext("2d");
+
+    // Colors for our placeholder graphics
+    const COLOR_FIELD = "#228B22";     // ForestGreen for fields (base color)
+    const COLOR_TREE = "#006400";      // DarkGreen for trees
+    const COLOR_ROAD = "#323232";      // Dark grey for roads
+    const COLOR_RIVER = "#1E90FF";     // DodgerBlue for rivers/lakes
+    const COLOR_DISABLED = "#808080";  // Grey for disabled vehicles
+    const COLOR_CRATER = "#696969";    // DimGray for craters
+    const COLOR_VEHICLE = "#FF0000";   // Red for moving vehicles
+
+    // Fill the background with the field color first
+    bgCtx.fillStyle = COLOR_FIELD;
+    bgCtx.fillRect(0, 0, WIDTH, BG_HEIGHT);
+
+    // Function to add terrain elements onto the background canvas
+    function addTerrainElements(ctx) {
+      // Add groups of trees
+      for (let i = 0; i < 20; i++) {
+        let x = Math.random() * (WIDTH - 40);
+        let y = Math.random() * (BG_HEIGHT - 40);
+        ctx.fillStyle = COLOR_TREE;
+        ctx.fillRect(x, y, 40, 40);
+      }
+      // Add roads
+      for (let i = 0; i < 5; i++) {
+        let roadY = Math.random() * (BG_HEIGHT - 50);
+        ctx.fillStyle = COLOR_ROAD;
+        ctx.fillRect(0, roadY, WIDTH, 50);
+      }
+      // Add rivers/lakes
+      for (let i = 0; i < 3; i++) {
+        let riverX = Math.random() * (WIDTH - 100);
+        let riverY = Math.random() * (BG_HEIGHT - 100);
+        ctx.fillStyle = COLOR_RIVER;
+        ctx.beginPath();
+        ctx.ellipse(riverX + 50, riverY + 25, 50, 25, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Add disabled vehicles
+      for (let i = 0; i < 10; i++) {
+        let x = Math.random() * (WIDTH - 30);
+        let y = Math.random() * (BG_HEIGHT - 30);
+        ctx.fillStyle = COLOR_DISABLED;
+        ctx.fillRect(x, y, 30, 15);
+      }
+      // Add craters
+      for (let i = 0; i < 8; i++) {
+        let x = Math.random() * (WIDTH - 30);
+        let y = Math.random() * (BG_HEIGHT - 30);
+        ctx.fillStyle = COLOR_CRATER;
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Draw terrain elements onto the offscreen background
+    addTerrainElements(bgCtx);
+
+    // Vehicle objects
+    const vehicles = [];
+    for (let i = 0; i < 5; i++) {
+      vehicles.push({
+        x: Math.random() * (WIDTH - 30),
+        y: Math.random() * (BG_HEIGHT - 30),
+        width: 30,
+        height: 15,
+        dx: [-2, -1, 1, 2][Math.floor(Math.random() * 4)],
+        dy: [-2, -1, 1, 2][Math.floor(Math.random() * 4)]
+      });
+    }
+
+    // Background scroll offset and scroll speed
+    let bgScroll = 0;
+    const SCROLL_SPEED = 1;
+
+    function updateVehicles() {
+      vehicles.forEach(vehicle => {
+        vehicle.x += vehicle.dx;
+        vehicle.y += vehicle.dy;
+
+        // Wrap-around horizontally
+        if (vehicle.x < 0) {
+          vehicle.x = WIDTH;
+        } else if (vehicle.x > WIDTH) {
+          vehicle.x = 0;
+        }
+
+        // Wrap-around vertically (based on BG_HEIGHT)
+        if (vehicle.y < 0) {
+          vehicle.y = BG_HEIGHT;
+        } else if (vehicle.y > BG_HEIGHT) {
+          vehicle.y = 0;
+        }
+      });
+    }
+
+    function drawVehicles() {
+      vehicles.forEach(vehicle => {
+        // Calculate the vehicle's position relative to the current scroll
+        let drawY = vehicle.y - bgScroll;
+        // If the vehicle is drawn off the top, adjust its position
+        if (drawY < 0) {
+          drawY += BG_HEIGHT;
+        } else if (drawY > HEIGHT) {
+          drawY -= BG_HEIGHT;
+        }
+        ctx.fillStyle = COLOR_VEHICLE;
+        ctx.fillRect(vehicle.x, drawY, vehicle.width, vehicle.height);
+      });
+    }
+
+    function gameLoop() {
+      // Clear the canvas
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      // Update scroll offset
+      bgScroll += SCROLL_SPEED;
+      if (bgScroll >= HEIGHT) {
+        bgScroll = 0;
+      }
+
+      // Draw the scrolling background (two copies for seamless scrolling)
+      ctx.drawImage(bgCanvas, 0, -bgScroll, WIDTH, BG_HEIGHT);
+      ctx.drawImage(bgCanvas, 0, BG_HEIGHT - bgScroll, WIDTH, BG_HEIGHT);
+
+      // Update and draw moving vehicles
+      updateVehicles();
+      drawVehicles();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start the game loop
+    gameLoop();
+  </script>
+</body>
+</html>

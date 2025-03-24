@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Centering Playground</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Global box sizing */
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Light theme variables with 4 extra colors */
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --panel-bg: #fff;
+      --border-color: #ccc;
+      --primary: #007bff;   /* Blue: header & accents */
+      --secondary: #6c757d; /* Secondary accents */
+      --accent: #28a745;    /* Button background */
+      --highlight: #ffc107; /* Button hover */
+    }
+    /* Dark theme variables with corresponding colors */
+    body.dark-theme {
+      --bg-color: #333;
+      --text-color: #f5f5f5;
+      --panel-bg: #444;
+      --border-color: #666;
+      --primary: #66b0ff;    /* Light blue */
+      --secondary: #a9b1b7;  /* Light grey */
+      --accent: #81c784;     /* Light green */
+      --highlight: #ffca28;  /* Light yellow */
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: var(--primary);
+      border-bottom: 1px solid var(--border-color);
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+    .panel {
+      padding: 10px;
+    }
+    .panel.left {
+      width: 40%;
+      border-right: 1px solid var(--border-color);
+    }
+    .panel.right {
+      width: 60%;
+      overflow: auto;
+    }
+    select, button, textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--panel-bg);
+      color: var(--text-color);
+    }
+    /* Limit textarea resizing to vertical only */
+    textarea {
+      height: 200px;
+      font-family: monospace;
+      resize: vertical;
+    }
+    button {
+      background-color: var(--accent);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: var(--highlight);
+    }
+    #preview {
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Centering Playground</h1>
+    <button id="theme-toggle">Toggle Theme</button>
+  </header>
+  <div class="container">
+    <div class="panel left">
+      <label for="centering-method">Select Centering Method:</label>
+      <select id="centering-method">
+        <option value="text-align">Text Align Center</option>
+        <option value="margin-auto">Margin Auto Center</option>
+        <option value="flexbox">Flexbox Center</option>
+        <option value="grid">Grid Center</option>
+        <option value="absolute">Absolute Position Center</option>
+      </select>
+      <label for="code-editor">HTML Code:</label>
+      <textarea id="code-editor"></textarea>
+      <button id="apply-changes">Apply Changes</button>
+      <button id="copy-code">Copy Code</button>
+    </div>
+    <div class="panel right">
+      <h2>Preview</h2>
+      <div id="preview"></div>
+    </div>
+  </div>
+  <script>
+    // Sample code snippets for different centering methods
+    const codeSnippets = {
+      "text-align": `<div style="text-align: center; border: 1px solid var(--border-color); padding: 20px;">
+  Centered text using text-align.
+</div>`,
+      "margin-auto": `<div style="width: 50%; margin: 0 auto; border: 1px solid var(--border-color); padding: 20px;">
+  Centered div using margin auto.
+</div>`,
+      "flexbox": `<div style="display: flex; justify-content: center; align-items: center; height: 200px; border: 1px solid var(--border-color);">
+  Centered content using Flexbox.
+</div>`,
+      "grid": `<div style="display: grid; place-items: center; height: 200px; border: 1px solid var(--border-color);">
+  Centered content using CSS Grid.
+</div>`,
+      "absolute": `<div style="position: relative; height: 200px; border: 1px solid var(--border-color);">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    Centered content using absolute positioning.
+  </div>
+</div>`
+    };
+
+    // Update the code editor based on the selected centering method
+    function updateEditor() {
+      const method = document.getElementById("centering-method").value;
+      document.getElementById("code-editor").value = codeSnippets[method];
+    }
+
+    // Update the preview panel with the HTML code from the editor
+    function updatePreview() {
+      const code = document.getElementById("code-editor").value;
+      document.getElementById("preview").innerHTML = code;
+    }
+
+    // Toggle between light and dark themes
+    function toggleTheme() {
+      document.body.classList.toggle("dark-theme");
+      // Save theme preference
+      if (document.body.classList.contains("dark-theme")) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    }
+
+    // Copy the code in the editor to the clipboard
+    function copyCode() {
+      const code = document.getElementById("code-editor").value;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Code copied to clipboard!");
+      }).catch(() => {
+        alert("Failed to copy code.");
+      });
+    }
+
+    // Event listeners
+    document.getElementById("centering-method").addEventListener("change", updateEditor);
+    document.getElementById("apply-changes").addEventListener("click", updatePreview);
+    document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    document.getElementById("copy-code").addEventListener("click", copyCode);
+
+    // Initialize editor and preview on page load
+    window.onload = function() {
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-theme");
+      }
+      updateEditor();
+      updatePreview();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+{
+    "stories": [
+      {
+        "id": 1,
+        "title": "Elephant Astronaut Escapes Gravity",
+        "content": "In a bizarre twist, an elephant donned a space suit and defied gravity to explore the stars.",
+        "date": "2025-03-23",
+        "keywords": ["elephant", "astronaut", "space", "gravity", "escape"]
+      },
+      {
+        "id": 2,
+        "title": "Time-Traveling Turtles Disrupt Traffic",
+        "content": "A band of time-traveling turtles emerged from a time portal, causing rush-hour chaos on highways.",
+        "date": "2025-03-22",
+        "keywords": ["turtles", "time-travel", "traffic", "portal", "chaos"]
+      },
+      {
+        "id": 3,
+        "title": "Invisible Dragon Spotted at Zoo",
+        "content": "Zoo visitors claim to have seen the faint outline of an invisible dragon, leaving experts baffled.",
+        "date": "2025-03-21",
+        "keywords": ["dragon", "invisible", "zoo", "mystery", "sighting"]
+      },
+      {
+        "id": 4,
+        "title": "Singing Penguins Lead Opera Performance",
+        "content": "Penguins with exceptional vocal talent held an impromptu opera at the Antarctic amphitheater.",
+        "date": "2025-03-20",
+        "keywords": ["penguins", "opera", "singing", "Antarctica", "performance"]
+      },
+      {
+        "id": 5,
+        "title": "Caffeinated Kangaroos Host Rooftop Party",
+        "content": "High-energy kangaroos fueled by coffee threw a wild party atop a downtown skyscraper.",
+        "date": "2025-03-19",
+        "keywords": ["kangaroos", "coffee", "party", "rooftop", "downtown"]
+      },
+      {
+        "id": 6,
+        "title": "Underwater Chess Tournament Shocks Octopuses",
+        "content": "Octopuses gathered around an underwater chessboard to witness a tournament that defies logic.",
+        "date": "2025-03-18",
+        "keywords": ["chess", "octopuses", "underwater", "tournament", "surprise"]
+      },
+      {
+        "id": 7,
+        "title": "Squirrel Bank Heist Leaves Nuts Scattered",
+        "content": "A clever group of squirrels pulled off a bank heist, stealing acorns and confounding local law enforcement.",
+        "date": "2025-03-17",
+        "keywords": ["squirrel", "bank", "heist", "nuts", "crime"]
+      },
+      {
+        "id": 8,
+        "title": "Dancing Giraffes Take Over the Mall",
+        "content": "Shoppers were stunned as a troupe of dancing giraffes performed a synchronized routine in the food court.",
+        "date": "2025-03-16",
+        "keywords": ["giraffes", "dancing", "mall", "performance", "surprise"]
+      },
+      {
+        "id": 9,
+        "title": "Flying Hamster Opera in the Sky",
+        "content": "Hamsters with tiny wings soared over the city while performing an opera, leaving audiences in awe.",
+        "date": "2025-03-15",
+        "keywords": ["hamster", "flying", "opera", "sky", "awe"]
+      },
+      {
+        "id": 10,
+        "title": "Martian Monkeys Run for Mayor",
+        "content": "Martian monkeys have announced their candidacy for mayor, promising bananas and interplanetary unity.",
+        "date": "2025-03-14",
+        "keywords": ["monkeys", "Martian", "mayor", "politics", "bananas"]
+      },
+      {
+        "id": 11,
+        "title": "Haunted Toaster Sparks Breakfast Revolution",
+        "content": "A toaster said to be haunted by a mischievous spirit is now the centerpiece of a breakfast revolution.",
+        "date": "2025-03-13",
+        "keywords": ["toaster", "haunted", "breakfast", "revolution", "spirit"]
+      },
+      {
+        "id": 12,
+        "title": "Vampire Rabbits Invade Carrot Farms",
+        "content": "Reports confirm that vampire rabbits have been seen feasting on the juiciest carrots in the region.",
+        "date": "2025-03-12",
+        "keywords": ["rabbits", "vampire", "carrot", "invasion", "farm"]
+      },
+      {
+        "id": 13,
+        "title": "Talking Trees Organize Midnight Picnic",
+        "content": "In an enchanting display, trees that talk gathered for a midnight picnic under a full moon.",
+        "date": "2025-03-11",
+        "keywords": ["trees", "talking", "picnic", "midnight", "moon"]
+      },
+      {
+        "id": 14,
+        "title": "Quantum Cat Solves the Riddle of Life",
+        "content": "A quantum cat, defying both physics and feline nature, has solved a riddle that has perplexed scientists.",
+        "date": "2025-03-10",
+        "keywords": ["cat", "quantum", "riddle", "science", "mystery"]
+      },
+      {
+        "id": 15,
+        "title": "Glittering Alligator Hosts a Fashion Show",
+        "content": "An alligator adorned in sparkling accessories stunned audiences by hosting an underwater fashion show.",
+        "date": "2025-03-09",
+        "keywords": ["alligator", "fashion", "glitter", "show", "underwater"]
+      },
+      {
+        "id": 16,
+        "title": "Mermaid Mail Delivers Post to Atlantis",
+        "content": "Mermaids have taken over the postal service in Atlantis, ensuring mail is delivered by sea.",
+        "date": "2025-03-08",
+        "keywords": ["mermaid", "mail", "Atlantis", "postal", "sea"]
+      },
+      {
+        "id": 17,
+        "title": "Robo-Raccoon Uncovers Alien Conspiracy",
+        "content": "A robotic raccoon discovered evidence of an alien conspiracy while scavenging in a suburban alley.",
+        "date": "2025-03-07",
+        "keywords": ["raccoon", "robot", "alien", "conspiracy", "suburban"]
+      },
+      {
+        "id": 18,
+        "title": "Cheetah Chef Cooks Up a Storm",
+        "content": "A cheetah with culinary expertise whipped up a gourmet feast at a pop-up restaurant in the savannah.",
+        "date": "2025-03-06",
+        "keywords": ["cheetah", "chef", "cooking", "feast", "savannah"]
+      },
+      {
+        "id": 19,
+        "title": "Dinosaur Detectives Crack Prehistoric Case",
+        "content": "Dinosaurs acting as detectives solved a mystery dating back millions of years in a stunning investigation.",
+        "date": "2025-03-05",
+        "keywords": ["dinosaur", "detective", "mystery", "prehistoric", "case"]
+      },
+      {
+        "id": 20,
+        "title": "Cloud Sculptors Carve Statues in the Sky",
+        "content": "Artists known as cloud sculptors have taken to the skies, crafting elaborate statues from cumulus clouds.",
+        "date": "2025-03-04",
+        "keywords": ["cloud", "sculpture", "sky", "art", "statues"]
+      },
+      {
+        "id": 21,
+        "title": "Subterranean Squirrels Build Underground Cities",
+        "content": "In a surprising architectural feat, subterranean squirrels have engineered a network of underground cities.",
+        "date": "2025-03-03",
+        "keywords": ["squirrels", "underground", "cities", "architecture", "network"]
+      },
+      {
+        "id": 22,
+        "title": "Robot Flamingos Perform Ballet at Dawn",
+        "content": "A troupe of robot flamingos gracefully performed ballet at dawn, merging technology with art.",
+        "date": "2025-03-02",
+        "keywords": ["flamingos", "robot", "ballet", "dawn", "performance"]
+      },
+      {
+        "id": 23,
+        "title": "Cosmic Chameleons Change Color to Communicate",
+        "content": "Cosmic chameleons have been observed changing colors in elaborate patterns as a form of interstellar communication.",
+        "date": "2025-03-01",
+        "keywords": ["chameleons", "cosmic", "communication", "colors", "patterns"]
+      },
+      {
+        "id": 24,
+        "title": "Balloon-Bearing Bears Float Over the City",
+        "content": "In an utterly surreal scene, bears attached to giant balloons took to the skies, offering a new perspective on urban life.",
+        "date": "2025-02-28",
+        "keywords": ["bears", "balloons", "floating", "city", "surreal"]
+      },
+      {
+        "id": 25,
+        "title": "Holographic Hedgehogs Illuminate the Night",
+        "content": "Hedgehogs rendered in holographic light have been dazzling passersby, sparking conversations about futuristic art.",
+        "date": "2025-02-27",
+        "keywords": ["hedgehogs", "holographic", "night", "art", "futuristic"]
+      }
+    ]
+  }
+  

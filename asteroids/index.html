@@ -1,0 +1,351 @@
+<!-- Save as asteroids.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Asteroids</title>
+  <style>
+    /* Light mode theme */
+    :root {
+      --primary1: #FF4500;
+      --primary2: #FF8C00;
+      --primary3: #FFD700;
+      --primary4: #FF0000;
+      --primary5: #FFA500;
+      --bg-color: #000000;
+      --text-color: #ffffff;
+    }
+
+    /* Dark mode theme */
+    body.dark-mode {
+      --primary1: #00BAFF;
+      --primary2: #0073FF;
+      --primary3: #0028FF;
+      --primary4: #00FFFF;
+      --primary5: #005AFF;
+      --bg-color: #121212;
+      --text-color: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #instructions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 14px;
+      text-align: right;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border: 1px solid var(--text-color);
+      color: var(--text-color);
+    }
+
+    #toggleMode {
+      margin-top: 8px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="instructions">
+    <p><strong>Controls:</strong></p>
+    <p>← → : Rotate</p>
+    <p>Space: Thrust</p>
+    <p>T: Fire Torpedo</p>
+    <p>H: Hyper-Space</p>
+    <p>Score: <span id="scoreDisplay">0</span></p>
+    <p>Lives: <span id="livesDisplay">3</span></p>
+    <button id="toggleMode">Toggle Dark/Light Mode</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Theme helpers
+    function getCSSVariable(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function getRandomPrimary() {
+      const vars = ['--primary1', '--primary2', '--primary3', '--primary4', '--primary5'];
+      return getCSSVariable(vars[Math.floor(Math.random() * vars.length)]);
+    }
+
+    // Toggle theme
+    document.getElementById('toggleMode').addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // HUD
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const livesDisplay = document.getElementById('livesDisplay');
+
+    function updateHUD() {
+      scoreDisplay.textContent = score;
+      livesDisplay.textContent = lives;
+    }
+
+    // Game state
+    let score = 0;
+    let lives = 3;
+    let gameOver = false;
+
+    // Ship
+    const ship = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      radius: 15,
+      angle: 0,
+      rotation: 0,
+      velocity: { x: 0, y: 0 },
+      accelerating: false,
+
+      update() {
+        this.angle += this.rotation;
+        if (this.accelerating) {
+          const thrust = 0.1;
+          this.velocity.x += Math.cos(this.angle) * thrust;
+          this.velocity.y += Math.sin(this.angle) * thrust;
+        }
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.velocity.x *= 0.99;
+        this.velocity.y *= 0.99;
+        if (this.x < 0) this.x = canvas.width;
+        else if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        else if (this.y > canvas.height) this.y = 0;
+      },
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.beginPath();
+        ctx.moveTo(this.radius, 0);
+        ctx.lineTo(-this.radius, -this.radius / 2);
+        ctx.lineTo(-this.radius, this.radius / 2);
+        ctx.closePath();
+        ctx.strokeStyle = getCSSVariable('--text-color');
+        ctx.stroke();
+        ctx.restore();
+      },
+
+      hyperspace() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
+      }
+    };
+
+    // Asteroids
+    const asteroids = [];
+    for (let i = 0; i < 8; i++) addAsteroid();
+
+    function addAsteroid() {
+      asteroids.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 25 + 15,
+        velocity: {
+          x: Math.random() * 1 - 0.5,
+          y: Math.random() * 1 - 0.5
+        },
+        angle: Math.random() * Math.PI * 2,
+        rotation: Math.random() * 0.02 - 0.01,
+
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.angle);
+          ctx.beginPath();
+          const sides = Math.floor(Math.random() * 3) + 5;
+          for (let i = 0; i < sides; i++) {
+            const angle = (i / sides) * 2 * Math.PI;
+            const r = this.radius + Math.random() * 5 - 2.5;
+            const x = Math.cos(angle) * r;
+            const y = Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = getCSSVariable('--text-color');
+          ctx.stroke();
+          ctx.restore();
+        },
+
+        update() {
+          this.x += this.velocity.x;
+          this.y += this.velocity.y;
+          this.angle += this.rotation;
+          if (this.x < 0) this.x = canvas.width;
+          else if (this.x > canvas.width) this.x = 0;
+          if (this.y < 0) this.y = canvas.height;
+          else if (this.y > canvas.height) this.y = 0;
+        }
+      });
+    }
+
+    // Torpedoes
+    const torpedoes = [];
+
+    // Explosions
+    const explosions = [];
+
+    function createExplosion(x, y, count = 20) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 3;
+        explosions.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 40,
+          radius: Math.random() * 3 + 2,
+          color: getRandomPrimary()
+        });
+      }
+    }
+
+    function updateExplosions() {
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const p = explosions[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        const alpha = p.life / 40;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (p.life <= 0) explosions.splice(i, 1);
+      }
+    }
+
+    // Input
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      keys[e.key] = true;
+      if (e.key === ' ') ship.accelerating = true;
+      if (e.key.toLowerCase() === 'h') ship.hyperspace();
+      if (e.key.toLowerCase() === 't') {
+        torpedoes.push({
+          x: ship.x + Math.cos(ship.angle) * ship.radius,
+          y: ship.y + Math.sin(ship.angle) * ship.radius,
+          vx: Math.cos(ship.angle) * 6 + ship.velocity.x,
+          vy: Math.sin(ship.angle) * 6 + ship.velocity.y,
+          life: 60
+        });
+      }
+    });
+    window.addEventListener('keyup', e => {
+      keys[e.key] = false;
+      if (e.key === ' ') ship.accelerating = false;
+    });
+
+    // Collision
+    function isColliding(x1, y1, r1, x2, y2, r2) {
+      const dx = x1 - x2;
+      const dy = y1 - y2;
+      return dx * dx + dy * dy < (r1 + r2) * (r1 + r2);
+    }
+
+    // Game loop
+    function update() {
+      ctx.fillStyle = getCSSVariable('--bg-color');
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (gameOver) {
+        ctx.fillStyle = getCSSVariable('--text-color');
+        ctx.font = '48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      if (keys['ArrowLeft']) ship.rotation = -0.05;
+      else if (keys['ArrowRight']) ship.rotation = 0.05;
+      else ship.rotation = 0;
+
+      ship.update();
+      ship.draw();
+
+      for (let a of asteroids) {
+        a.update();
+        a.draw();
+      }
+
+      for (let i = torpedoes.length - 1; i >= 0; i--) {
+        const t = torpedoes[i];
+        t.x += t.vx;
+        t.y += t.vy;
+        t.life--;
+        if (t.x < 0) t.x = canvas.width;
+        else if (t.x > canvas.width) t.x = 0;
+        if (t.y < 0) t.y = canvas.height;
+        else if (t.y > canvas.height) t.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = getCSSVariable('--text-color');
+        ctx.fill();
+        if (t.life <= 0) torpedoes.splice(i, 1);
+      }
+
+      for (let i = asteroids.length - 1; i >= 0; i--) {
+        const a = asteroids[i];
+        if (isColliding(ship.x, ship.y, ship.radius, a.x, a.y, a.radius)) {
+          createExplosion(ship.x, ship.y, 30);
+          lives--;
+          if (lives <= 0) gameOver = true;
+          ship.x = canvas.width / 2;
+          ship.y = canvas.height / 2;
+          ship.velocity.x = 0;
+          ship.velocity.y = 0;
+          updateHUD();
+        }
+
+        for (let j = torpedoes.length - 1; j >= 0; j--) {
+          const t = torpedoes[j];
+          if (isColliding(t.x, t.y, 2, a.x, a.y, a.radius)) {
+            createExplosion(a.x, a.y, 20);
+            torpedoes.splice(j, 1);
+            asteroids.splice(i, 1);
+            score++;
+            updateHUD();
+            break;
+          }
+        }
+      }
+
+      updateExplosions();
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
+</body>
+</html>

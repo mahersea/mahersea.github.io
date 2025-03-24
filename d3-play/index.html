@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js Playground</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- D3.js CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body class="m-0 font-sans">
+  <div class="flex h-screen">
+    <!-- Sidebar: Controls -->
+    <div class="w-1/4 border-r border-gray-300 p-4">
+      <h2 class="text-xl font-bold mb-4">Controls</h2>
+      <div class="mb-4">
+        <label for="visualization-select" class="block mb-2">Select Visualization:</label>
+        <select id="visualization-select" class="p-2 border rounded w-full">
+          <option value="bar">Bar Chart</option>
+          <option value="line">Line Chart</option>
+          <option value="scatter">Scatter Plot</option>
+        </select>
+      </div>
+      <button id="randomize-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        Randomize Data
+      </button>
+    </div>
+    <!-- Preview: SVG Container -->
+    <div class="w-3/4 p-4">
+      <svg id="chart" width="600" height="400"></svg>
+    </div>
+  </div>
+
+  <script>
+    // Function to generate a random dataset of 10 points
+    function generateRandomData(numPoints = 10) {
+      return Array.from({ length: numPoints }, (_, i) => ({
+        x: i,
+        y: Math.floor(Math.random() * 100) + 10,
+      }));
+    }
+
+    let data = generateRandomData();
+    let visualizationType = document.getElementById("visualization-select").value;
+
+    // Set up dimensions and margins
+    const svg = d3.select("#chart");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+    // Render visualization based on current selection and data
+    function renderVisualization() {
+      // Clear any previous SVG content
+      svg.selectAll("*").remove();
+
+      if (visualizationType === "bar") {
+        // Bar Chart
+        const xScale = d3.scaleBand()
+          .domain(data.map(d => d.x))
+          .range([margin.left, width - margin.right])
+          .padding(0.1);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        svg.append("g")
+          .attr("fill", "#4F46E5")
+          .selectAll("rect")
+          .data(data)
+          .join("rect")
+          .attr("x", d => xScale(d.x))
+          .attr("y", d => yScale(d.y))
+          .attr("height", d => yScale(0) - yScale(d.y))
+          .attr("width", xScale.bandwidth());
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale).tickFormat(d => d))
+          .attr("font-size", '12px');
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px');
+
+      } else if (visualizationType === "line") {
+        // Line Chart
+        const xScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.x))
+          .range([margin.left, width - margin.right]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        const line = d3.line()
+          .x(d => xScale(d.x))
+          .y(d => yScale(d.y));
+
+        svg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "#EF4444")
+          .attr("stroke-width", 2)
+          .attr("d", line);
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale))
+          .attr("font-size", '12px');
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px');
+
+      } else if (visualizationType === "scatter") {
+        // Scatter Plot
+        const xScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.x))
+          .range([margin.left, width - margin.right]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        svg.append("g")
+          .selectAll("circle")
+          .data(data)
+          .join("circle")
+          .attr("cx", d => xScale(d.x))
+          .attr("cy", d => yScale(d.y))
+          .attr("r", 5)
+          .attr("fill", "#10B981");
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale))
+          .attr("font-size", '12px');
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px');
+      }
+    }
+
+    // Render the initial visualization
+    renderVisualization();
+
+    // Event listeners for the controls
+    document.getElementById("visualization-select").addEventListener("change", function(e) {
+      visualizationType = e.target.value;
+      renderVisualization();
+    });
+
+    document.getElementById("randomize-btn").addEventListener("click", function() {
+      data = generateRandomData();
+      renderVisualization();
+    });
+  </script>
+</body>
+</html>

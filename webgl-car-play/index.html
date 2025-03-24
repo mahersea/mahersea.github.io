@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tank Game with Opposing Forces</title>
+  <style>
+    /* Light mode theme */
+    :root {
+      --primary1: #FF4500;
+      --primary2: #FF8C00;
+      --primary3: #FFD700;
+      --primary4: #FF0000;
+      --primary5: #FFA500;
+      --bg-color: #ffffff;
+      --text-color: #000000;
+    }
+    /* Dark mode: inverted colors */
+    body.dark-mode {
+      --primary1: #00BAFF;
+      --primary2: #0073FF;
+      --primary3: #0028FF;
+      --primary4: #00FFFF;
+      --primary5: #005AFF;
+      --bg-color: #121212;
+      --text-color: #ffffff;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+    }
+    button {
+      background-color: var(--primary1);
+      border: none;
+      color: var(--text-color);
+      padding: 8px 12px;
+      cursor: pointer;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+    #score, #health {
+      position: absolute;
+      top: 50px;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 24px;
+    }
+    #score { right: 20px; }
+    #health { left: 20px; top: 10px; }
+    #instructions {
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      max-width: 250px;
+    }
+    body.dark-mode #instructions {
+      background: rgba(0, 0, 0, 0.8);
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      font-size: 48px;
+      color: var(--primary4);
+      background: rgba(255,255,255,0.8);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <div id="ui">
+    <button id="themeToggle">Toggle Dark/Light Mode</button>
+  </div>
+  <div id="health">Health: 100</div>
+  <div id="score">Score: 0</div>
+  <div id="instructions">
+    <p><strong>Controls:</strong></p>
+    <ul>
+      <li>Arrow Up: Accelerate</li>
+      <li>Arrow Down: Brake/Reverse</li>
+      <li>Arrow Left/Right: Steer</li>
+      <li>Space: Fire Projectile</li>
+    </ul>
+    <p>Destroy all enemy bunkers to win.</p>
+    <p>A medic bunker will appear to recharge your health.</p>
+  </div>
+  <div id="message"></div>
+  <canvas id="gameCanvas"></canvas>
+  <!-- Include Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // UI Elements
+    const themeToggle = document.getElementById('themeToggle');
+    const healthEl = document.getElementById('health');
+    const scoreEl = document.getElementById('score');
+    const messageEl = document.getElementById('message');
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // Renderer & Canvas
+    const canvas = document.getElementById('gameCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    // Scene & Camera
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x87ceeb, 100, 600);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    // Battlefield Ground
+    const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(0, 100, 100);
+    scene.add(directionalLight);
+
+    // --------------------------
+    // Game Variables
+    // --------------------------
+    let tankHealth = 100;
+    let score = 0;
+    let gameOver = false;
+    let gameWin = false;
+    function updateHealth() { healthEl.textContent = `Health: ${tankHealth}`; }
+    function updateScore(points) {
+      score += points;
+      scoreEl.textContent = `Score: ${score}`;
+    }
+    function showMessage(text) {
+      messageEl.textContent = text;
+      messageEl.style.display = 'block';
+    }
+
+    // --------------------------
+    // Add Trees
+    // --------------------------
+    function createTree() {
+      const tree = new THREE.Group();
+      const trunkGeo = new THREE.CylinderGeometry(0.5, 1, 8);
+      const trunkMat = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.y = 4;
+      tree.add(trunk);
+      const foliageGeo = new THREE.ConeGeometry(4, 12, 8);
+      const foliageMat = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+      const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+      foliage.position.y = 12;
+      tree.add(foliage);
+      return tree;
+    }
+    const numTrees = 200;
+    for (let i = 0; i < numTrees; i++) {
+      const tree = createTree();
+      tree.position.x = Math.random() * 2000 - 1000;
+      tree.position.z = Math.random() * 2000 - 1000;
+      scene.add(tree);
+    }
+
+    // --------------------------
+    // Targets & Medic Bunkers
+    // --------------------------
+    const targets = []; // enemy bunkers (win condition: all destroyed)
+    const medicBunkers = []; // medic bunkers for healing
+
+    // Create an enemy bunker
+    function createBunker(position) {
+      const bunker = new THREE.Group();
+      const baseGeo = new THREE.BoxGeometry(10, 4, 10);
+      const baseMat = new THREE.MeshPhongMaterial({ color: 0x555555 });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.position.y = 2;
+      bunker.add(base);
+      const domeGeo = new THREE.SphereGeometry(5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshPhongMaterial({ color: 0x555555 });
+      const dome = new THREE.Mesh(domeGeo, domeMat);
+      dome.position.y = 4;
+      bunker.add(dome);
+      const entranceGeo = new THREE.BoxGeometry(3, 3, 1);
+      const entranceMat = new THREE.MeshPhongMaterial({ color: 0x000000 });
+      const entrance = new THREE.Mesh(entranceGeo, entranceMat);
+      entrance.position.set(0, 1.5, 5.5);
+      bunker.add(entrance);
+      bunker.position.copy(position);
+      bunker.userData = { type: 'bunker', health: 3, points: 200, lastFired: 0, fireDelay: 3000 };
+      scene.add(bunker);
+      targets.push(bunker);
+    }
+
+    // Create a medic bunker that recharges the tank
+    function createMedic(position) {
+      const medic = new THREE.Group();
+      const baseGeo = new THREE.BoxGeometry(6, 4, 6);
+      const baseMat = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.position.y = 2;
+      medic.add(base);
+      // Add a cross symbol
+      const crossGeo = new THREE.BoxGeometry(1, 3, 0.5);
+      const crossMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+      const cross1 = new THREE.Mesh(crossGeo, crossMat);
+      const cross2 = new THREE.Mesh(crossGeo, crossMat);
+      cross2.rotation.z = Math.PI / 2;
+      medic.add(cross1);
+      medic.add(cross2);
+      medic.position.copy(position);
+      medic.userData = { type: 'medic' };
+      scene.add(medic);
+      medicBunkers.push(medic);
+    }
+
+    // Place enemy bunkers at fixed and random positions
+    createBunker(new THREE.Vector3(50, 0, -100));
+    createBunker(new THREE.Vector3(-120, 0, -250));
+    // Random enemy bunkers
+    function placeBunkers(count) {
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * 800 - 400;
+        const z = - (100 + Math.random() * 400);
+        createBunker(new THREE.Vector3(x, 0, z));
+      }
+    }
+    placeBunkers(5);
+
+    // Place a medic bunker randomly (appears every 20 seconds)
+    let lastMedicTime = 0;
+    function maybePlaceMedic(time) {
+      if (time - lastMedicTime > 20000 && medicBunkers.length === 0) {
+        const x = Math.random() * 800 - 400;
+        const z = - (100 + Math.random() * 400);
+        createMedic(new THREE.Vector3(x, 0, z));
+        lastMedicTime = time;
+      }
+    }
+
+    // --------------------------
+    // Enemy Projectiles & Mortars
+    // --------------------------
+    const enemyProjectiles = [];
+    const mortarProjectiles = [];
+
+    // Enemy projectile: fired from a bunker toward the tank.
+    function fireEnemyProjectile(bunker) {
+      const projGeo = new THREE.SphereGeometry(0.3, 8, 8);
+      const projMat = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+      const projectile = new THREE.Mesh(projGeo, projMat);
+      // Fire from bunker position (top center)
+      const origin = new THREE.Vector3();
+      bunker.getWorldPosition(origin);
+      origin.y += 4;
+      projectile.position.copy(origin);
+      // Direction from bunker to tank
+      const tankPos = new THREE.Vector3();
+      tankBody.getWorldPosition(tankPos);
+      const direction = new THREE.Vector3().subVectors(tankPos, origin).normalize();
+      projectile.userData = { velocity: direction.multiplyScalar(1.5), damage: 10 };
+      scene.add(projectile);
+      enemyProjectiles.push(projectile);
+    }
+
+    // Random mortar strike: spawns a projectile from above targeting near the tank.
+    function spawnMortar() {
+      const projGeo = new THREE.SphereGeometry(0.5, 8, 8);
+      const projMat = new THREE.MeshPhongMaterial({ color: 0xffaa00 });
+      const projectile = new THREE.Mesh(projGeo, projMat);
+      // Random position above the tank (within a range)
+      const tankPos = new THREE.Vector3();
+      tankBody.getWorldPosition(tankPos);
+      projectile.position.set(
+        tankPos.x + Math.random() * 200 - 100,
+        200,
+        tankPos.z + Math.random() * 200 - 100
+      );
+      projectile.userData = { velocity: new THREE.Vector3(0, -1, 0).multiplyScalar(1.5), damage: 20 };
+      scene.add(projectile);
+      mortarProjectiles.push(projectile);
+    }
+
+    setInterval(spawnMortar, 5000); // spawn a mortar every 5 seconds
+
+    // --------------------------
+    // Create the Tank
+    // --------------------------
+    const tankBody = new THREE.Group();
+    scene.add(tankBody);
+    const tankVisual = new THREE.Group();
+    tankBody.add(tankVisual);
+    const tankMeshGeo = new THREE.BoxGeometry(3, 1.5, 5);
+    const tankMeshMat = new THREE.MeshPhongMaterial({ color: 0x008000 });
+    const tankMesh = new THREE.Mesh(tankMeshGeo, tankMeshMat);
+    tankMesh.position.y = 0.75;
+    tankVisual.add(tankMesh);
+    // Tracks
+    const trackGeo = new THREE.BoxGeometry(0.6, 0.5, 5.5);
+    const trackMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+    const leftTrack = new THREE.Mesh(trackGeo, trackMat);
+    leftTrack.position.set(-1.5, 0.25, 0);
+    tankVisual.add(leftTrack);
+    const rightTrack = new THREE.Mesh(trackGeo, trackMat);
+    rightTrack.position.set(1.5, 0.25, 0);
+    tankVisual.add(rightTrack);
+    // Turret and barrel
+    const turretGeo = new THREE.BoxGeometry(2.5, 1, 3);
+    const turretMat = new THREE.MeshPhongMaterial({ color: 0x006400 });
+    const turret = new THREE.Mesh(turretGeo, turretMat);
+    turret.position.y = 1.75;
+    tankVisual.add(turret);
+    const barrelGeo = new THREE.CylinderGeometry(0.2, 0.2, 4, 12);
+    const barrelMat = new THREE.MeshPhongMaterial({ color: 0x004b00 });
+    const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.z = -3.5;
+    barrel.position.y = 1.75;
+    tankVisual.add(barrel);
+    tankBody.position.y = 0;
+    camera.position.set(0, 3.5, 7);
+    tankBody.add(camera);
+
+    // --------------------------
+    // Tank Controls, Movement & Recoil
+    // --------------------------
+    let speed = 0;
+    const maxSpeed = 0.5;
+    const acceleration = 0.01;
+    const deceleration = 0.02;
+    const rotationSpeed = 0.03;
+    const keys = {};
+    let recoilForce = 0;
+    let canFire = true;
+    const fireDelay = 500;
+    // Pitch for rocking motion
+    let pitchAngle = 0;
+    let targetPitchAngle = 0;
+    const maxPitchAngle = Math.PI / 24;
+    const pitchDamping = 0.92;
+    const pitchSpringStrength = 0.10;
+
+    document.addEventListener('keydown', (event) => {
+      keys[event.code] = true;
+      if (event.code === 'Space' && canFire && !gameOver && !gameWin) {
+        fireProjectile();
+        recoilForce = Math.PI / 12;
+        canFire = false;
+        setTimeout(() => { canFire = true; }, fireDelay);
+      }
+    });
+    document.addEventListener('keyup', (event) => keys[event.code] = false);
+
+    // --------------------------
+    // Projectile Firing (Tank)
+    // --------------------------
+    const projectiles = [];
+    function fireProjectile() {
+      const projGeo = new THREE.SphereGeometry(0.3, 16, 16);
+      const projMat = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffff00 });
+      const projectile = new THREE.Mesh(projGeo, projMat);
+      const barrelTip = new THREE.Vector3(0, 1.75, -5.5);
+      barrelTip.applyMatrix4(tankBody.matrix);
+      projectile.position.copy(barrelTip);
+      const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(tankBody.quaternion);
+      const projSpeed = 2;
+      projectile.userData = { velocity: direction.multiplyScalar(projSpeed) };
+      // Muzzle flash
+      const muzzleLight = new THREE.PointLight(0xffaa00, 2, 10);
+      muzzleLight.position.copy(barrelTip);
+      scene.add(muzzleLight);
+      setTimeout(() => { scene.remove(muzzleLight); }, 100);
+      scene.add(projectile);
+      projectiles.push(projectile);
+    }
+
+    // --------------------------
+    // Enhanced Explosion Effect (Super Explosions)
+    // --------------------------
+    const explosions = [];
+    function createExplosion(position, size = 1) {
+      const group = new THREE.Group();
+      group.position.copy(position);
+      // Particle burst
+      const particleCount = 50 * size;
+      const particles = new THREE.Group();
+      for (let i = 0; i < particleCount; i++) {
+        const pSize = (0.2 + Math.random() * 0.8) * size;
+        const pGeo = new THREE.SphereGeometry(pSize, 8, 8);
+        const pMat = new THREE.MeshPhongMaterial({ 
+          color: Math.random() > 0.5 ? 0xff5500 : 0xffaa00,
+          emissive: Math.random() > 0.5 ? 0xff0000 : 0xff8800 
+        });
+        const particle = new THREE.Mesh(pGeo, pMat);
+        const r = Math.random() * 5 * size;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+        particle.position.set(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+        particle.userData = {
+          velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.5 * size,
+            Math.random() * 0.3 * size,
+            (Math.random() - 0.5) * 0.5 * size
+          ),
+          life: 1 + Math.random() * 0.5
+        };
+        particles.add(particle);
+      }
+      group.add(particles);
+      
+      // Shockwave ring
+      const ringGeo = new THREE.RingGeometry(1 * size, 1.5 * size, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 1, blending: THREE.AdditiveBlending });
+      const shockwave = new THREE.Mesh(ringGeo, ringMat);
+      shockwave.rotation.x = -Math.PI / 2;
+      group.add(shockwave);
+      
+      // Flash sphere
+      const flashGeo = new THREE.SphereGeometry(1 * size, 32, 32);
+      const flashMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 1, blending: THREE.AdditiveBlending });
+      const flash = new THREE.Mesh(flashGeo, flashMat);
+      group.add(flash);
+      
+      // Explosion light
+      const light = new THREE.PointLight(0xffaa00, 10 * size, 50 * size);
+      group.add(light);
+      
+      group.userData = { 
+        particles, shockwave, flash, light,
+        age: 0,
+        duration: 2.0 // seconds
+      };
+      scene.add(group);
+      explosions.push(group);
+    }
+
+    // --------------------------
+    // Collision Detection (Tank projectiles vs. targets, plus enemy/mortar vs. tank)
+    // --------------------------
+    function checkCollisions() {
+      // Check tank projectiles vs. enemy bunkers and other targets
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const proj = projectiles[i];
+        for (let j = targets.length - 1; j >= 0; j--) {
+          const target = targets[j];
+          if (proj.position.distanceTo(target.position) < 6) {
+            target.userData.health--;
+            scene.remove(proj);
+            projectiles.splice(i, 1);
+            if (target.userData.health <= 0) {
+              updateScore(target.userData.points);
+              createExplosion(target.position, target.userData.type === 'tnt' ? 2 : 1);
+              scene.remove(target);
+              targets.splice(j, 1);
+            } else {
+              createExplosion(proj.position, 0.5);
+            }
+            break;
+          }
+        }
+      }
+      // Check tank collisions with medic bunkers
+      for (let i = medicBunkers.length - 1; i >= 0; i--) {
+        const medic = medicBunkers[i];
+        const tankPos = new THREE.Vector3();
+        tankBody.getWorldPosition(tankPos);
+        if (medic.position.distanceTo(tankPos) < 10) {
+          tankHealth = Math.min(100, tankHealth + 50);
+          updateHealth();
+          scene.remove(medic);
+          medicBunkers.splice(i, 1);
+        }
+      }
+      // Check enemy projectiles vs. tank
+      for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+        const proj = enemyProjectiles[i];
+        const tankPos = new THREE.Vector3();
+        tankBody.getWorldPosition(tankPos);
+        if (proj.position.distanceTo(tankPos) < 6) {
+          tankHealth -= proj.userData.damage;
+          updateHealth();
+          createExplosion(proj.position, 1);
+          scene.remove(proj);
+          enemyProjectiles.splice(i, 1);
+        }
+      }
+      // Check mortar projectiles vs. tank
+      for (let i = mortarProjectiles.length - 1; i >= 0; i--) {
+        const proj = mortarProjectiles[i];
+        const tankPos = new THREE.Vector3();
+        tankBody.getWorldPosition(tankPos);
+        if (proj.position.distanceTo(tankPos) < 8) {
+          tankHealth -= proj.userData.damage;
+          updateHealth();
+          createExplosion(proj.position, 1.5);
+          scene.remove(proj);
+          mortarProjectiles.splice(i, 1);
+        }
+      }
+    }
+
+    // --------------------------
+    // Animation Loop
+    // --------------------------
+    let oldSpeed = 0;
+    function animate(time) {
+      requestAnimationFrame(animate);
+      if (gameOver || gameWin) return;
+
+      oldSpeed = speed;
+      if (keys['ArrowUp']) {
+        speed = Math.min(speed + acceleration, maxSpeed);
+      } else if (keys['ArrowDown']) {
+        speed = Math.max(speed - deceleration, -maxSpeed / 2);
+      } else {
+        if (speed > 0) speed = Math.max(speed - deceleration, 0);
+        if (speed < 0) speed = Math.min(speed + deceleration, 0);
+      }
+      const speedDiff = speed - oldSpeed;
+      if (speedDiff > 0.001) targetPitchAngle = maxPitchAngle;
+      else if (speedDiff < -0.001) targetPitchAngle = -maxPitchAngle;
+      else targetPitchAngle = 0;
+      const pitchError = targetPitchAngle - pitchAngle;
+      pitchAngle += pitchError * pitchSpringStrength;
+      pitchAngle += recoilForce;
+      recoilForce *= 0.85;
+      if (Math.abs(recoilForce) < 0.01) recoilForce = 0;
+      pitchAngle *= pitchDamping;
+      tankVisual.rotation.x = pitchAngle;
+      if (keys['ArrowLeft']) tankBody.rotation.y += rotationSpeed;
+      if (keys['ArrowRight']) tankBody.rotation.y -= rotationSpeed;
+      tankBody.translateZ(-speed);
+
+      // Enemy bunkers fire back at the tank (every few seconds)
+      targets.forEach(target => {
+        if (target.userData.type === 'bunker') {
+          const now = performance.now();
+          if (now - target.userData.lastFired > target.userData.fireDelay) {
+            fireEnemyProjectile(target);
+            target.userData.lastFired = now;
+          }
+        }
+      });
+      
+      // Update enemy projectiles
+      enemyProjectiles.forEach((proj, i) => {
+        proj.position.add(proj.userData.velocity);
+        if (proj.position.distanceTo(tankBody.position) > 300) {
+          scene.remove(proj);
+          enemyProjectiles.splice(i, 1);
+        }
+      });
+      
+      // Update mortar projectiles (apply gravity)
+      mortarProjectiles.forEach((proj, i) => {
+        proj.userData.velocity.y -= 0.02; // gravity
+        proj.position.add(proj.userData.velocity);
+        if (proj.position.y < 0) {
+          createExplosion(proj.position, 1.5);
+          scene.remove(proj);
+          mortarProjectiles.splice(i, 1);
+        }
+      });
+      
+      // Update tank projectiles
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const proj = projectiles[i];
+        proj.position.add(proj.userData.velocity);
+        if (proj.position.distanceTo(tankBody.position) > 100) {
+          createExplosion(proj.position, 1);
+          scene.remove(proj);
+          projectiles.splice(i, 1);
+        }
+      }
+      
+      // Check collisions
+      checkCollisions();
+      
+      // Update explosions
+      const dt = 0.02;
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const exp = explosions[i];
+        exp.userData.age += dt;
+        const t = exp.userData.age / exp.userData.duration;
+        if (t > 1) {
+          scene.remove(exp);
+          explosions.splice(i, 1);
+        } else {
+          // Update particles in explosion
+          exp.userData.particles.children.forEach(particle => {
+            particle.position.add(particle.userData.velocity);
+            particle.userData.life -= dt;
+            const scale = Math.max(0, particle.userData.life);
+            particle.scale.set(scale, scale, scale);
+            particle.userData.velocity.y -= 0.01;
+          });
+          // Shockwave expands and fades
+          const shockScale = 1 + 3 * t;
+          if(exp.userData.shockwave) {
+            exp.userData.shockwave.scale.set(shockScale, shockScale, shockScale);
+            exp.userData.shockwave.material.opacity = 1 - t;
+          }
+          // Flash sphere expands rapidly then fades
+          const flashScale = 1 + 5 * t;
+          if(exp.userData.flash) {
+            exp.userData.flash.scale.set(flashScale, flashScale, flashScale);
+            exp.userData.flash.material.opacity = 1 - t;
+          }
+          // Light intensity decays
+          if(exp.userData.light)
+            exp.userData.light.intensity = 10 * (1 - t);
+        }
+      }
+      
+      // Check if tank is hit by enemy fire or mortars
+      if (tankHealth <= 0) {
+        gameOver = true;
+        showMessage("Game Over!");
+      }
+      
+      // Win condition: if no enemy bunkers remain, win the game
+      if (targets.filter(t => t.userData.type === 'bunker').length === 0 && !gameWin) {
+        gameWin = true;
+        showMessage("You Win!");
+      }
+      
+      // Periodically spawn a medic bunker (if none exists)
+      maybePlaceMedic(performance.now());
+      
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // --------------------------
+    // Mortar Strike: spawn mortar projectiles periodically
+    // --------------------------
+    setInterval(spawnMortar, 5000);
+    function spawnMortar() {
+      const projGeo = new THREE.SphereGeometry(0.5, 8, 8);
+      const projMat = new THREE.MeshPhongMaterial({ color: 0xffaa00 });
+      const projectile = new THREE.Mesh(projGeo, projMat);
+      const tankPos = new THREE.Vector3();
+      tankBody.getWorldPosition(tankPos);
+      projectile.position.set(
+        tankPos.x + Math.random() * 200 - 100,
+        200,
+        tankPos.z + Math.random() * 200 - 100
+      );
+      projectile.userData = { velocity: new THREE.Vector3(0, -1, 0).multiplyScalar(1.5), damage: 20 };
+      scene.add(projectile);
+      mortarProjectiles.push(projectile);
+    }
+
+    // --------------------------
+    // Handle Window Resize
+    // --------------------------
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

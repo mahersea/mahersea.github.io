@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebAssembly Playground</title>
+  <style>
+    /* Default theme variables */
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --panel-bg: #f0f0f0;
+      --button-bg: #dddddd;
+      --button-text: #333333;
+    }
+    /* Dark theme */
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #eeeeee;
+      --panel-bg: #1e1e1e;
+      --button-bg: #333333;
+      --button-text: #eeeeee;
+    }
+    /* High Contrast theme */
+    [data-theme="high-contrast"] {
+      --bg-color: #000000;
+      --text-color: #ffffff;
+      --panel-bg: #333333;
+      --button-bg: #555555;
+      --button-text: #ffffff;
+    }
+    /* Low Contrast theme */
+    [data-theme="low-contrast"] {
+      --bg-color: #f8f8f8;
+      --text-color: #555555;
+      --panel-bg: #fafafa;
+      --button-bg: #eeeeee;
+      --button-text: #555555;
+    }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 30%;
+      background-color: var(--panel-bg);
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .canvas-container {
+      flex-grow: 1;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    button {
+      background-color: var(--button-bg);
+      color: var(--button-text);
+      border: none;
+      padding: 8px 12px;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+    input {
+      padding: 5px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+    hr {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="container">
+    <!-- Left Panel: Controls -->
+    <div class="sidebar">
+      <h1>WebAssembly Playground</h1>
+      <button id="themeToggle">Toggle Theme</button>
+      <hr>
+      <div id="controls">
+        <label for="inputA">Input A:</label>
+        <input type="number" id="inputA" value="1">
+        <label for="inputB">Input B:</label>
+        <input type="number" id="inputB" value="2">
+        <button id="runButton">Run Add Function</button>
+      </div>
+      <div id="output">
+        <p>Result: <span id="result">?</span></p>
+      </div>
+    </div>
+    <!-- Right Panel: Full-screen Canvas -->
+    <div class="canvas-container">
+      <canvas id="wasmCanvas"></canvas>
+    </div>
+  </div>
+  <script>
+    // Theme toggle: cycles through defined themes
+    (function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const body = document.body;
+      const themes = ['light', 'dark', 'high-contrast', 'low-contrast'];
+      let currentThemeIndex = 0;
+      themeToggle.addEventListener('click', () => {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        body.setAttribute('data-theme', themes[currentThemeIndex]);
+      });
+    })();
+    
+    // A simple WebAssembly module in binary form implementing an "add" function.
+    // The module is defined to take two i32 parameters and return their sum.
+    const wasmCode = new Uint8Array([
+      0x00,0x61,0x73,0x6d, // Magic header "\0asm"
+      0x01,0x00,0x00,0x00, // Version 1
+      // Type section
+      0x01,       // Section code: Type
+      0x07,       // Section length
+      0x01,       // One type
+      0x60,       // Function type indicator
+      0x02,       // Two parameters
+      0x7f,0x7f,  // Both parameters are i32 (0x7f)
+      0x01,       // One result
+      0x7f,       // Result is i32
+      // Function section
+      0x03,       // Section code: Function
+      0x02,       // Section length
+      0x01,       // One function
+      0x00,       // Type index 0
+      // Export section
+      0x07,       // Section code: Export
+      0x07,       // Section length
+      0x01,       // One export
+      0x03,       // String length of export name (3)
+      0x61,0x64,0x64, // "add"
+      0x00,       // Export kind: function
+      0x00,       // Function index: 0
+      // Code section
+      0x0a,       // Section code: Code
+      0x09,       // Section length
+      0x01,       // One function body
+      0x07,       // Body size
+      0x00,       // No local variables
+      0x20,0x00,  // Get first parameter
+      0x20,0x01,  // Get second parameter
+      0x6a,      // i32.add
+      0x0b       // End of function body
+    ]);
+    
+    let wasmInstance = null;
+    // Compile and instantiate the WebAssembly module
+    WebAssembly.instantiate(wasmCode).then(result => {
+      wasmInstance = result.instance;
+      console.log("WebAssembly module loaded.");
+    }).catch(err => {
+      console.error("Error loading WebAssembly module:", err);
+    });
+
+    // Handle the "Run" button click to invoke the WASM add function
+    document.getElementById('runButton').addEventListener('click', () => {
+      if (!wasmInstance) {
+        alert("WASM module is not loaded yet. Please wait.");
+        return;
+      }
+      const a = parseInt(document.getElementById('inputA').value, 10);
+      const b = parseInt(document.getElementById('inputB').value, 10);
+      const result = wasmInstance.exports.add(a, b);
+      document.getElementById('result').textContent = result;
+      
+      // Draw the result on the full-screen canvas
+      const canvas = document.getElementById('wasmCanvas');
+      const ctx = canvas.getContext('2d');
+      // Ensure the canvas matches the display size
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "48px sans-serif";
+      ctx.fillText("Result: " + result, 50, 100);
+    });
+  </script>
+</body>
+</html>
