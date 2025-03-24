@@ -275,7 +275,7 @@
       "title": "Align Center",
       "description": "A simple tool to center-align text or other elements within a given container.",
       "link": "align-center",
-      "thumbnail": "images/some_thumb.png",
+      "thumbnail": "images/align-center_thumb.png",
       "category": "Web Tools"
     },
     {
@@ -283,7 +283,7 @@
       "title": "Asteroids",
       "description": "A classic arcade game where players control a spaceship to destroy asteroids and avoid collisions.",
       "link": "asteroids",
-      "thumbnail": "images/some_thumb.png",
+      "thumbnail": "images/asteroids_thumb.png",
       "category": "Small Games"
     },
     {
@@ -291,9 +291,115 @@
       "title": "Chart Explorer",
       "description": "An interactive tool to explore different types of charts and visualize data in various formats.",
       "link": "chart-explorer",
-      "thumbnail": "images/some_thumb.png",
+      "thumbnail": "images/chart_thumb.png",
       "category": "Web Tools"
     },
+    {
+      "id": "d3",
+      "title": "D3 Visualizations",
+      "description": "A collection of interactive visualizations using D3.js, showcasing data in dynamic and engaging ways.",
+      "link": "d3-play",
+      "thumbnail": "images/d3_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "flexbox",
+      "title": "Flexbox Playground",
+      "description": "A playground for experimenting with CSS Flexbox, allowing users to create flexible and responsive layouts.",
+      "link": "flexbox-play",
+      "thumbnail": "images/flex_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "graphql",
+      "title": "GraphQL Playground",
+      "description": "A playground for experimenting with GraphQL queries and mutations, allowing users to interact with a GraphQL API.",
+      "link": "graphql-play",
+      "thumbnail": "images/graphql_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "gridout.v2",
+      "title": "Grid Out v2",
+      "description": "An enhanced version of a grid-based game where users can interact with colliding block in new ways.",
+      "link": "gridout.v2",
+      "thumbnail": "images/gridout_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "puzzle",
+      "title": "Puzzle Game",
+      "description": "A puzzle game where users can solve various puzzles by arranging pieces in the correct order.",
+      "link": "puzzle",
+      "thumbnail": "images/puzzle_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "sudoku",
+      "title": "Sudoku",
+      "description": "A classic Sudoku game where users can fill in numbers to complete the grid according to Sudoku rules.",
+      "link": "sudoku",
+      "thumbnail": "images/sudoku_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "tic-tac-toe",
+      "title": "Tic Tac Toe",
+      "description": "A simple Tic Tac Toe game where users can play against the computer or another player.",
+      "link": "tic-tac-toe",
+      "thumbnail": "images/tic-tac-toe_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "two-js",
+      "title": "Two.js Library Explorer ",
+      "description": "An interactive playground for exploring the Two.js library, allowing users to create and manipulate 2D shapes and animations.",
+      "link": "two-play",
+      "thumbnail": "images/two-js_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "typography",
+      "title": "Typography Playground",
+      "description": "A playground for experimenting with different typography styles and layouts, allowing users to create visually appealing text designs.",
+      "link": "typography",
+      "thumbnail": "images/typography_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "webassembly-play",
+      "title": "WebAssembly Intro",
+      "description": "A playground for experimenting with WebAssembly, allowing users to run and test WebAssembly modules in the browser.",
+      "link": "webassembly-play",
+      "thumbnail": "images/webassembly_thumb.png",
+      "category": "Web Tools"
+    },
+    {
+      "id": "webgl-tanks",
+      "title": "WebGL Tanks",
+      "description": "A 3D tank battle game using WebGL, where players can control tanks and engage in battles in a virtual environment.",
+      "link": "webgl-tank-play",
+      "thumbnail": "images/webgl-tanks_thumb.png",
+      "category": "Small Games"
+    },
+    {
+      "id": "fm-radio",
+      "title": "FM Radio",
+      "description": "A simple FM radio wave simulation",
+      "link": "fm-radio",
+      "thumbnail": "images/fm-radio_thumb.png",
+      "category": "Visualizations"
+    },
+    {
+      "id": "smith-chart",
+      "title": "Smith Chart",
+      "description": "A visualization of the Smith Chart, used in electrical engineering to represent complex impedance.",
+      "link": "smith-chart",
+      "thumbnail": "images/smith-chart_thumb.png",
+      "category": "Visualizations"
+    }
+  ],
+  "not-ready": [
     {
       "id": "color-picker",
       "title": "Color Picker",
@@ -311,66 +417,10 @@
       "category": "Small Games"
     },
     {
-      "id": "d3",
-      "title": "D3 Visualizations",
-      "description": "A collection of interactive visualizations using D3.js, showcasing data in dynamic and engaging ways.",
-      "link": "d3-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
-    },
-    {
       "id": "drone-attack",
       "title": "Drone Attack",
       "description": "A BAD game where players control a drone to navigate through obstacles and complete missions.",
       "link": "drone-attack",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "flexbox",
-      "title": "Flexbox Playground",
-      "description": "A playground for experimenting with CSS Flexbox, allowing users to create flexible and responsive layouts.",
-      "link": "flexbox-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "graphql",
-      "title": "GraphQL Playground",
-      "description": "A playground for experimenting with GraphQL queries and mutations, allowing users to interact with a GraphQL API.",
-      "link": "graphql-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "gridout.v2",
-      "title": "Grid Out v2",
-      "description": "An enhanced version of a grid-based game where users can interact with colliding block in new ways.",
-      "link": "gridout.v2",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "puzzle",
-      "title": "Puzzle Game",
-      "description": "A puzzle game where users can solve various puzzles by arranging pieces in the correct order.",
-      "link": "puzzle",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "sudoku",
-      "title": "Sudoku",
-      "description": "A classic Sudoku game where users can fill in numbers to complete the grid according to Sudoku rules.",
-      "link": "sudoku",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "tic-tac-toe",
-      "title": "Tic Tac Toe",
-      "description": "A simple Tic Tac Toe game where users can play against the computer or another player.",
-      "link": "tic-tac-toe",
       "thumbnail": "images/some_thumb.png",
       "category": "Small Games"
     },
@@ -381,54 +431,6 @@
       "link": "touch-designer-output",
       "thumbnail": "images/some_thumb.png",
       "category": "Media"
-    },
-    {
-      "id": "two-play",
-      "title": "Two Player Game",
-      "description": "A game designed for two players to compete against each other, showcasing interactive gameplay.",
-      "link": "two-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "typography",
-      "title": "Typography Playground",
-      "description": "A playground for experimenting with different typography styles and layouts, allowing users to create visually appealing text designs.",
-      "link": "typography-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "webassembly-play",
-      "title": "WebAssembly Playground",
-      "description": "A playground for experimenting with WebAssembly, allowing users to run and test WebAssembly modules in the browser.",
-      "link": "webassembly-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "webgl_tanks",
-      "title": "WebGL Tanks",
-      "description": "A 3D tank battle game using WebGL, where players can control tanks and engage in battles in a virtual environment.",
-      "link": "webgl-car-play",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "fm-radio",
-      "title": "FM Radio",
-      "description": "A simple FM radio wave simulation",
-      "link": "fm-radio",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "smith-chart",
-      "title": "Smith Chart",
-      "description": "A visualization of the Smith Chart, used in electrical engineering to represent complex impedance.",
-      "link": "smith-chart",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Visualizations"
     }
   ]
 }
