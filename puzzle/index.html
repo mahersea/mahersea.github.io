@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Puzzle Game with Solve Feature</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      transition: background 0.3s, color 0.3s;
+    }
+    /* Light mode (default) */
+    body.light {
+      background: #f0f0f0;
+      color: #000;
+    }
+    /* Dark mode */
+    body.dark {
+      background: #222;
+      color: #eee;
+    }
+    #controls {
+      margin-bottom: 10px;
+    }
+    canvas {
+      background: #fff;
+      border: 2px solid #333;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="light">
+  <div id="controls">
+    <label for="pieceCount">Puzzle Pieces:</label>
+    <select id="pieceCount">
+      <option value="10">100</option>
+      <option value="25">250</option>
+      <option value="50">500</option>
+      <option value="100">1000</option>
+    </select>
+    <button id="restartBtn">Restart Puzzle</button>
+    <button id="solveBtn">Solve Puzzle</button>
+    <button id="toggleModeBtn">Toggle Dark Mode</button>
+  </div>
+  <canvas id="puzzleCanvas" width="800" height="800"></canvas>
+
+  <script>
+    const canvas = document.getElementById('puzzleCanvas');
+    const ctx = canvas.getContext('2d');
+    const pieceCountSelect = document.getElementById('pieceCount');
+    const restartBtn = document.getElementById('restartBtn');
+    const solveBtn = document.getElementById('solveBtn');
+    const toggleModeBtn = document.getElementById('toggleModeBtn');
+    const body = document.body;
+
+    // Grid colors for the two modes:
+    const gridColors = {
+      light: "#ADD8E6",     // pale blue
+      dark: "#E25822"       // flame orange
+    };
+
+    // Global variables for puzzle
+    let pieces = [];       // Array of puzzle pieces
+    let gridSize = 10;     // Number of rows/cols (default for 100 pieces = 10x10)
+    let cellSize = canvas.width / gridSize;
+    const snapThreshold = 20; // Snap threshold (for glow effect during dragging)
+
+    // Dragging state
+    let draggingPiece = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    // Hard-coded image (you can change the URL)
+    const imageSrc = "https://picsum.photos/800";  // a random 800x800 image
+    const image = new Image();
+    image.src = imageSrc;
+
+    // When the image loads, initialize the puzzle.
+    image.onload = () => {
+      initPuzzle();
+    };
+
+    // Initialize or restart puzzle
+    function initPuzzle() {
+      // Determine grid size based on selection
+      const piecesRequested = parseInt(pieceCountSelect.value, 10);
+      gridSize = Math.round(Math.sqrt(piecesRequested));
+      cellSize = canvas.width / gridSize;
+      pieces = [];
+
+      // Create pieces by slicing the image (each piece comes from a grid cell of the original image)
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+          const piece = {
+            // Source coordinates (from the image)
+            sx: col * cellSize,
+            sy: row * cellSize,
+            sWidth: cellSize,
+            sHeight: cellSize,
+            // The correct (target) grid cell for this piece
+            targetRow: row,
+            targetCol: col,
+            // Current position (randomly scattered on canvas)
+            x: Math.random() * (canvas.width - cellSize),
+            y: Math.random() * (canvas.height - cellSize),
+            width: cellSize,
+            height: cellSize,
+            snapped: false,  // whether the piece is snapped into place
+            inSnapZone: false // whether it's near its target during dragging
+          };
+          pieces.push(piece);
+        }
+      }
+      draw();
+    }
+
+    // Draw the puzzle pieces and the grid
+    function draw() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw all puzzle pieces (later pieces drawn on top)
+      pieces.forEach(piece => {
+        ctx.save();
+        // If this piece is currently being dragged and is in the snap zone, apply a green glow.
+        if (draggingPiece === piece && piece.inSnapZone) {
+          ctx.shadowColor = "green";
+          ctx.shadowBlur = 20;
+        } else {
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+        }
+        ctx.drawImage(
+          image,
+          piece.sx, piece.sy, piece.sWidth, piece.sHeight,
+          piece.x, piece.y, piece.width, piece.height
+        );
+        // Optionally, draw a light border around each piece.
+        ctx.strokeStyle = "rgba(0,0,0,0.2)";
+        ctx.strokeRect(piece.x, piece.y, piece.width, piece.height);
+        ctx.restore();
+      });
+
+      // Draw grid lines over the board (to show snapping cells)
+      const mode = body.classList.contains("dark") ? "dark" : "light";
+      ctx.strokeStyle = gridColors[mode];
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= gridSize; i++) {
+        // vertical lines
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, canvas.height);
+        ctx.stroke();
+        // horizontal lines
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(canvas.width, i * cellSize);
+        ctx.stroke();
+      }
+    }
+
+    // Utility: get mouse position relative to canvas
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    // Mouse events for dragging pieces
+    canvas.addEventListener('mousedown', (evt) => {
+      const pos = getMousePos(evt);
+      // Iterate in reverse order so that top-most pieces are prioritized.
+      for (let i = pieces.length - 1; i >= 0; i--) {
+        const piece = pieces[i];
+        if (
+          pos.x >= piece.x &&
+          pos.x <= piece.x + piece.width &&
+          pos.y >= piece.y &&
+          pos.y <= piece.y + piece.height
+        ) {
+          draggingPiece = piece;
+          dragOffsetX = pos.x - piece.x;
+          dragOffsetY = pos.y - piece.y;
+          // Move the selected piece to the top of the drawing order.
+          pieces.splice(i, 1);
+          pieces.push(draggingPiece);
+          break;
+        }
+      }
+    });
+
+    canvas.addEventListener('mousemove', (evt) => {
+      if (draggingPiece) {
+        const pos = getMousePos(evt);
+        draggingPiece.x = pos.x - dragOffsetX;
+        draggingPiece.y = pos.y - dragOffsetY;
+        
+        // Check if the dragging piece is near its target center.
+        const centerX = draggingPiece.x + draggingPiece.width / 2;
+        const centerY = draggingPiece.y + draggingPiece.height / 2;
+        const targetX = draggingPiece.targetCol * cellSize;
+        const targetY = draggingPiece.targetRow * cellSize;
+        const targetCenterX = targetX + cellSize / 2;
+        const targetCenterY = targetY + cellSize / 2;
+        draggingPiece.inSnapZone = (Math.abs(centerX - targetCenterX) < snapThreshold &&
+                                      Math.abs(centerY - targetCenterY) < snapThreshold);
+        draw();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (draggingPiece) {
+        draggingPiece.inSnapZone = false;
+        draggingPiece = null;
+        draw();
+      }
+    });
+
+    // Also support mouse leave to drop the piece
+    canvas.addEventListener('mouseleave', () => {
+      if (draggingPiece) {
+        draggingPiece.inSnapZone = false;
+        draggingPiece = null;
+        draw();
+      }
+    });
+
+    // Solve puzzle: set every piece to its target location.
+    function solvePuzzle() {
+      pieces.forEach(piece => {
+        piece.x = piece.targetCol * cellSize;
+        piece.y = piece.targetRow * cellSize;
+        piece.snapped = true;
+      });
+      draw();
+    }
+
+    // Event listeners for buttons
+    restartBtn.addEventListener('click', initPuzzle);
+    solveBtn.addEventListener('click', solvePuzzle);
+    toggleModeBtn.addEventListener('click', () => {
+      if (body.classList.contains("dark")) {
+        body.classList.remove("dark");
+        body.classList.add("light");
+      } else {
+        body.classList.remove("light");
+        body.classList.add("dark");
+      }
+      draw();
+    });
+    pieceCountSelect.addEventListener('change', initPuzzle);
+  </script>
+</body>
+</html>

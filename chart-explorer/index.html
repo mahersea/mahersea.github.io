@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chart.js Playground</title>
+  <!-- Include Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .left-pane {
+      flex: 1;
+      padding: 20px;
+      background: #f0f0f0;
+      overflow-y: auto;
+      border-right: 1px solid #ccc;
+    }
+    .right-pane {
+      flex: 2;
+      padding: 20px;
+      background: #fff;
+    }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 5px; }
+    button { padding: 10px 15px; font-size: 16px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Left Pane: Controls -->
+  <div class="left-pane">
+    <h2>Chart Controls</h2>
+    <div class="form-group">
+      <label for="chartType">Chart Type</label>
+      <select id="chartType">
+        <option value="bar">Bar</option>
+        <option value="line">Line</option>
+        <option value="pie">Pie</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="dataPoints">Data Points (comma separated)</label>
+      <input type="text" id="dataPoints" value="10,20,30,40">
+    </div>
+    <div class="form-group">
+      <label for="labels">Labels (comma separated)</label>
+      <input type="text" id="labels" value="A,B,C,D">
+    </div>
+    <!-- Future enhancements: custom color pickers, axis configuration, etc. -->
+    <button id="updateChart">Update Chart</button>
+  </div>
+  
+  <!-- Right Pane: Chart Display -->
+  <div class="right-pane">
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+
+<script>
+  // Get the canvas context
+  const ctx = document.getElementById('myChart').getContext('2d');
+  
+  // Function to create/update the chart
+  function renderChart() {
+    const chartType = document.getElementById('chartType').value;
+    const dataPoints = document.getElementById('dataPoints').value.split(',').map(Number);
+    const labels = document.getElementById('labels').value.split(',');
+    
+    // Destroy the previous chart instance if it exists
+    if (window.myChartInstance) {
+      window.myChartInstance.destroy();
+    }
+    
+    // Define the chart configuration
+    const config = {
+      type: chartType,
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'My Dataset',
+          data: dataPoints,
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)'
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    };
+    
+    // Create a new chart instance
+    window.myChartInstance = new Chart(ctx, config);
+  }
+  
+  // Initial render
+  renderChart();
+  
+  // Update chart on button click
+  document.getElementById('updateChart').addEventListener('click', renderChart);
+</script>
+</body>
+</html>

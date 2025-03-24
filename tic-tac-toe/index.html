@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      margin-top: 40px;
+    }
+    canvas {
+      border: 2px solid #333;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #resetBtn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="300" height="300"></canvas>
+  <div id="message"></div>
+  <button id="resetBtn">Reset Game</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const messageEl = document.getElementById("message");
+    const resetBtn = document.getElementById("resetBtn");
+    const cellSize = canvas.width / 3;
+
+    let board;  // 3x3 array
+    let gameOver;
+
+    // Initialize game
+    function init() {
+      board = [
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', '']
+      ];
+      gameOver = false;
+      messageEl.textContent = "Your turn!";
+      drawBoard();
+    }
+
+    // Draw grid and moves
+    function drawBoard() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw grid lines
+      ctx.lineWidth = 2;
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, canvas.height);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(canvas.width, i * cellSize);
+        ctx.stroke();
+      }
+
+      // Draw the moves
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const x = col * cellSize;
+          const y = row * cellSize;
+          const mark = board[row][col];
+          if (mark) {
+            ctx.font = "60px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(mark, x + cellSize / 2, y + cellSize / 2);
+          }
+        }
+      }
+    }
+
+    // Check win or tie
+    function checkWinner(bd) {
+      // rows, columns, diagonals
+      for (let i = 0; i < 3; i++) {
+        if (bd[i][0] && bd[i][0] === bd[i][1] && bd[i][1] === bd[i][2])
+          return bd[i][0];
+        if (bd[0][i] && bd[0][i] === bd[1][i] && bd[1][i] === bd[2][i])
+          return bd[0][i];
+      }
+      if (bd[0][0] && bd[0][0] === bd[1][1] && bd[1][1] === bd[2][2])
+        return bd[0][0];
+      if (bd[0][2] && bd[0][2] === bd[1][1] && bd[1][1] === bd[2][0])
+        return bd[0][2];
+      return null;
+    }
+
+    function isTie(bd) {
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          if (!bd[row][col]) return false;
+        }
+      }
+      return true;
+    }
+
+    // Minimax algorithm for computer move
+    function minimax(newBoard, player) {
+      const human = "X";
+      const ai = "O";
+      const winner = checkWinner(newBoard);
+      if (winner === human) {
+        return { score: -10 };
+      } else if (winner === ai) {
+        return { score: 10 };
+      } else if (isTie(newBoard)) {
+        return { score: 0 };
+      }
+
+      const moves = [];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (!newBoard[i][j]) {
+            let move = {};
+            move.index = { row: i, col: j };
+            newBoard[i][j] = player;
+
+            if (player === ai) {
+              const result = minimax(newBoard, human);
+              move.score = result.score;
+            } else {
+              const result = minimax(newBoard, ai);
+              move.score = result.score;
+            }
+
+            newBoard[i][j] = "";
+            moves.push(move);
+          }
+        }
+      }
+
+      let bestMove;
+      if (player === ai) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < moves.length; i++) {
+          if (moves[i].score > bestScore) {
+            bestScore = moves[i].score;
+            bestMove = moves[i];
+          }
+        }
+      } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < moves.length; i++) {
+          if (moves[i].score < bestScore) {
+            bestScore = moves[i].score;
+            bestMove = moves[i];
+          }
+        }
+      }
+      return bestMove;
+    }
+
+    // Computer makes a move
+    function computerMove() {
+      if (gameOver) return;
+      const best = minimax(board, "O");
+      if (best && best.index) {
+        board[best.index.row][best.index.col] = "O";
+      }
+      drawBoard();
+      const winner = checkWinner(board);
+      if (winner) {
+        gameOver = true;
+        messageEl.textContent = winner === "X" ? "You win!" : "Computer wins!";
+      } else if (isTie(board)) {
+        gameOver = true;
+        messageEl.textContent = "It's a tie!";
+      } else {
+        messageEl.textContent = "Your turn!";
+      }
+    }
+
+    // Handle user click
+    canvas.addEventListener("click", function (event) {
+      if (gameOver) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const col = Math.floor(x / cellSize);
+      const row = Math.floor(y / cellSize);
+
+      if (board[row][col] === "") {
+        board[row][col] = "X";
+        drawBoard();
+
+        const winner = checkWinner(board);
+        if (winner) {
+          gameOver = true;
+          messageEl.textContent = "You win!";
+          return;
+        } else if (isTie(board)) {
+          gameOver = true;
+          messageEl.textContent = "It's a tie!";
+          return;
+        }
+        messageEl.textContent = "Computer's turn...";
+        
+        // Let computer move after a short delay
+        setTimeout(computerMove, 500);
+      }
+    });
+
+    // Reset game when button is clicked
+    resetBtn.addEventListener("click", init);
+
+    // Start the game for the first time
+    init();
+  </script>
+</body>
+</html>

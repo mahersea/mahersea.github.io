@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flexbox Playground</title>
+  <style>
+    /* Theme variables for light mode */
+    :root {
+      --primary1: #FF4500;
+      --primary2: #FF8C00;
+      --primary3: #FFD700;
+      --primary4: #FF0000;
+      --primary5: #FFA500;
+      --bg-color: #ffffff;
+      --text-color: #000000;
+    }
+    /* Dark mode: inverted colors */
+    body.dark-mode {
+      --primary1: #00BAFF;
+      --primary2: #0073FF;
+      --primary3: #0028FF;
+      --primary4: #00FFFF;
+      --primary5: #005AFF;
+      --bg-color: #121212;
+      --text-color: #ffffff;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    #themeToggle, #toggleCanvas {
+      background-color: var(--primary1);
+      border: none;
+      color: var(--text-color);
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 0 10px 20px 0;
+    }
+    #controlPanel {
+      margin-bottom: 20px;
+    }
+    #controlPanel select,
+    #controlPanel button {
+      padding: 5px;
+      margin-right: 10px;
+    }
+    #flexContainer {
+      display: flex;
+      border: 2px dashed var(--primary2);
+      padding: 10px;
+      min-height: 200px;
+      margin-bottom: 20px;
+      /* Default flex properties */
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: stretch;
+      flex-wrap: nowrap;
+    }
+    .flexItem {
+      background-color: var(--primary3);
+      color: var(--text-color);
+      padding: 20px;
+      margin: 5px;
+      flex: 1 1 auto;
+      text-align: center;
+    }
+    #codePreview {
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+      overflow: auto;
+      max-height: 150px;
+    }
+    #myCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none; /* Hidden by default */
+      z-index: -1;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <button id="themeToggle">Toggle Dark/Light Mode</button>
+  <button id="toggleCanvas">Show/Hide Canvas</button>
+  <div id="controlPanel">
+    <label for="flexDirection">Flex Direction:</label>
+    <select id="flexDirection">
+      <option value="row" selected>row</option>
+      <option value="row-reverse">row-reverse</option>
+      <option value="column">column</option>
+      <option value="column-reverse">column-reverse</option>
+    </select>
+    <label for="justifyContent">Justify Content:</label>
+    <select id="justifyContent">
+      <option value="flex-start" selected>flex-start</option>
+      <option value="center">center</option>
+      <option value="flex-end">flex-end</option>
+      <option value="space-between">space-between</option>
+      <option value="space-around">space-around</option>
+      <option value="space-evenly">space-evenly</option>
+    </select>
+    <label for="alignItems">Align Items:</label>
+    <select id="alignItems">
+      <option value="stretch" selected>stretch</option>
+      <option value="flex-start">flex-start</option>
+      <option value="center">center</option>
+      <option value="flex-end">flex-end</option>
+      <option value="baseline">baseline</option>
+    </select>
+    <label for="flexWrap">Flex Wrap:</label>
+    <select id="flexWrap">
+      <option value="nowrap" selected>nowrap</option>
+      <option value="wrap">wrap</option>
+      <option value="wrap-reverse">wrap-reverse</option>
+    </select>
+    <button id="addItem">Add Item</button>
+    <button id="removeItem">Remove Item</button>
+  </div>
+  <div id="flexContainer">
+    <div class="flexItem">Item 1</div>
+    <div class="flexItem">Item 2</div>
+    <div class="flexItem">Item 3</div>
+  </div>
+  <div id="codePreview">
+    <pre id="cssCode"></pre>
+  </div>
+  <canvas id="myCanvas"></canvas>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const flexContainer = document.getElementById('flexContainer');
+      const flexDirection = document.getElementById('flexDirection');
+      const justifyContent = document.getElementById('justifyContent');
+      const alignItems = document.getElementById('alignItems');
+      const flexWrap = document.getElementById('flexWrap');
+      const cssCode = document.getElementById('cssCode');
+      const themeToggle = document.getElementById('themeToggle');
+      const toggleCanvas = document.getElementById('toggleCanvas');
+      const canvas = document.getElementById('myCanvas');
+      const addItem = document.getElementById('addItem');
+      const removeItem = document.getElementById('removeItem');
+
+      // Update flex container styles and preview code
+      function updateFlexContainer() {
+        flexContainer.style.flexDirection = flexDirection.value;
+        flexContainer.style.justifyContent = justifyContent.value;
+        flexContainer.style.alignItems = alignItems.value;
+        flexContainer.style.flexWrap = flexWrap.value;
+        const codeString = `
+#flexContainer {
+  display: flex;
+  flex-direction: ${flexDirection.value};
+  justify-content: ${justifyContent.value};
+  align-items: ${alignItems.value};
+  flex-wrap: ${flexWrap.value};
+}
+        `;
+        cssCode.textContent = codeString;
+      }
+
+      // Attach event listeners to controls
+      flexDirection.addEventListener('change', updateFlexContainer);
+      justifyContent.addEventListener('change', updateFlexContainer);
+      alignItems.addEventListener('change', updateFlexContainer);
+      flexWrap.addEventListener('change', updateFlexContainer);
+
+      // Toggle theme between light and dark
+      themeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+      });
+
+      // Toggle canvas visibility
+      toggleCanvas.addEventListener('click', function() {
+        if (canvas.style.display === 'none' || canvas.style.display === '') {
+          canvas.style.display = 'block';
+          drawCanvas(); // Draw when canvas becomes visible
+        } else {
+          canvas.style.display = 'none';
+        }
+      });
+
+      // Add new flex item
+      addItem.addEventListener('click', function() {
+        const newItem = document.createElement('div');
+        newItem.className = 'flexItem';
+        newItem.textContent = 'Item ' + (flexContainer.children.length + 1);
+        flexContainer.appendChild(newItem);
+      });
+
+      // Remove last flex item
+      removeItem.addEventListener('click', function() {
+        if (flexContainer.children.length > 0) {
+          flexContainer.removeChild(flexContainer.lastElementChild);
+        }
+      });
+
+      // Draw a simple message on the canvas
+      function drawCanvas() {
+        if (canvas.getContext) {
+          const ctx = canvas.getContext('2d');
+          // Resize canvas to full screen
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Draw centered message
+          ctx.font = '48px sans-serif';
+          ctx.fillStyle = 'rgba(0,0,0,0.5)';
+          ctx.textAlign = 'center';
+          ctx.fillText('Canvas Active', canvas.width / 2, canvas.height / 2);
+        }
+      }
+
+      // Initial update to set default styles and code preview
+      updateFlexContainer();
+
+      // Redraw canvas on window resize if visible
+      window.addEventListener('resize', function() {
+        if (canvas.style.display === 'block') {
+          drawCanvas();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

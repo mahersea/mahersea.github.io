@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FM Tower Broadcast with Earth Propagation</title>
+  <style>
+    body { 
+      margin: 0; 
+      background: #000; 
+      color: #fff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000;
+    }
+    .controls {
+      margin: 10px auto;
+      padding: 10px;
+      background: #222;
+      display: inline-block;
+      border-radius: 4px;
+    }
+    button, input[type="range"], label {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>FM Tower Broadcast & Wave Propagation</h1>
+  <div class="controls">
+    <button id="toggleAnimation">Pause Animation</button>
+    <label for="freqRange">Frequency (MHz):</label>
+    <input type="range" id="freqRange" min="88" max="108" value="98">
+    <label for="powerRange">Broadcast Power:</label>
+    <input type="range" id="powerRange" min="1" max="10" value="5">
+    <label for="speedRange">Wave Speed:</label>
+    <input type="range" id="speedRange" min="1" max="10" value="3">
+  </div>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set dimensions: sky is top 80%, earth is bottom 20%
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const earthHeight = canvasHeight * 0.2;  // bottom 20%
+    const skyHeight = canvasHeight - earthHeight; // top 80%
+
+    // Tower parameters (side view, on the left)
+    const towerX = canvasWidth * 0.15; // tower located at 15% of width
+    const towerBaseY = skyHeight;      // tower base touches the top of earth
+    const towerHeight = skyHeight * 0.8; // tower extends upward into the sky
+    const towerWidth = 20;
+
+    // Antenna emission point: at the top of the tower, plus a small antenna extension.
+    const antennaExtension = 30;
+    const emissionX = towerX;
+    const emissionY = towerBaseY - towerHeight - antennaExtension;
+
+    let isAnimating = true;
+    let animationId;
+    let frameCount = 0;
+
+    // Array to hold the expanding wavefronts
+    const waveFronts = [];
+    const maxWaveAge = 150; // in frames
+
+    // FM controls
+    const toggleAnimationBtn = document.getElementById('toggleAnimation');
+    const freqRange = document.getElementById('freqRange');
+    const powerRange = document.getElementById('powerRange');
+    const speedRange = document.getElementById('speedRange');
+
+    let frequency = parseFloat(freqRange.value);     // MHz, controls emission rate
+    let broadcastPower = parseFloat(powerRange.value); // 1-10, influences opacity/strength
+    let waveSpeed = parseFloat(speedRange.value);      // controls how fast waves expand
+
+    toggleAnimationBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      toggleAnimationBtn.textContent = isAnimating ? 'Pause Animation' : 'Resume Animation';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+
+    freqRange.addEventListener('input', () => {
+      frequency = parseFloat(freqRange.value);
+    });
+    powerRange.addEventListener('input', () => {
+      broadcastPower = parseFloat(powerRange.value);
+    });
+    speedRange.addEventListener('input', () => {
+      waveSpeed = parseFloat(speedRange.value);
+    });
+
+    // Draw the sky and earth
+    function drawBackground() {
+      // Sky (top 80%)
+      ctx.fillStyle = '#001144';
+      ctx.fillRect(0, 0, canvasWidth, skyHeight);
+      // Earth (bottom 20%)
+      ctx.fillStyle = '#223311';
+      ctx.fillRect(0, skyHeight, canvasWidth, earthHeight);
+    }
+
+    // Draw some little trees on the earth for scale
+    function drawTrees() {
+      const treeColor = '#116611';
+      // Positions for trees across the earth area
+      const treePositions = [100, 250, 400, 550, 700];
+      treePositions.forEach(x => {
+        // Draw trunk
+        ctx.fillStyle = '#663300';
+        ctx.fillRect(x - 3, skyHeight - 20, 6, 20);
+        // Draw foliage (a simple triangle)
+        ctx.fillStyle = treeColor;
+        ctx.beginPath();
+        ctx.moveTo(x - 15, skyHeight - 20);
+        ctx.lineTo(x + 15, skyHeight - 20);
+        ctx.lineTo(x, skyHeight - 50);
+        ctx.closePath();
+        ctx.fill();
+      });
+    }
+
+    // Draw the tower antenna
+    function drawTower() {
+      // Tower body
+      ctx.fillStyle = '#888';
+      ctx.fillRect(towerX - towerWidth / 2, towerBaseY - towerHeight, towerWidth, towerHeight);
+      // Antenna (red line on top of the tower)
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(towerX, towerBaseY - towerHeight);
+      ctx.lineTo(towerX, towerBaseY - towerHeight - antennaExtension);
+      ctx.stroke();
+      // Label the antenna
+      ctx.fillStyle = '#ff0000';
+      ctx.font = '16px Arial';
+      ctx.fillText('Antenna', towerX + 10, towerBaseY - towerHeight - antennaExtension - 5);
+    }
+
+    // Emit a new wavefront from the antenna's emission point
+    function emitWavefront() {
+      waveFronts.push({ radius: 0, age: 0 });
+    }
+
+    // Update and draw wavefronts
+    function updateWavefronts() {
+      // Map frequency (88-108 MHz) to an emission interval (higher frequency means more frequent emissions)
+      const emissionInterval = ((108 - frequency) / 20) * 30 + 20;
+      if (frameCount % Math.floor(emissionInterval) === 0) {
+        emitWavefront();
+      }
+
+      waveFronts.forEach(wave => {
+        wave.radius += waveSpeed * 2;
+        wave.age++;
+        // Opacity decreases with age and is scaled by broadcast power
+        const opacity = Math.max(1 - wave.age / maxWaveAge, 0) * (broadcastPower / 10);
+        ctx.strokeStyle = `rgba(0, 200, 255, ${opacity})`;
+        ctx.lineWidth = 3;
+        // Draw a full circle representing the wavefront
+        ctx.beginPath();
+        ctx.arc(emissionX, emissionY, wave.radius, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Remove wavefronts that have faded out
+      while (waveFronts.length && waveFronts[0].age > maxWaveAge) {
+        waveFronts.shift();
+      }
+    }
+
+    // Main animation loop
+    function animate() {
+      frameCount++;
+      // Draw background (sky & earth) and trees so that waves appear to propagate into the scene
+      drawBackground();
+      drawTrees();
+      drawTower();
+      updateWavefronts();
+      animationId = requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
