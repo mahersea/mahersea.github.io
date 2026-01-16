@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Explorer - Sean Maher</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+
+    .header nav a {
+      color: #8b949e;
+      text-decoration: none;
+      margin-left: 20px;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .header nav a:hover {
+      color: #58a6ff;
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 50px);
+    }
+
+    .sidebar {
+      width: 320px;
+      background: #0d1117;
+      border-right: 1px solid #30363d;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: #161b22;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    .tree {
+      list-style: none;
+    }
+
+    .tree-item {
+      margin: 2px 0;
+    }
+
+    .tree-label {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: background 0.2s;
+      user-select: none;
+    }
+
+    .tree-label:hover {
+      background: #161b22;
+    }
+
+    .tree-label.active {
+      background: #1f6feb;
+      color: #fff;
+    }
+
+    .tree-icon {
+      margin-right: 8px;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .tree-toggle {
+      margin-right: 4px;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .tree-children {
+      margin-left: 20px;
+      list-style: none;
+      display: none;
+    }
+
+    .tree-children.expanded {
+      display: block;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      background: #0d1117;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: #0d1117;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 6px;
+    }
+
+    .content-header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .content-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #c9d1d9;
+      margin-bottom: 8px;
+    }
+
+    .content-header .meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #8b949e;
+    }
+
+    .content-body {
+      padding: 24px;
+    }
+
+    .welcome {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .welcome h2 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      background: linear-gradient(90deg, #58a6ff, #79c0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #8b949e;
+      margin-bottom: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin: 32px 0;
+    }
+
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+
+    .stat-card .label {
+      font-size: 13px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+
+    .file-viewer {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .file-actions {
+      background: #161b22;
+      padding: 12px 16px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #30363d;
+      border-color: #8b949e;
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      background: #0d1117;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    .markdown-body {
+      padding: 24px;
+      color: #c9d1d9;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3 {
+      margin-top: 24px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 8px;
+    }
+
+    .markdown-body p {
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      margin-bottom: 16px;
+      padding-left: 32px;
+    }
+
+    .markdown-body li {
+      margin-bottom: 8px;
+    }
+
+    .markdown-body code {
+      background: #161b22;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 85%;
+    }
+
+    .markdown-body pre {
+      background: #161b22;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+
+    .markdown-body pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8b949e;
+    }
+
+    .error {
+      background: #f851301a;
+      border: 1px solid #f85149;
+      border-radius: 6px;
+      padding: 16px;
+      color: #ff7b72;
+      margin: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #1f6feb1a;
+      border: 1px solid #1f6feb;
+      color: #58a6ff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+
+    .breadcrumb a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🗂️ Project Explorer</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="math/index.html">Math</a>
+      <a href="index_portfolio.html">Portfolio</a>
+      <a href="https://github.com/mahersea/mahersea.github.io" target="_blank">GitHub</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <aside class="sidebar">
+      <input type="text" class="search-box" id="searchBox" placeholder="Search projects...">
+      <ul class="tree" id="projectTree"></ul>
+    </aside>
+
+    <main class="content">
+      <div id="contentArea">
+        <div class="welcome">
+          <h2>Welcome to the Project Explorer</h2>
+          <p>Browse through the complete collection of web projects, experiments, and visualizations. Select any project from the sidebar to explore its files and documentation.</p>
+
+          <div class="stats" id="statsContainer">
+            <div class="stat-card">
+              <div class="number">-</div>
+              <div class="label">Total Projects</div>
+            </div>
+            <div class="stat-card">
+              <div class="number">-</div>
+              <div class="label">Categories</div>
+            </div>
+            <div class="stat-card">
+              <div class="number">-</div>
+              <div class="label">Technologies</div>
+            </div>
+          </div>
+
+          <p><strong>Note:</strong> Many projects require a local server to run properly. You can clone the repository and run them locally, or view the source code directly.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let projectsData = null;
+    let currentPath = '';
+
+    // Fetch projects data
+    async function loadProjects() {
+      try {
+        const response = await fetch('projects.json');
+        projectsData = await response.json();
+        renderStats();
+        renderTree();
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        document.getElementById('projectTree').innerHTML = '<div class="error">Failed to load projects data</div>';
+      }
+    }
+
+    // Render statistics
+    function renderStats() {
+      if (!projectsData) return;
+
+      const stats = document.getElementById('statsContainer');
+      stats.innerHTML = `
+        <div class="stat-card">
+          <div class="number">${projectsData.totalProjects || 0}</div>
+          <div class="label">Total Projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">${Object.keys(projectsData.summary?.byCategory || {}).length}</div>
+          <div class="label">Categories</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">${Object.keys(projectsData.summary?.byTechnology || {}).length}</div>
+          <div class="label">Technologies</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">${projectsData.summary?.byStatus?.ready || 0}</div>
+          <div class="label">Ready Projects</div>
+        </div>
+      `;
+    }
+
+    // Render project tree
+    function renderTree() {
+      if (!projectsData) return;
+
+      const tree = document.getElementById('projectTree');
+      const projects = projectsData.projects || [];
+
+      // Group projects by category
+      const categories = {};
+      projects.forEach(project => {
+        const cat = project.category || 'Uncategorized';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(project);
+      });
+
+      let html = '';
+      Object.keys(categories).sort().forEach(category => {
+        const catId = category.replace(/\s+/g, '-').toLowerCase();
+        html += `
+          <li class="tree-item">
+            <div class="tree-label" onclick="toggleCategory('${catId}')">
+              <span class="tree-toggle" id="toggle-${catId}">▸</span>
+              <span class="tree-icon">📁</span>
+              <span>${category} (${categories[category].length})</span>
+            </div>
+            <ul class="tree-children" id="cat-${catId}">
+              ${categories[category].map(project => `
+                <li class="tree-item">
+                  <div class="tree-label" onclick="selectProject('${project.directory}')">
+                    <span class="tree-toggle"></span>
+                    <span class="tree-icon">${project.hasIndex ? '📄' : '📂'}</span>
+                    <span>${project.title || project.directory}</span>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+          </li>
+        `;
+      });
+
+      tree.innerHTML = html;
+    }
+
+    // Toggle category expansion
+    function toggleCategory(catId) {
+      const children = document.getElementById(`cat-${catId}`);
+      const toggle = document.getElementById(`toggle-${catId}`);
+
+      if (children.classList.contains('expanded')) {
+        children.classList.remove('expanded');
+        toggle.textContent = '▸';
+      } else {
+        children.classList.add('expanded');
+        toggle.textContent = '▾';
+      }
+    }
+
+    // Select and display project
+    async function selectProject(directory) {
+      const project = projectsData.projects.find(p => p.directory === directory);
+      if (!project) return;
+
+      // Highlight selected item
+      document.querySelectorAll('.tree-label').forEach(el => el.classList.remove('active'));
+      event.target.closest('.tree-label').classList.add('active');
+
+      const contentArea = document.getElementById('contentArea');
+      contentArea.innerHTML = '<div class="loading">Loading project details...</div>';
+
+      // Build project view
+      let content = `
+        <div class="content-header">
+          <div class="breadcrumb">
+            <a href="#" onclick="showWelcome(); return false;">Home</a> / ${project.category} / ${project.title}
+          </div>
+          <h2>${project.title}</h2>
+          <div class="meta">
+            <span>📁 ${project.directory}</span>
+            <span>🏷️ ${project.status}</span>
+            ${project.technologies ? `<span>⚙️ ${project.technologies.join(', ')}</span>` : ''}
+          </div>
+        </div>
+        <div class="content-body">
+          ${project.description ? `<p style="font-size: 16px; margin-bottom: 24px; color: #8b949e;">${project.description}</p>` : ''}
+
+          <div class="file-actions">
+            ${project.hasIndex ? `<a href="${project.directory}/index.html" target="_blank" class="btn">🚀 Open Project</a>` : ''}
+            <a href="https://github.com/mahersea/mahersea.github.io/tree/master/${project.directory}" target="_blank" class="btn">📂 View on GitHub</a>
+          </div>
+
+          <h3 style="margin: 24px 0 16px; color: #c9d1d9;">Files</h3>
+          <div class="file-viewer">
+            <ul style="list-style: none; padding: 16px;">
+              ${project.files ? project.files.map(file => `
+                <li style="padding: 8px; margin: 4px 0; background: #161b22; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 16px;">${getFileIcon(file)}</span>
+                  <a href="https://github.com/mahersea/mahersea.github.io/blob/master/${project.directory}/${file}"
+                     target="_blank"
+                     style="color: #58a6ff; text-decoration: none; flex: 1;"
+                     onmouseover="this.style.textDecoration='underline'"
+                     onmouseout="this.style.textDecoration='none'">${file}</a>
+                </li>
+              `).join('') : '<li>No files listed</li>'}
+            </ul>
+          </div>
+      `;
+
+      // Try to load README if available
+      if (project.hasReadme) {
+        try {
+          const readmeResponse = await fetch(`${project.directory}/README.md`);
+          if (readmeResponse.ok) {
+            const readmeText = await readmeResponse.text();
+            content += `
+              <h3 style="margin: 24px 0 16px; color: #c9d1d9;">README</h3>
+              <div class="file-viewer">
+                <div class="markdown-body">
+                  ${marked.parse(readmeText)}
+                </div>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.log('Could not load README:', error);
+        }
+      }
+
+      content += '</div>';
+      contentArea.innerHTML = content;
+
+      // Highlight code blocks
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+      });
+    }
+
+    // Get file icon based on extension
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        'html': '📄',
+        'js': '📜',
+        'css': '🎨',
+        'json': '📋',
+        'md': '📝',
+        'png': '🖼️',
+        'jpg': '🖼️',
+        'jpeg': '🖼️',
+        'gif': '🖼️',
+        'svg': '🎨',
+        'txt': '📄'
+      };
+      return icons[ext] || '📄';
+    }
+
+    // Show welcome screen
+    function showWelcome() {
+      document.querySelectorAll('.tree-label').forEach(el => el.classList.remove('active'));
+      location.reload();
+    }
+
+    // Search functionality
+    document.getElementById('searchBox').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const items = document.querySelectorAll('.tree-item');
+
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(query)) {
+          item.style.display = '';
+          // Expand parent categories
+          const parent = item.closest('.tree-children');
+          if (parent) {
+            parent.classList.add('expanded');
+            const catId = parent.id.replace('cat-', '');
+            const toggle = document.getElementById(`toggle-${catId}`);
+            if (toggle) toggle.textContent = '▾';
+          }
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+
+    // Initialize
+    loadProjects();
+  </script>
+</body>
+</html>
