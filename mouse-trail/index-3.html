@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Canvas Mouse Calibration & Trail</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    #info {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <div><strong>Canvas Mouse Tool</strong></div>
+    <div>Mode: <span id="modeLabel">Pixel (calibration)</span></div>
+    <div>Press <kbd>T</kbd> to toggle: Pixel / Trail</div>
+    <div>Move mouse over canvas (or run your OS script)</div>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const modeLabel = document.getElementById('modeLabel');
+
+    let trailMode = false; // false = calibration, true = trail
+    const dpr = window.devicePixelRatio || 1;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+      clearCanvas();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Calibration: single bright orange dot
+    function drawCalibrationDot(x, y) {
+      const radius = 10; // 20px diameter
+      ctx.beginPath();
+      ctx.fillStyle = 'rgb(255, 160, 0)'; // bright orange
+      ctx.arc(Math.round(x), Math.round(y), radius, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    // Trail: stack of dots at this point, going orange -> red, large -> small
+    function drawTrailDotStack(x, y) {
+      const layers = 4;          // how many concentric dots
+      const maxRadius = 10;      // same as calibration outer size
+      const minRadius = 3;       // smallest inner dot
+
+      for (let i = 0; i < layers; i++) {
+        const t = layers === 1 ? 0 : i / (layers - 1); // 0 (outer/orange) -> 1 (inner/red)
+
+        // Radius shrinks from maxRadius to minRadius
+        const radius = maxRadius - t * (maxRadius - minRadius);
+
+        // Color: orange (255,160,0) -> red (255,0,0)
+        const r = 255;
+        const g = Math.round(160 * (1 - t)); // 160 -> 0
+        const b = 0;
+        const color = `rgb(${r},${g},${b})`;
+
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(Math.round(x), Math.round(y), radius, 0, Math.PI * 2, false);
+        ctx.fill();
+      }
+    }
+
+    canvas.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      if (!trailMode) {
+        // Calibration mode: clear and draw single dot
+        clearCanvas();
+        drawCalibrationDot(x, y);
+      } else {
+        // Trail mode: do NOT clear, just paint the dot stack
+        drawTrailDotStack(x, y);
+      }
+    });
+
+    // Toggle between calibration and trail modes
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 't' || event.key === 'T') {
+        trailMode = !trailMode;
+        modeLabel.textContent = trailMode
+          ? 'Trail (orange → red stacks, persistent)'
+          : 'Pixel (calibration)';
+
+        if (!trailMode) {
+          // when returning to calibration, wipe canvas
+          clearCanvas();
+        }
+      }
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

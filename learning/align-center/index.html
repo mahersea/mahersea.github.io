@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Centering Playground</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* Global box sizing */
+    * {
+      box-sizing: border-box;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: var(--primary1);
+      border-bottom: 1px solid var(--primary3);
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .container {
+      display: flex;
+      height: calc(100vh - 120px);
+    }
+    .panel {
+      padding: 10px;
+    }
+    .panel.left {
+      width: 40%;
+      border-right: 1px solid var(--primary3);
+    }
+    .panel.right {
+      width: 60%;
+      overflow: auto;
+    }
+    select, textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid var(--primary3);
+      border-radius: 4px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+    /* Limit textarea resizing to vertical only */
+    textarea {
+      height: 200px;
+      font-family: monospace;
+      resize: vertical;
+    }
+    #preview {
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      background-color: var(--bg-color);
+      border: 1px solid var(--primary3);
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <header>
+    <h1>Centering Methods</h1>
+  </header>
+  <div class="container">
+    <div class="panel left">
+      <label for="centering-method">Select Centering Method:</label>
+      <select id="centering-method">
+        <option value="text-align">Text Align Center</option>
+        <option value="margin-auto">Margin Auto Center</option>
+        <option value="flexbox">Flexbox Center</option>
+        <option value="grid">Grid Center</option>
+        <option value="absolute">Absolute Position Center</option>
+      </select>
+      <label for="code-editor">HTML Code:</label>
+      <textarea id="code-editor"></textarea>
+      <button id="apply-changes">Apply Changes</button>
+      <button id="copy-code">Copy Code</button>
+    </div>
+    <div class="panel right">
+      <h2>Preview</h2>
+      <div id="preview"></div>
+    </div>
+  </div>
+  
+  <a href="../" class="back-link">Back to Learning Projects</a>
+  
+  <script src="../common.js"></script>
+  <script>
+    // Sample code snippets for different centering methods
+    const codeSnippets = {
+      "text-align": `<div style="text-align: center; border: 1px solid var(--primary3); padding: 20px;">
+  Centered text using text-align.
+</div>`,
+      "margin-auto": `<div style="width: 50%; margin: 0 auto; border: 1px solid var(--primary3); padding: 20px;">
+  Centered div using margin auto.
+</div>`,
+      "flexbox": `<div style="display: flex; justify-content: center; align-items: center; height: 200px; border: 1px solid var(--primary3);">
+  Centered content using Flexbox.
+</div>`,
+      "grid": `<div style="display: grid; place-items: center; height: 200px; border: 1px solid var(--primary3);">
+  Centered content using CSS Grid.
+</div>`,
+      "absolute": `<div style="position: relative; height: 200px; border: 1px solid var(--primary3);">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    Centered content using absolute positioning.
+  </div>
+</div>`
+    };
+
+    // Update the code editor based on the selected centering method
+    function updateEditor() {
+      const method = document.getElementById("centering-method").value;
+      document.getElementById("code-editor").value = codeSnippets[method];
+    }
+
+    // Update the preview panel with the HTML code from the editor
+    function updatePreview() {
+      const code = document.getElementById("code-editor").value;
+      document.getElementById("preview").innerHTML = code;
+    }
+
+    // Copy the code in the editor to the clipboard
+    function copyCode() {
+      const code = document.getElementById("code-editor").value;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Code copied to clipboard!");
+      }).catch(() => {
+        alert("Failed to copy code.");
+      });
+    }
+
+    // Event listeners
+    document.getElementById("centering-method").addEventListener("change", updateEditor);
+    document.getElementById("apply-changes").addEventListener("click", updatePreview);
+    document.getElementById("copy-code").addEventListener("click", copyCode);
+
+    // Initialize editor and preview on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      updateEditor();
+      updatePreview();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>littleBirthdayMan</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header with Logo -->
+    <header class="app-title">
+      <img src="images/logo.svg" width="40" height="40" alt="Logo"/>
+      <span id="logo-text">littleBirthdayMan</span>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div class="tab active" data-view="mainView">Main</div>
+      <div class="tab" data-view="secondView">Second</div>
+      <div class="tab" data-view="thirdView">Third</div>
+    </div>
+    
+    <!-- Main View -->
+    <div id="mainView" class="view active">
+      <h2>Main View</h2>
+      <p>This is the main view content for littleBirthdayMan.</p>
+    </div>
+
+    <!-- Second View -->
+    <div id="secondView" class="view">
+      <h2>Second View</h2>
+      <p>This is the second view content.</p>
+    </div>
+
+    <!-- Third View -->
+    <div id="thirdView" class="view">
+      <h2>Third View</h2>
+      <p>This is the third view content.</p>
+    </div>
+  
+    <!-- Basic JavaScript for Tab Navigation -->
+    <script>
+      // Tab Navigation
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.view).classList.add('active');
+        });
+      });
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+import trackRoutes from './routes/tracks.js';
+import playlistRoutes from './routes/playlists.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'TrackPort API is running' });
+});
+
+app.use('/api/auth', authRoutes);
+app.use('/api/tracks', trackRoutes);
+app.use('/api/playlists', playlistRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`\n⚓ TrackPort API running on port ${PORT}`);
+  console.log(`📡 Health check: http://localhost:${PORT}/api/health\n`);
+});
+
+export default app;

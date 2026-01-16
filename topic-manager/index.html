@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topic Manager</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Logo-->
+    <div class="header">
+      <span id="logo-text">Topic Manager</span>
+      <a href="../index.html" class="back-link">Back to Portfolio</a>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div class="tab active" data-view="topicsView">Topics</div>
+    </div>
+    
+    <!-- Error Message Container -->
+    <div id="errorMessage" class="error-message"></div>
+
+    <!-- Topics View -->
+    <div id="topicsView" class="view active">
+      <h2>Content Topics</h2>
+      <span class="toggle-form" data-target="topicFormContainer">+ Add New Topic</span>
+      
+      <!-- Add/Edit Topic Form -->
+      <div class="form-container" id="topicFormContainer">
+        <h3 id="topicFormTitle">Add New Topic</h3>
+        <form id="topicForm">
+          <input type="hidden" id="topicId" value="">
+          
+          <div class="form-group">
+            <label>Topic ID: </label>
+            <input type="text" id="id" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Name: </label>
+            <input type="text" id="name" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Description: </label>
+            <textarea id="description" rows="3" required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Icon: </label>
+            <input type="text" id="icon" required>
+          </div>
+          
+          <div class="action-buttons">
+            <button type="submit" id="saveTopicBtn" class="btn-primary">Save Topic</button>
+            <button type="button" id="cancelTopicBtn" class="btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Topics Table -->
+      <table id="topicsTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Icon</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Topic rows will be dynamically inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn Tailwind CSS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #controlPanel {
+      margin-bottom: 20px;
+    }
+    select {
+      font-size: 16px;
+      padding: 8px 12px;
+    }
+    #content {
+      display: flex;
+      gap: 20px;
+    }
+    #exampleContent {
+      flex: 1;
+      border: 1px solid #ccc;
+      padding: 16px;
+      overflow: auto;
+      min-height: 300px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Learn Tailwind CSS</h1>
+  <div id="controlPanel">
+    <label for="tailwindTopic">Select a Tailwind Topic:</label>
+    <select id="tailwindTopic">
+      <option value="installation" selected>Installation</option>
+      <option value="utility">Utility-first Approach</option>
+      <option value="responsive">Responsive Design</option>
+      <option value="customization">Customization</option>
+      <option value="darkmode">Dark Mode</option>
+    </select>
+  </div>
+  <div id="content">
+    <div id="exampleContent">
+      <!-- Dynamic content will be rendered here -->
+    </div>
+  </div>
+  <script>
+    // Define examples and explanations for each Tailwind CSS topic.
+    const tailwindExamples = {
+      installation: `
+<h2>Installation</h2>
+<p>Tailwind CSS can be installed via npm, Yarn, or using a CDN.</p>
+<pre><code>// Using npm:
+npm install tailwindcss
+
+// Initialize your Tailwind configuration:
+npx tailwindcss init
+</code></pre>
+<p>Refer to the <a href="https://tailwindcss.com/docs/installation" target="_blank">official installation guide</a> for more details.</p>
+      `,
+      utility: `
+<h2>Utility-first Approach</h2>
+<p>Tailwind CSS is built on a utility-first system, which allows you to style your elements by composing small utility classes directly in your HTML.</p>
+<pre><code>&lt;div class="p-4 bg-blue-500 text-white"&gt;
+  Utility classes make styling fast and consistent.
+&lt;/div&gt;
+</code></pre>
+<p>This approach is great for rapid prototyping.</p>
+      `,
+      responsive: `
+<h2>Responsive Design</h2>
+<p>Tailwind offers responsive utility classes using breakpoint prefixes to ensure your design works on different screen sizes.</p>
+<pre><code>&lt;div class="text-center sm:text-left md:text-right"&gt;
+  Responsive text alignment.
+&lt;/div&gt;
+</code></pre>
+<p>Learn more in the <a href="https://tailwindcss.com/docs/responsive-design" target="_blank">responsive design docs</a>.</p>
+      `,
+      customization: `
+<h2>Customization</h2>
+<p>You can fully customize Tailwind’s default configuration to match your project's design needs.</p>
+<pre><code>module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#1DA1F2',
+      },
+    },
+  },
+}
+</code></pre>
+<p>See the <a href="https://tailwindcss.com/docs/theme" target="_blank">theme customization guide</a> for details.</p>
+      `,
+      darkmode: `
+<h2>Dark Mode</h2>
+<p>Tailwind CSS supports dark mode using a <code>dark</code> class. Toggle this class on the root element to switch themes.</p>
+<pre><code>&lt;html class="dark"&gt;
+  &lt;div class="bg-white dark:bg-gray-800"&gt;
+    Element styled for dark mode.
+  &lt;/div&gt;
+&lt;/html&gt;
+</code></pre>
+<p>More information can be found in the <a href="https://tailwindcss.com/docs/dark-mode" target="_blank">dark mode documentation</a>.</p>
+      `
+    };
+
+    // Function to update the right panel based on the selected topic.
+    function updateContent() {
+      const topic = document.getElementById('tailwindTopic').value;
+      const contentDiv = document.getElementById('exampleContent');
+      contentDiv.innerHTML = tailwindExamples[topic] || '<p>No example available.</p>';
+    }
+
+    // Attach an event listener to handle changes in the drop-down select.
+    document.getElementById('tailwindTopic').addEventListener('change', updateContent);
+
+    // Initialize with the default content.
+    updateContent();
+  </script>
+</body>
+</html>

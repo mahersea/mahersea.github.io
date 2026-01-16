@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Responsive Thumbnails with Arrows and Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+      box-sizing: border-box;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    /* Responsive thumbnail container with a fixed design aspect ratio */
+    #thumbnailArea {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      /* Using aspect-ratio to preserve our design dimensions (500:400) */
+      aspect-ratio: 500 / 400;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    /* Preview area for the full-size image */
+    #previewArea {
+      flex: 1;
+      margin-left: 20px;
+    }
+    #previewArea img {
+      max-width: 100%;
+      height: auto;
+    }
+    /* All thumbnail images: 100px x 50px in design units */
+    .thumb {
+      position: absolute;
+      width: 100px;
+      height: 50px;
+      cursor: pointer;
+      box-sizing: border-box;
+      border: 1px solid #666;
+    }
+    /* Positioning thumbnails within the 500x400 design canvas */
+    #topLeft    { top: 0;             left: 0; }
+    #topRight   { top: 0;             left: 400px; }
+    #bottomLeft { top: 350px;         left: 0; }
+    #bottomRight{ top: 350px;         left: 400px; }
+    /* Center thumbnail (positioned using design coordinates) */
+    #center     { top: 175px;         left: 200px; }
+    /* The SVG overlay uses the same coordinate system as the design canvas */
+    #svgOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Responsive thumbnail container -->
+    <div id="thumbnailArea">
+      <!-- Thumbnails with a data-full attribute for the full-size image -->
+      <img id="topLeft" class="thumb"
+           src="https://via.placeholder.com/100x50?text=TL"
+           data-full="https://via.placeholder.com/400x600?text=Top+Left+Full" alt="Top Left" border="1">
+      <img id="topRight" class="thumb"
+           src="https://via.placeholder.com/100x50?text=TR"
+           data-full="https://via.placeholder.com/400x600?text=Top+Right+Full" alt="Top Right" border="1">
+      <img id="bottomLeft" class="thumb"
+           src="https://via.placeholder.com/100x50?text=BL"
+           data-full="https://via.placeholder.com/400x600?text=Bottom+Left+Full" alt="Bottom Left" border="1">
+      <img id="bottomRight" class="thumb"
+           src="https://via.placeholder.com/100x50?text=BR"
+           data-full="https://via.placeholder.com/400x600?text=Bottom+Right+Full" alt="Bottom Right" border="1">
+      <img id="center" class="thumb"
+           src="https://via.placeholder.com/100x50?text=C"
+           data-full="https://via.placeholder.com/400x600?text=Center+Full" alt="Center" border="1">
+      <!-- SVG overlay with red arrow lines.
+           The viewBox is set to our design dimensions (500x400) so that the lines scale responsively. -->
+      <svg id="svgOverlay" viewBox="0 0 500 400" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+            <path d="M0,0 L0,10 L10,5 z" fill="red" />
+          </marker>
+        </defs>
+        <!--
+          Arrow lines connecting:
+          - Center thumbnail’s top-left (200,175) to topLeft thumbnail’s bottom-right (100,50)
+          - Center thumbnail’s top-right (300,175) to topRight thumbnail’s bottom-left (400,50)
+          - Center thumbnail’s bottom-left (200,225) to bottomLeft thumbnail’s top-right (100,350)
+          - Center thumbnail’s bottom-right (300,225) to bottomRight thumbnail’s top-left (400,350)
+        -->
+        <line x1="200" y1="175" x2="100" y2="50"
+              stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="300" y1="175" x2="400" y2="50"
+              stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="200" y1="225" x2="100" y2="350"
+              stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="300" y1="225" x2="400" y2="350"
+              stroke="red" stroke-width="2" marker-end="url(#arrow)" />
+      </svg>
+    </div>
+    <!-- Preview area for the full-size main image -->
+    <div id="previewArea">
+      <p>Click a thumbnail to preview the full-size image (400×600).</p>
+    </div>
+  </div>
+  <script>
+    // Add click listeners to thumbnails
+    document.querySelectorAll('.thumb').forEach(img => {
+      img.addEventListener('click', function() {
+        const fullSrc = this.getAttribute('data-full');
+        document.getElementById('previewArea').innerHTML =
+          '<img src="' + fullSrc + '" alt="Preview">';
+      });
+    });
+  </script>
+</body>
+</html>

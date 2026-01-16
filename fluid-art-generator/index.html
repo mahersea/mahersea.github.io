@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fluid Art Generator</title>
+  <meta name="description" content="Create mesmerizing fluid art with metallic sheens, iridescent effects, and realistic fluid dynamics">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      height: 100vh;
+    }
+    .canvas-view {
+      position: relative;
+      background: radial-gradient(circle at center, #1a1a1a, #000000);
+    }
+    .controls-panel {
+      background: linear-gradient(135deg, #2a1a2a, #1a1a2a);
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #444;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #3a2a3a, #2a2a3a);
+      border-radius: 12px;
+      border: 1px solid #555;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .control-group h3 {
+      margin: 0 0 12px 0;
+      color: #ff6ec7;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(255, 110, 199, 0.3);
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 90px;
+      color: #ddd;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #ff6ec7;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #ff6ec7;
+      min-width: 50px;
+      text-align: right;
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(255, 110, 199, 0.3);
+    }
+    button {
+      background: linear-gradient(135deg, #444, #333);
+      color: #fff;
+      border: 1px solid #666;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 3px;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    button:hover {
+      background: linear-gradient(135deg, #555, #444);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    button.active {
+      background: linear-gradient(135deg, #ff6ec7, #c44396);
+      border-color: #ff6ec7;
+      box-shadow: 0 0 15px rgba(255, 110, 199, 0.4);
+    }
+    .fluid-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .effect-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .color-swatch {
+      width: 100%;
+      height: 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .color-swatch:hover {
+      transform: scale(1.1);
+      border-color: #fff;
+    }
+    .color-swatch.active {
+      border-color: #ff6ec7;
+      box-shadow: 0 0 10px rgba(255, 110, 199, 0.5);
+    }
+    .info-panel {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 110, 199, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+    .stats {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-family: monospace;
+      font-size: 11px;
+      border: 1px solid #444;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      margin: 6px 0;
+    }
+    .stat-value {
+      color: #ff6ec7;
+      font-weight: bold;
+    }
+    kbd {
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .metallic-preview {
+      width: 100%;
+      height: 20px;
+      border-radius: 10px;
+      margin: 8px 0;
+      border: 1px solid #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="canvas-view">
+      <canvas id="canvas"></canvas>
+      <div class="info-panel">
+        <h3>✨ Fluid Art Generator</h3>
+        <p><strong>Controls:</strong></p>
+        <p><kbd>Click & Drag</kbd>: Pour fluid</p>
+        <p><kbd>Space</kbd>: Gravity wave</p>
+        <p><kbd>R</kbd>: Reset canvas</p>
+        <p><kbd>S</kbd>: Save artwork</p>
+        <br>
+        <p style="font-size: 11px; color: #aaa;">
+          Create mesmerizing fluid art with metallic sheens and iridescent effects
+        </p>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🎨 Fluid Studio</h2>
+      
+      <div class="stats">
+        <div class="stat">
+          <span>Particles:</span>
+          <span class="stat-value" id="particleCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Fluids Active:</span>
+          <span class="stat-value" id="fluidTypes">0</span>
+        </div>
+        <div class="stat">
+          <span>Flow Rate:</span>
+          <span class="stat-value" id="flowRate">0</span>
+        </div>
+        <div class="stat">
+          <span>Viscosity:</span>
+          <span class="stat-value" id="viscosityDisplay">50%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Fluid Type</h3>
+        <div class="fluid-buttons">
+          <button id="fluid-mercury" class="active">Mercury</button>
+          <button id="fluid-gold">Liquid Gold</button>
+          <button id="fluid-oil">Rainbow Oil</button>
+          <button id="fluid-chrome">Chrome</button>
+          <button id="fluid-plasma">Plasma</button>
+          <button id="fluid-aurora">Aurora</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Color Palette</h3>
+        <div class="color-palette">
+          <div class="color-swatch active" style="background: linear-gradient(45deg, #c0c0c0, #ffffff);" data-color="silver"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #ffd700, #ffed4e);" data-color="gold"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #ff6ec7, #ff9a56);" data-color="sunset"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #667eea, #764ba2);" data-color="cosmic"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #f093fb, #f5576c);" data-color="magenta"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #4facfe, #00f2fe);" data-color="ocean"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #43e97b, #38f9d7);" data-color="mint"></div>
+          <div class="color-swatch" style="background: linear-gradient(45deg, #fa709a, #fee140);" data-color="fire"></div>
+        </div>
+        <div class="metallic-preview" id="metallicPreview" style="background: linear-gradient(45deg, #c0c0c0, #ffffff);"></div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Flow Properties</h3>
+        <div class="slider-group">
+          <label>Viscosity:</label>
+          <input type="range" id="viscosity" min="1" max="100" value="50">
+          <span class="value-display" id="viscosityValue">50</span>
+        </div>
+        <div class="slider-group">
+          <label>Surface Tension:</label>
+          <input type="range" id="surfaceTension" min="1" max="100" value="30">
+          <span class="value-display" id="surfaceTensionValue">30</span>
+        </div>
+        <div class="slider-group">
+          <label>Flow Rate:</label>
+          <input type="range" id="flowRateSlider" min="1" max="100" value="40">
+          <span class="value-display" id="flowRateValue">40</span>
+        </div>
+        <div class="slider-group">
+          <label>Gravity:</label>
+          <input type="range" id="gravity" min="0" max="100" value="20">
+          <span class="value-display" id="gravityValue">20</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Visual Effects</h3>
+        <div class="effect-buttons">
+          <button id="effect-metallic" class="active">Metallic</button>
+          <button id="effect-iridescent">Iridescent</button>
+          <button id="effect-glow">Glow</button>
+          <button id="effect-ripples">Ripples</button>
+        </div>
+        <div class="slider-group">
+          <label>Shine:</label>
+          <input type="range" id="shine" min="0" max="100" value="80">
+          <span class="value-display" id="shineValue">80</span>
+        </div>
+        <div class="slider-group">
+          <label>Reflection:</label>
+          <input type="range" id="reflection" min="0" max="100" value="60">
+          <span class="value-display" id="reflectionValue">60</span>
+        </div>
+        <div class="slider-group">
+          <label>Blur Amount:</label>
+          <input type="range" id="blur" min="0" max="10" value="2">
+          <span class="value-display" id="blurValue">2</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Mixing & Motion</h3>
+        <div class="slider-group">
+          <label>Turbulence:</label>
+          <input type="range" id="turbulence" min="0" max="100" value="30">
+          <span class="value-display" id="turbulenceValue">30</span>
+        </div>
+        <div class="slider-group">
+          <label>Swirl Force:</label>
+          <input type="range" id="swirlForce" min="0" max="100" value="50">
+          <span class="value-display" id="swirlForceValue">50</span>
+        </div>
+        <div class="slider-group">
+          <label>Diffusion:</label>
+          <input type="range" id="diffusion" min="0" max="100" value="25">
+          <span class="value-display" id="diffusionValue">25</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Controls</h3>
+        <button id="pauseBtn">Pause Flow</button>
+        <button id="clearBtn">Clear Canvas</button>
+        <button id="saveBtn">Save Artwork</button>
+        <button id="autoMode">Auto Mode</button>
+        <div class="slider-group">
+          <label>Simulation Speed:</label>
+          <input type="range" id="speed" min="1" max="10" value="5">
+          <span class="value-display" id="speedValue">5x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      const container = document.querySelector('.canvas-view');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Simulation state
+    let particles = [];
+    let isRunning = true;
+    let isPouring = false;
+    let pourX = 0;
+    let pourY = 0;
+    let autoMode = false;
+    let time = 0;
+    
+    // Current settings
+    let currentFluid = 'mercury';
+    let currentColor = 'silver';
+    let viscosity = 50;
+    let surfaceTension = 30;
+    let flowRate = 40;
+    let gravity = 20;
+    let shine = 80;
+    let reflection = 60;
+    let blurAmount = 2;
+    let turbulence = 30;
+    let swirlForce = 50;
+    let diffusion = 25;
+    let simulationSpeed = 5;
+    
+    // Effects
+    let effectMetallic = true;
+    let effectIridescent = false;
+    let effectGlow = false;
+    let effectRipples = false;
+    
+    // Color palettes
+    const colorPalettes = {
+      silver: {
+        primary: [192, 192, 192],
+        secondary: [255, 255, 255],
+        accent: [169, 169, 169]
+      },
+      gold: {
+        primary: [255, 215, 0],
+        secondary: [255, 237, 78],
+        accent: [218, 165, 32]
+      },
+      sunset: {
+        primary: [255, 110, 199],
+        secondary: [255, 154, 86],
+        accent: [255, 94, 77]
+      },
+      cosmic: {
+        primary: [102, 126, 234],
+        secondary: [118, 75, 162],
+        accent: [86, 204, 242]
+      },
+      magenta: {
+        primary: [240, 147, 251],
+        secondary: [245, 87, 108],
+        accent: [255, 120, 180]
+      },
+      ocean: {
+        primary: [79, 172, 254],
+        secondary: [0, 242, 254],
+        accent: [56, 189, 248]
+      },
+      mint: {
+        primary: [67, 233, 123],
+        secondary: [56, 249, 215],
+        accent: [34, 197, 94]
+      },
+      fire: {
+        primary: [250, 112, 154],
+        secondary: [254, 225, 64],
+        accent: [255, 107, 107]
+      }
+    };
+    
+    // Particle class
+    class FluidParticle {
+      constructor(x, y, fluidType, colorType) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = Math.random() * 2;
+        this.life = 1.0;
+        this.maxLife = 300 + Math.random() * 200;
+        this.age = 0;
+        this.size = 3 + Math.random() * 4;
+        this.mass = this.size * 0.1;
+        this.fluidType = fluidType;
+        this.colorType = colorType;
+        this.metallic = Math.random() * 0.8 + 0.2;
+        this.iridescence = Math.random();
+        this.pressure = 0;
+        this.density = 1;
+        this.trail = [];
+        this.energy = Math.random() * 100;
+      }
+      
+      update(deltaTime) {
+        const dt = deltaTime * simulationSpeed * 0.01;
+        this.age += dt;
+        
+        // Physics forces
+        this.applyGravity(dt);
+        this.applyViscosity(dt);
+        this.applySurfaceTension(dt);
+        this.applyTurbulence(dt);
+        this.applyInterparticleForces(dt);
+        
+        // Update position
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        
+        // Boundary conditions with realistic bouncing
+        this.handleBoundaries();
+        
+        // Update trail
+        this.updateTrail();
+        
+        // Update life
+        this.life = Math.max(0, 1 - (this.age / this.maxLife));
+        
+        return this.life > 0;
+      }
+      
+      applyGravity(dt) {
+        this.vy += gravity * 0.01 * dt;
+      }
+      
+      applyViscosity(dt) {
+        const viscFactor = viscosity * 0.001;
+        this.vx *= (1 - viscFactor * dt);
+        this.vy *= (1 - viscFactor * dt);
+      }
+      
+      applySurfaceTension(dt) {
+        const tensionForce = surfaceTension * 0.0001;
+        
+        // Find nearby particles
+        let avgX = 0, avgY = 0, count = 0;
+        for (const other of particles) {
+          if (other === this) continue;
+          
+          const dx = other.x - this.x;
+          const dy = other.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 20) {
+            avgX += other.x;
+            avgY += other.y;
+            count++;
+          }
+        }
+        
+        if (count > 0) {
+          avgX /= count;
+          avgY /= count;
+          
+          const dx = avgX - this.x;
+          const dy = avgY - this.y;
+          
+          this.vx += dx * tensionForce * dt;
+          this.vy += dy * tensionForce * dt;
+        }
+      }
+      
+      applyTurbulence(dt) {
+        const turbForce = turbulence * 0.001;
+        this.vx += (Math.random() - 0.5) * turbForce * dt;
+        this.vy += (Math.random() - 0.5) * turbForce * dt;
+      }
+      
+      applyInterparticleForces(dt) {
+        for (const other of particles) {
+          if (other === this) continue;
+          
+          const dx = other.x - this.x;
+          const dy = other.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 10 && dist > 0) {
+            // Repulsion at close range
+            const force = (10 - dist) * 0.01;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            
+            this.vx -= nx * force * dt;
+            this.vy -= ny * force * dt;
+          } else if (dist < 30 && dist > 10) {
+            // Attraction at medium range
+            const force = 0.001;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            
+            this.vx += nx * force * dt;
+            this.vy += ny * force * dt;
+          }
+        }
+      }
+      
+      handleBoundaries() {
+        const damping = 0.8;
+        
+        if (this.x < this.size) {
+          this.x = this.size;
+          this.vx *= -damping;
+        } else if (this.x > canvas.width - this.size) {
+          this.x = canvas.width - this.size;
+          this.vx *= -damping;
+        }
+        
+        if (this.y < this.size) {
+          this.y = this.size;
+          this.vy *= -damping;
+        } else if (this.y > canvas.height - this.size) {
+          this.y = canvas.height - this.size;
+          this.vy *= -damping;
+          // Friction on ground
+          this.vx *= 0.95;
+        }
+      }
+      
+      updateTrail() {
+        if (Math.random() < 0.3) {
+          this.trail.push({ x: this.x, y: this.y, alpha: this.life });
+          if (this.trail.length > 10) {
+            this.trail.shift();
+          }
+        }
+        
+        // Fade trail
+        this.trail.forEach(point => {
+          point.alpha *= 0.95;
+        });
+      }
+      
+      draw() {
+        const palette = colorPalettes[this.colorType];
+        const alpha = this.life;
+        
+        // Draw trail
+        if (this.trail.length > 1) {
+          this.drawTrail(palette);
+        }
+        
+        // Draw main particle with effects
+        this.drawParticleEffects(palette, alpha);
+        this.drawParticleCore(palette, alpha);
+      }
+      
+      drawTrail(palette) {
+        ctx.strokeStyle = `rgba(${palette.primary[0]}, ${palette.primary[1]}, ${palette.primary[2]}, 0.1)`;
+        ctx.lineWidth = this.size * 0.5;
+        ctx.beginPath();
+        
+        if (this.trail.length > 0) {
+          ctx.moveTo(this.trail[0].x, this.trail[0].y);
+          for (let i = 1; i < this.trail.length; i++) {
+            ctx.lineTo(this.trail[i].x, this.trail[i].y);
+          }
+        }
+        ctx.stroke();
+      }
+      
+      drawParticleEffects(palette, alpha) {
+        // Glow effect
+        if (effectGlow) {
+          const glowSize = this.size * (2 + Math.sin(time * 0.01 + this.x * 0.01) * 0.5);
+          const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, glowSize
+          );
+          glow.addColorStop(0, `rgba(${palette.secondary[0]}, ${palette.secondary[1]}, ${palette.secondary[2]}, ${alpha * 0.3})`);
+          glow.addColorStop(1, `rgba(${palette.secondary[0]}, ${palette.secondary[1]}, ${palette.secondary[2]}, 0)`);
+          
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Metallic reflection
+        if (effectMetallic) {
+          const reflectGrad = ctx.createRadialGradient(
+            this.x - this.size * 0.3, this.y - this.size * 0.3, 0,
+            this.x, this.y, this.size * 1.5
+          );
+          reflectGrad.addColorStop(0, `rgba(255, 255, 255, ${alpha * reflection * 0.01})`);
+          reflectGrad.addColorStop(0.7, `rgba(${palette.primary[0]}, ${palette.primary[1]}, ${palette.primary[2]}, ${alpha})`);
+          reflectGrad.addColorStop(1, `rgba(${palette.accent[0]}, ${palette.accent[1]}, ${palette.accent[2]}, ${alpha})`);
+          
+          ctx.fillStyle = reflectGrad;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      drawParticleCore(palette, alpha) {
+        // Iridescent shimmer
+        if (effectIridescent) {
+          const shimmer = Math.sin(time * 0.05 + this.iridescence * 10) * 0.5 + 0.5;
+          const iridColor = [
+            palette.primary[0] + shimmer * (palette.secondary[0] - palette.primary[0]),
+            palette.primary[1] + shimmer * (palette.secondary[1] - palette.primary[1]),
+            palette.primary[2] + shimmer * (palette.secondary[2] - palette.primary[2])
+          ];
+          
+          ctx.fillStyle = `rgba(${iridColor[0]}, ${iridColor[1]}, ${iridColor[2]}, ${alpha})`;
+        } else {
+          ctx.fillStyle = `rgba(${palette.primary[0]}, ${palette.primary[1]}, ${palette.primary[2]}, ${alpha})`;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Highlight
+        if (shine > 0) {
+          const highlight = ctx.createRadialGradient(
+            this.x - this.size * 0.4, this.y - this.size * 0.4, 0,
+            this.x - this.size * 0.4, this.y - this.size * 0.4, this.size * 0.6
+          );
+          highlight.addColorStop(0, `rgba(255, 255, 255, ${alpha * shine * 0.01})`);
+          highlight.addColorStop(1, `rgba(255, 255, 255, 0)`);
+          
+          ctx.fillStyle = highlight;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    
+    // Add particles when pouring
+    function addParticles(x, y) {
+      const count = Math.floor(flowRate * 0.2) + 1;
+      
+      for (let i = 0; i < count; i++) {
+        particles.push(new FluidParticle(
+          x + (Math.random() - 0.5) * 20,
+          y + (Math.random() - 0.5) * 10,
+          currentFluid,
+          currentColor
+        ));
+      }
+      
+      // Limit particle count
+      if (particles.length > 2000) {
+        particles.splice(0, particles.length - 2000);
+      }
+    }
+    
+    // Input handling
+    let mouseDown = false;
+    
+    canvas.addEventListener('mousedown', (e) => {
+      mouseDown = true;
+      const rect = canvas.getBoundingClientRect();
+      pourX = e.clientX - rect.left;
+      pourY = e.clientY - rect.top;
+      isPouring = true;
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      pourX = e.clientX - rect.left;
+      pourY = e.clientY - rect.top;
+      
+      if (mouseDown) {
+        addParticles(pourX, pourY);
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      mouseDown = false;
+      isPouring = false;
+    });
+    
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+      switch(e.key.toLowerCase()) {
+        case ' ':
+          // Gravity wave
+          particles.forEach(p => {
+            const dx = p.x - canvas.width/2;
+            const dy = p.y - canvas.height/2;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const force = 100 / (dist + 1);
+            p.vx += (dx/dist) * force * 0.1;
+            p.vy += (dy/dist) * force * 0.1;
+          });
+          e.preventDefault();
+          break;
+        case 'r':
+          particles = [];
+          break;
+        case 's':
+          saveArtwork();
+          break;
+      }
+    });
+    
+    // Controls setup
+    function setupControls() {
+      // Fluid type buttons
+      document.querySelectorAll('[id^="fluid-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="fluid-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFluid = btn.id.replace('fluid-', '');
+        });
+      });
+      
+      // Color swatches
+      document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+          swatch.classList.add('active');
+          currentColor = swatch.dataset.color;
+          
+          // Update metallic preview
+          const preview = document.getElementById('metallicPreview');
+          preview.style.background = swatch.style.background;
+        });
+      });
+      
+      // Effect buttons
+      document.querySelectorAll('[id^="effect-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('active');
+          const effect = btn.id.replace('effect-', '');
+          
+          switch(effect) {
+            case 'metallic': effectMetallic = btn.classList.contains('active'); break;
+            case 'iridescent': effectIridescent = btn.classList.contains('active'); break;
+            case 'glow': effectGlow = btn.classList.contains('active'); break;
+            case 'ripples': effectRipples = btn.classList.contains('active'); break;
+          }
+        });
+      });
+      
+      // Sliders
+      const sliders = [
+        { id: 'viscosity', prop: 'viscosity', display: 'viscosityValue' },
+        { id: 'surfaceTension', prop: 'surfaceTension', display: 'surfaceTensionValue' },
+        { id: 'flowRateSlider', prop: 'flowRate', display: 'flowRateValue' },
+        { id: 'gravity', prop: 'gravity', display: 'gravityValue' },
+        { id: 'shine', prop: 'shine', display: 'shineValue' },
+        { id: 'reflection', prop: 'reflection', display: 'reflectionValue' },
+        { id: 'blur', prop: 'blurAmount', display: 'blurValue' },
+        { id: 'turbulence', prop: 'turbulence', display: 'turbulenceValue' },
+        { id: 'swirlForce', prop: 'swirlForce', display: 'swirlForceValue' },
+        { id: 'diffusion', prop: 'diffusion', display: 'diffusionValue' },
+        { id: 'speed', prop: 'simulationSpeed', display: 'speedValue', format: v => v + 'x' }
+      ];
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        if (element && display) {
+          element.addEventListener('input', () => {
+            const value = parseFloat(element.value);
+            window[slider.prop] = value;
+            display.textContent = slider.format ? slider.format(value) : value;
+            
+            // Update stats display
+            updateStats();
+          });
+          
+          // Initialize display
+          const value = parseFloat(element.value);
+          display.textContent = slider.format ? slider.format(value) : value;
+        }
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause Flow' : 'Resume Flow';
+      });
+      
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        particles = [];
+      });
+      
+      document.getElementById('saveBtn').addEventListener('click', saveArtwork);
+      
+      document.getElementById('autoMode').addEventListener('click', () => {
+        autoMode = !autoMode;
+        document.getElementById('autoMode').textContent = autoMode ? 'Manual Mode' : 'Auto Mode';
+        document.getElementById('autoMode').classList.toggle('active', autoMode);
+      });
+    }
+    
+    function updateStats() {
+      document.getElementById('particleCount').textContent = particles.length;
+      document.getElementById('fluidTypes').textContent = new Set(particles.map(p => p.fluidType)).size;
+      document.getElementById('flowRate').textContent = Math.round(flowRate);
+      document.getElementById('viscosityDisplay').textContent = viscosity + '%';
+    }
+    
+    function saveArtwork() {
+      const link = document.createElement('a');
+      link.download = `fluid-art-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+    
+    // Auto mode
+    function updateAutoMode() {
+      if (autoMode && Math.random() < 0.02) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.3;
+        addParticles(x, y);
+      }
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        time += 16;
+        
+        updateAutoMode();
+        
+        // Update particles
+        particles = particles.filter(particle => particle.update(16));
+        
+        updateStats();
+      }
+      
+      // Clear canvas with slight fade for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Apply blur effect
+      if (blurAmount > 0) {
+        ctx.filter = `blur(${blurAmount}px)`;
+      }
+      
+      // Draw particles
+      particles.forEach(particle => particle.draw());
+      
+      // Reset filter
+      ctx.filter = 'none';
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    setupControls();
+    updateStats();
+    animate();
+  </script>
+</body>
+</html>

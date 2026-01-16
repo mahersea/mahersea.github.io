@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sean Maher - Portfolio</title>
   <style>
-    /* Additional styles for the hero canvas */
     #hero-canvas {
       position: absolute;
       top: 0;
@@ -18,7 +17,6 @@
     #hero {
       position: relative;
       overflow: hidden;
-      /* Keep your existing hero styles */
     }
 
     .hero-overlay {
@@ -34,10 +32,11 @@
     .hero-content {
       position: relative;
       z-index: 3;
-      /* Keep your existing hero-content styles */
+      max-width: 800px;
     }
-
-    /* full text, left justified */
+    .hero-content p {
+      text-align: left;
+    }
     .full-text {
       text-align: left;
       margin: 20px;
@@ -50,24 +49,45 @@
       text-decoration: none;
     }
 
-    .category-filter {
-      margin-bottom: 20px;
-      text-align: center;
+    .filter-controls {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
     }
 
-    .category-filter label {
+    .topic-filter {
+      display: inline-block;
+    }
+
+    .topic-filter label {
       margin-right: 10px;
       font-weight: bold;
     }
 
-    .category-filter select {
-      padding: 8px;
+    .topic-filter select {
+      padding: 8px 12px;
       font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      min-width: 200px;
+    }
+
+    .topic-icon {
+      margin-right: 5px;
+      font-size: 1.2em;
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>//
+  <script>
     function showMe(){
       var moreText = document.getElementById("more-about-me");
       if (moreText.style.display === "none") {
@@ -76,10 +96,6 @@
         moreText.style.display = "none";
       }
     }
-    document.getElementById('categorySelect').addEventListener('change', function(event) {
-      const selectedCategory = event.target.value;
-      filterProjects(selectedCategory); // Your function to update the project list based on the category
-    });
   </script>
 </head>
 <body>
@@ -94,6 +110,7 @@
           <li><a href="#projects">Projects</a></li>
           <li><a href="#about">About</a></li>
           <li><a href="#contact">Contact</a></li>
+          <li><a href="/topic-manager/" class="admin-link">Manage Topics</a></li>
         </ul>
       </nav>
     </div>
@@ -105,17 +122,33 @@
     <div class="hero-overlay"></div>
     <div class="hero-content">
       <h1>Code Playground</h1>
-      <p>A showcase of code experiments using HTML5/CSS/JavaScript with Canvas for visuals</p>
+      <p>A showcase of web tools, language reference, math formula visualizations, interactive simulators, 
+        generative art and various game concepts. Designed with HTML/CSS/JavaScript 
+        for modular and component use. These are all open source "seed" projects meant to be grown and maintained.
+      </p>
     </div>
   </section>
 
 <!-- Projects Section -->
 <section id="projects">
   <div class="container">
-    <h2>Active Projects</h2>
+    <h2>Experiments & Projects</h2>
+    <p class="section-intro">Browse through my collection of experiments, tools, visualizations, and games. These are organized by type to help you explore similar projects together.</p>
+    
+    <!-- Topic Filter UI -->
+    <div class="filter-controls">
+      <div class="topic-filter">
+        <label for="topicSelect">Filter by Topic:</label>
+        <select id="topicSelect">
+          <option value="all">All Topics</option>
+          <!-- Topic options will be loaded dynamically -->
+        </select>
+      </div>
+    </div>
+    
     <div class="projects-grid">
       <!-- Project cards will be dynamically inserted here -->
-      <div class="loading-indicator">Loading projects...</div>
+      <div class="loading-indicator">Loading directories...</div>
     </div>
   </div>
 </section>
@@ -174,7 +207,7 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <p>&copy; 2025 MyPortfolio. All Rights Reserved.</p>
+      <p>&copy; 2026 MyPortfolio. All Rights Reserved.</p>
     </div>
   </footer>
 

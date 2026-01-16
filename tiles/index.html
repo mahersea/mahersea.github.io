@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tile Renderer</title>
+  <style>
+    canvas { border: 1px solid #333; margin: 4px; }
+  </style>
+</head>
+<body>
+
+<canvas id="tileCanvas" width="300" height="300"></canvas>
+
+<script>
+const canvas = document.getElementById('tileCanvas');
+const ctx = canvas.getContext('2d');
+const tileSize = 100;
+
+function drawTile(x, y, tileType, connectors) {
+  const cx = x * tileSize;
+  const cy = y * tileSize;
+
+  // Draw background
+  ctx.fillStyle = '#f9f9f9';
+  ctx.fillRect(cx, cy, tileSize, tileSize);
+  ctx.strokeStyle = '#888';
+  ctx.strokeRect(cx, cy, tileSize, tileSize);
+
+  // Draw connectors
+  connectors.forEach(dir => {
+    drawConnector(cx, cy, tileType, dir);
+  });
+
+  // Draw tileType icon in center
+  ctx.fillStyle = 'black';
+  ctx.font = '12px sans-serif';
+  ctx.fillText(tileType[0].toUpperCase(), cx + tileSize / 2 - 4, cy + tileSize / 2 + 4);
+}
+
+function drawConnector(cx, cy, type, dir) {
+  const midX = cx + tileSize / 2;
+  const midY = cy + tileSize / 2;
+
+  const end = {
+    N: [midX, cy],
+    E: [cx + tileSize, midY],
+    S: [midX, cy + tileSize],
+    W: [cx, midY]
+  }[dir];
+
+  const color = {
+    road: '#654321',
+    river: '#3399ff',
+    wall: '#444'
+  }[type];
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = (type === 'wall') ? 6 : (type === 'river' ? 4 : 2);
+
+  ctx.beginPath();
+  ctx.moveTo(midX, midY);
+  ctx.lineTo(...end);
+  ctx.stroke();
+}
+
+// Example tiles
+drawTile(0, 0, 'road', ['N', 'S']);
+drawTile(1, 0, 'road', ['E', 'W']);
+drawTile(2, 0, 'road', ['N', 'E', 'S']);
+drawTile(0, 1, 'river', ['W', 'S']);
+drawTile(1, 1, 'river', ['N', 'E']);
+drawTile(2, 1, 'river', ['N', 'S', 'E']);
+drawTile(0, 2, 'wall', ['N', 'E']);
+drawTile(1, 2, 'wall', ['N', 'E', 'S', 'W']);
+drawTile(2, 2, 'wall', ['W', 'S']);
+</script>
+
+</body>
+</html>

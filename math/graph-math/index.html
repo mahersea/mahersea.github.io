@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Edge Graph Visualizer</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #header {
+      background-color: #333;
+      padding: 10px;
+      text-align: center;
+    }
+    #controls {
+      position: absolute;
+      z-index: 10;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    #controls form {
+      margin-bottom: 20px;
+    }
+    #controls input[type="range"] {
+      width: 200px;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+  <script>
+    // Reset all sliders to their default values
+    function resetForm() {
+      document.getElementById('graphForm').reset();
+      document.getElementById('simulationForm').reset();
+      updateSimParams();
+    }
+    function submitForm() {
+        document.getElementById('graphForm').submit();
+        document.getElementById('simulationForm').submit();
+    }
+  </script>
+</head>
+<body>
+  <div id="header">
+    <h1>Random Edge Graph Visualizer</h1>
+  </div>
+  <div id="controls">
+    <!-- Graph Controls -->
+    <form id="graphForm">
+      <h2>Graph Controls</h2>
+      <div>
+        <label for="vertices">Number of vertices: <span id="vertexCount">6</span></label><br>
+        <input type="range" id="vertices" name="vertices" min="1" max="20" value="6">
+      </div>
+      <div>
+        <label for="edges">Number of edges: <span id="edgeCount">15</span></label><br>
+        <input type="range" id="edges" name="edges" min="0" max="50" value="15">
+      </div>
+      <button type="button" id="drawButton">Draw Graph</button>
+    </form>
+
+    <!-- Simulation Controls -->
+    <form id="simulationForm">
+      <h2>Simulation Controls</h2>
+      <div>
+        <label for="springStrength">Spring Strength: <span id="springStrengthValue">0.05</span></label><br>
+        <input type="range" id="springStrength" name="springStrength" min="0" max="0.2" step="0.01" value="0.01">
+      </div>
+      <div>
+        <label for="damping">Damping: <span id="dampingValue">0.9</span></label><br>
+        <input type="range" id="damping" name="damping" min="0" max="1" step="0.01" value="0.9">
+      </div>
+      <div>
+        <label for="randomForce">Random Force: <span id="randomForceValue">0.5</span></label><br>
+        <input type="range" id="randomForce" name="randomForce" min="0" max="1" step="0.1" value="0.1">
+      </div>
+      <div>
+        <label for="maxOffset">Max Offset: <span id="maxOffsetValue">20</span></label><br>
+        <input type="range" id="maxOffset" name="maxOffset" min="0" max="50" step="1" value="20">
+      </div>
+      <div>
+        <label for="jitterIntensity">Jitter Intensity: <span id="jitterIntensityValue">1.0</span></label><br>
+        <input type="range" id="jitterIntensity" name="jitterIntensity" min="0" max="2" step="0.1" value="0.8">
+      </div>
+      <div>
+        <button type="button" id="resetButton" onclick="resetForm()">Reset Sliders</button>
+      </div>
+    </form>
+  </div>
+
+  <canvas id="graphCanvas"></canvas>
+
+  <script>
+    // Graph control elements
+    const vertexSlider = document.getElementById('vertices');
+    const edgeSlider = document.getElementById('edges');
+    const vertexCountLabel = document.getElementById('vertexCount');
+    const edgeCountLabel = document.getElementById('edgeCount');
+
+    // Simulation control elements
+    const springSlider = document.getElementById('springStrength');
+    const dampingSlider = document.getElementById('damping');
+    const randomForceSlider = document.getElementById('randomForce');
+    const maxOffsetSlider = document.getElementById('maxOffset');
+    const jitterIntensitySlider = document.getElementById('jitterIntensity');
+
+    const springStrengthValue = document.getElementById('springStrengthValue');
+    const dampingValue = document.getElementById('dampingValue');
+    const randomForceValue = document.getElementById('randomForceValue');
+    const maxOffsetValue = document.getElementById('maxOffsetValue');
+    const jitterIntensityValue = document.getElementById('jitterIntensityValue');
+
+    // Canvas and context
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Global graph variables
+    let vertices = [];
+    let edges = [];
+
+    // Simulation parameters (default values)
+    let simParams = {
+      springStrength: parseFloat(springSlider.value),
+      damping: parseFloat(dampingSlider.value),
+      randomForce: parseFloat(randomForceSlider.value),
+      maxOffset: parseFloat(maxOffsetSlider.value),
+      jitterIntensity: parseFloat(jitterIntensitySlider.value)
+    };
+
+    // Update simulation parameters when sliders change
+    function updateSimParams() {
+      simParams.springStrength = parseFloat(springSlider.value);
+      simParams.damping = parseFloat(dampingSlider.value);
+      simParams.randomForce = parseFloat(randomForceSlider.value);
+      simParams.maxOffset = parseFloat(maxOffsetSlider.value);
+      simParams.jitterIntensity = parseFloat(jitterIntensitySlider.value);
+
+      springStrengthValue.textContent = simParams.springStrength;
+      dampingValue.textContent = simParams.damping;
+      randomForceValue.textContent = simParams.randomForce;
+      maxOffsetValue.textContent = simParams.maxOffset;
+      jitterIntensityValue.textContent = simParams.jitterIntensity;
+    }
+
+    springSlider.addEventListener('input', updateSimParams);
+    dampingSlider.addEventListener('input', updateSimParams);
+    randomForceSlider.addEventListener('input', updateSimParams);
+    maxOffsetSlider.addEventListener('input', updateSimParams);
+    jitterIntensitySlider.addEventListener('input', updateSimParams);
+
+    // Update graph control labels
+    vertexSlider.addEventListener('input', () => {
+      vertexCountLabel.textContent = vertexSlider.value;
+    });
+    edgeSlider.addEventListener('input', () => {
+      edgeCountLabel.textContent = edgeSlider.value;
+    });
+
+    // Initialize the graph structure based on graph controls
+    function initGraph() {
+      const numVertices = parseInt(vertexSlider.value, 10);
+      const numEdges = parseInt(edgeSlider.value, 10);
+      vertices = [];
+      edges = [];
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = Math.min(canvas.width, canvas.height) / 2 - 50;
+
+      for (let i = 0; i < numVertices; i++) {
+        const angle = (i / numVertices) * Math.PI * 2;
+        const baseX = centerX + radius * Math.cos(angle);
+        const baseY = centerY + radius * Math.sin(angle);
+        vertices.push({
+          baseX,
+          baseY,
+          offsetX: 0,
+          offsetY: 0,
+          velocityX: 0,
+          velocityY: 0
+        });
+      }
+
+      // Generate unique random edges
+      let attempts = 0;
+      while (edges.length < numEdges && attempts < numEdges * 10) {
+        const i = Math.floor(Math.random() * numVertices);
+        const j = Math.floor(Math.random() * numVertices);
+        if (i !== j) {
+          const edge = [Math.min(i, j), Math.max(i, j)];
+          const exists = edges.some(e => e[0] === edge[0] && e[1] === edge[1]);
+          if (!exists) {
+            edges.push(edge);
+          }
+        }
+        attempts++;
+      }
+    }
+
+    // Animation loop: update simulation and redraw graph
+    function animate() {
+      // Clear canvas with dark background
+      ctx.fillStyle = "#121212";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Use simulation parameters from simParams
+      const springStrength = simParams.springStrength;
+      const damping = simParams.damping;
+      const randomForce = simParams.randomForce;
+      const maxOffset = simParams.maxOffset;
+      const jitterIntensity = simParams.jitterIntensity;
+
+      // Update vertices using a spring-damper model with random jitter
+      vertices.forEach(vertex => {
+        let ax = -springStrength * vertex.offsetX;
+        let ay = -springStrength * vertex.offsetY;
+        // Apply jitter with the new jitterIntensity parameter.
+        ax += (Math.random() - 0.5) * randomForce * jitterIntensity;
+        ay += (Math.random() - 0.5) * randomForce * jitterIntensity;
+
+        vertex.velocityX = (vertex.velocityX + ax) * damping;
+        vertex.velocityY = (vertex.velocityY + ay) * damping;
+
+        vertex.offsetX += vertex.velocityX;
+        vertex.offsetY += vertex.velocityY;
+
+        const dist = Math.hypot(vertex.offsetX, vertex.offsetY);
+        if (dist > maxOffset) {
+          const scale = maxOffset / dist;
+          vertex.offsetX *= scale;
+          vertex.offsetY *= scale;
+        }
+      });
+
+      // Draw edges
+      ctx.strokeStyle = "gray";
+      edges.forEach(edge => {
+        const v1 = vertices[edge[0]];
+        const v2 = vertices[edge[1]];
+        ctx.beginPath();
+        ctx.moveTo(v1.baseX + v1.offsetX, v1.baseY + v1.offsetY);
+        ctx.lineTo(v2.baseX + v2.offsetX, v2.baseY + v2.offsetY);
+        ctx.stroke();
+      });
+
+      // Draw vertices
+      vertices.forEach((vertex, i) => {
+        const x = vertex.baseX + vertex.offsetX;
+        const y = vertex.baseY + vertex.offsetY;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        //dark red
+        ctx.fillStyle = "#8B0000";
+        ctx.fill();
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.fillText(i, x + 12, y);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    // Resize canvas to full window dimensions and reinitialize graph
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 100;
+      initGraph();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Redraw graph on button click
+    drawButton.addEventListener('click', initGraph);
+
+    // Start the animation loop
+    animate();
+  </script>
+</body>
+</html>

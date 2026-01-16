@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Turbojet Engine Cross-Section Simulator</title>
+  <meta name="description" content="Interactive cross-section simulation of a turbojet engine showing airflow, compression, combustion, and thrust generation">
+  <style>
+    body { 
+      margin: 0; 
+      background: #0a0a0a; 
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000000; 
+      border: 2px solid #333;
+      border-radius: 8px;
+    }
+    .controls { 
+      margin: 15px auto; 
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      max-width: 1000px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    .control-group label {
+      font-size: 12px;
+      color: #ccc;
+      font-weight: 500;
+    }
+    .control-value {
+      font-size: 14px;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    button {
+      background: linear-gradient(145deg, #2c3e50, #34495e);
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(145deg, #34495e, #2c3e50);
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    input[type="range"] {
+      width: 100px;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #2e7d32;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #2e7d32;
+    }
+    .performance-panel {
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid #333;
+      max-width: 800px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .performance-item {
+      text-align: center;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+    .performance-item .label {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+    .performance-item .value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    .engine-title {
+      font-size: 2em;
+      margin: 20px 0;
+      background: linear-gradient(45deg, #4CAF50, #2196F3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .description {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      color: #ccc;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="engine-title">Turbojet Engine Cross-Section Simulator</h1>
+  <p class="description">
+    This simulation shows the complete turbojet engine cycle: air intake, compression, combustion, and exhaust. 
+    Watch as air flows through each stage, gets compressed, mixed with fuel, ignited, and expelled to generate thrust.
+  </p>
+  
+  <div class="controls">
+    <div class="control-group">
+      <button id="pauseBtn">Pause</button>
+    </div>
+    <div class="control-group">
+      <label for="throttleRange">Throttle</label>
+      <input type="range" id="throttleRange" min="10" max="100" value="70">
+      <span class="control-value" id="throttleValue">70%</span>
+    </div>
+    <div class="control-group">
+      <label for="altitudeRange">Altitude</label>
+      <input type="range" id="altitudeRange" min="0" max="40000" value="35000" step="1000">
+      <span class="control-value" id="altitudeValue">35,000 ft</span>
+    </div>
+    <div class="control-group">
+      <label for="speedRange">Animation Speed</label>
+      <input type="range" id="speedRange" min="10" max="200" value="100">
+      <span class="control-value" id="speedValue">100%</span>
+    </div>
+    <div class="control-group">
+      <label for="particleCheck">Show Particles</label>
+      <input type="checkbox" id="particleCheck" checked>
+    </div>
+    <div class="control-group">
+      <label for="streamlineCheck">Show Streamlines</label>
+      <input type="checkbox" id="streamlineCheck" checked>
+    </div>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <div class="performance-panel">
+    <div class="performance-item">
+      <div class="label">Engine RPM</div>
+      <div class="value" id="rpmDisplay">12,500</div>
+    </div>
+    <div class="performance-item">
+      <div class="label">Thrust (lbf)</div>
+      <div class="value" id="thrustDisplay">18,500</div>
+    </div>
+    <div class="performance-item">
+      <div class="label">Exhaust Temp (�F)</div>
+      <div class="value" id="tempDisplay">1,650</div>
+    </div>
+    <div class="performance-item">
+      <div class="label">Fuel Flow (lb/h)</div>
+      <div class="value" id="fuelDisplay">2,200</div>
+    </div>
+    <div class="performance-item">
+      <div class="label">Compression Ratio</div>
+      <div class="value" id="compressionDisplay">25:1</div>
+    </div>
+    <div class="performance-item">
+      <div class="label">Efficiency (%)</div>
+      <div class="value" id="efficiencyDisplay">42</div>
+    </div>
+  </div>
+  
+  <script>
+    // Get the canvas and context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas dimensions
+    canvas.width = 1200;
+    canvas.height = 600;
+
+    // Animation variables
+    let animationId;
+    let isAnimating = true;
+    let time = 0;
+    let lastTimestamp = 0;
+
+    // Engine parameters
+    let throttlePosition = 0.7; // 0-1
+    let altitude = 35000; // feet
+    let animationSpeed = 1.0;
+    let showParticles = true;
+    let showStreamlines = true;
+
+    // Engine geometry constants
+    const ENGINE_LENGTH = 1000;
+    const ENGINE_HEIGHT = 200;
+    const ENGINE_X = (canvas.width - ENGINE_LENGTH) / 2;
+    const ENGINE_Y = (canvas.height - ENGINE_HEIGHT) / 2;
+
+    // Engine sections (relative positions along engine length)
+    const SECTIONS = {
+      INTAKE: { start: 0, end: 0.15 },
+      COMPRESSOR: { start: 0.15, end: 0.45 },
+      COMBUSTOR: { start: 0.45, end: 0.65 },
+      TURBINE: { start: 0.65, end: 0.85 },
+      NOZZLE: { start: 0.85, end: 1.0 }
+    };
+
+    // Particle system
+    let airParticles = [];
+    let fuelParticles = [];
+    const MAX_PARTICLES = 400;
+    
+    // Rotating machinery
+    let compressorAngle = 0;
+    let turbineAngle = 0;
+    const COMPRESSOR_BLADES = 12;
+    const TURBINE_BLADES = 16;
+
+    // Control elements
+    const pauseBtn = document.getElementById('pauseBtn');
+    const throttleRange = document.getElementById('throttleRange');
+    const altitudeRange = document.getElementById('altitudeRange');
+    const speedRange = document.getElementById('speedRange');
+    const particleCheck = document.getElementById('particleCheck');
+    const streamlineCheck = document.getElementById('streamlineCheck');
+
+    // Display elements
+    const throttleValue = document.getElementById('throttleValue');
+    const altitudeValue = document.getElementById('altitudeValue');
+    const speedValue = document.getElementById('speedValue');
+    const rpmDisplay = document.getElementById('rpmDisplay');
+    const thrustDisplay = document.getElementById('thrustDisplay');
+    const tempDisplay = document.getElementById('tempDisplay');
+    const fuelDisplay = document.getElementById('fuelDisplay');
+    const compressionDisplay = document.getElementById('compressionDisplay');
+    const efficiencyDisplay = document.getElementById('efficiencyDisplay');
+
+    // Initialize particles
+    function initParticles() {
+      airParticles = [];
+      fuelParticles = [];
+      
+      // Create air particles entering from the left
+      for (let i = 0; i < MAX_PARTICLES * 0.7; i++) {
+        airParticles.push({
+          x: ENGINE_X - 50 - Math.random() * 100,
+          y: ENGINE_Y + ENGINE_HEIGHT/2 + (Math.random() - 0.5) * ENGINE_HEIGHT * 0.8,
+          vx: 2 + Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5,
+          temperature: 520, // �R (60�F)
+          pressure: 14.7, // psia
+          size: 1 + Math.random(),
+          type: 'air',
+          combusted: false,
+          trail: [],
+          swirl: 0,
+          density: 1.0,
+          neighborPressure: 0
+        });
+      }
+      
+      // Create fuel particles injected in combustor
+      for (let i = 0; i < MAX_PARTICLES * 0.2; i++) {
+        const combustorStart = ENGINE_X + ENGINE_LENGTH * SECTIONS.COMBUSTOR.start;
+        const combustorLength = ENGINE_LENGTH * (SECTIONS.COMBUSTOR.end - SECTIONS.COMBUSTOR.start);
+        
+        fuelParticles.push({
+          x: combustorStart + Math.random() * combustorLength * 0.3,
+          y: ENGINE_Y + ENGINE_HEIGHT * 0.2 + Math.random() * ENGINE_HEIGHT * 0.6,
+          vx: 1 + Math.random(),
+          vy: (Math.random() - 0.5) * 0.3,
+          temperature: 520,
+          pressure: 150,
+          size: 0.5 + Math.random() * 0.5,
+          type: 'fuel',
+          combusted: false,
+          injectionPoint: Math.random() * combustorLength * 0.3,
+          trail: [],
+          swirl: 0,
+          density: 0.8,
+          neighborPressure: 0
+        });
+      }
+    }
+
+    // Event listeners for controls
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    });
+
+    throttleRange.addEventListener('input', () => {
+      throttlePosition = throttleRange.value / 100;
+      throttleValue.textContent = throttleRange.value + '%';
+    });
+
+    altitudeRange.addEventListener('input', () => {
+      altitude = parseInt(altituRange.value);
+      altitudeValue.textContent = altitude.toLocaleString() + ' ft';
+    });
+
+    speedRange.addEventListener('input', () => {
+      animationSpeed = speedRange.value / 100;
+      speedValue.textContent = speedRange.value + '%';
+    });
+
+    particleCheck.addEventListener('change', () => {
+      showParticles = particleCheck.checked;
+    });
+
+    streamlineCheck.addEventListener('change', () => {
+      showStreamlines = streamlineCheck.checked;
+    });
+
+    // Fluid dynamics functions inspired by Wirtz pump
+    function calculateParticlePressureInteractions(particles) {
+      particles.forEach(particle => {
+        particle.neighborPressure = 0;
+        
+        particles.forEach(other => {
+          if (particle === other) return;
+          
+          const dx = particle.x - other.x;
+          const dy = particle.y - other.y;
+          const distSq = dx * dx + dy * dy;
+          const minDist = 400; // Interaction range
+          
+          if (distSq < minDist && distSq > 0) {
+            // Pressure increases with proximity, like Wirtz pump
+            const pressureForce = (minDist - distSq) / minDist;
+            particle.neighborPressure += pressureForce * other.density;
+            
+            // Apply pressure-driven velocity changes
+            const dist = Math.sqrt(distSq);
+            const fx = (dx / dist) * pressureForce * 0.05;
+            const fy = (dy / dist) * pressureForce * 0.05;
+            
+            particle.vx += fx;
+            particle.vy += fy;
+          }
+        });
+      });
+    }
+
+    function applyRotationalEffects(particle, centerX, centerY, rotationSpeed, radius) {
+      const dx = particle.x - centerX;
+      const dy = particle.y - centerY;
+      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distFromCenter < radius) {
+        // Apply rotational velocity like Wirtz pump rotor
+        const angle = Math.atan2(dy, dx);
+        const tangentialVx = -rotationSpeed * distFromCenter * Math.sin(angle);
+        const tangentialVy = rotationSpeed * distFromCenter * Math.cos(angle);
+        
+        // Gradually blend rotational motion
+        const blendFactor = 0.1;
+        particle.vx += tangentialVx * blendFactor;
+        particle.vy += tangentialVy * blendFactor;
+        particle.swirl += rotationSpeed * 0.1;
+      }
+    }
+
+    // Animation loop
+    function animate(timestamp) {
+      // Calculate time delta for smooth animation
+      const deltaTime = lastTimestamp ? (timestamp - lastTimestamp) * animationSpeed : 16;
+      lastTimestamp = timestamp;
+      time += deltaTime * 0.001;
+      
+      // Update rotating machinery angles
+      compressorAngle += throttlePosition * 0.2 * animationSpeed;
+      turbineAngle -= throttlePosition * 0.15 * animationSpeed;
+      
+      // Clear canvas
+      ctx.fillStyle = '#000000';  
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw engine outline and sections
+      drawEngineStructure();
+      
+      // Update and draw particles
+      if (showParticles) {
+        updateParticles(deltaTime);
+        drawParticles();
+      }
+      
+      // Draw streamlines
+      if (showStreamlines) {
+        drawStreamlines();
+      }
+      
+      // Update performance displays
+      updatePerformanceDisplay();
+      
+      // Continue animation
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Draw engine structure
+    function drawEngineStructure() {
+      // Draw main engine body
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(ENGINE_X, ENGINE_Y, ENGINE_LENGTH, ENGINE_HEIGHT);
+      
+      // Draw section dividers
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 1;
+      
+      Object.values(SECTIONS).forEach((section, index) => {
+        if (index > 0) { // Skip first divider
+          const x = ENGINE_X + ENGINE_LENGTH * section.start;
+          ctx.beginPath();
+          ctx.moveTo(x, ENGINE_Y);
+          ctx.lineTo(x, ENGINE_Y + ENGINE_HEIGHT);
+          ctx.stroke();
+        }
+      });
+      
+      // Draw rotating compressor blades
+      const compressorCenterX = ENGINE_X + ENGINE_LENGTH * (SECTIONS.COMPRESSOR.start + SECTIONS.COMPRESSOR.end) / 2;
+      const compressorCenterY = ENGINE_Y + ENGINE_HEIGHT / 2;
+      drawRotatingBlades(compressorCenterX, compressorCenterY, ENGINE_HEIGHT / 3, COMPRESSOR_BLADES, compressorAngle, '#4a90e2');
+      
+      // Draw rotating turbine blades
+      const turbineCenterX = ENGINE_X + ENGINE_LENGTH * (SECTIONS.TURBINE.start + SECTIONS.TURBINE.end) / 2;
+      const turbineCenterY = ENGINE_Y + ENGINE_HEIGHT / 2;
+      drawRotatingBlades(turbineCenterX, turbineCenterY, ENGINE_HEIGHT / 3, TURBINE_BLADES, turbineAngle, '#e24a4a');
+      
+      // Add section labels
+      ctx.fillStyle = '#aaa';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      
+      const sectionNames = ['INTAKE', 'COMPRESSOR', 'COMBUSTOR', 'TURBINE', 'NOZZLE'];
+      Object.entries(SECTIONS).forEach(([key, section], index) => {
+        const centerX = ENGINE_X + ENGINE_LENGTH * (section.start + section.end) / 2;
+        ctx.fillText(sectionNames[index], centerX, ENGINE_Y - 10);
+      });
+    }
+
+    // Draw rotating blades
+    function drawRotatingBlades(centerX, centerY, radius, bladeCount, angle, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      
+      for (let i = 0; i < bladeCount; i++) {
+        const bladeAngle = angle + (i * 2 * Math.PI) / bladeCount;
+        const innerRadius = radius * 0.3;
+        const outerRadius = radius * 0.9;
+        
+        const x1 = centerX + innerRadius * Math.cos(bladeAngle);
+        const y1 = centerY + innerRadius * Math.sin(bladeAngle);
+        const x2 = centerX + outerRadius * Math.cos(bladeAngle);
+        const y2 = centerY + outerRadius * Math.sin(bladeAngle);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Add blade curve for more realistic appearance
+        const curveAngle = bladeAngle + 0.3;
+        const x3 = centerX + outerRadius * 0.7 * Math.cos(curveAngle);
+        const y3 = centerY + outerRadius * 0.7 * Math.sin(curveAngle);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.quadraticCurveTo(x3, y3, x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    // Update particles
+    function updateParticles(deltaTime) {
+      const dt = deltaTime / 16;
+      
+      // Calculate pressure interactions between particles (Wirtz pump inspired)
+      const allParticles = [...airParticles, ...fuelParticles];
+      calculateParticlePressureInteractions(allParticles);
+      
+      // Update air particles
+      airParticles.forEach(particle => {
+        updateParticle(particle, dt);
+      });
+      
+      // Update fuel particles
+      fuelParticles.forEach(particle => {
+        updateParticle(particle, dt);
+      });
+      
+      // Remove particles that have exited
+      airParticles = airParticles.filter(p => p.x < ENGINE_X + ENGINE_LENGTH + 100);
+      fuelParticles = fuelParticles.filter(p => p.x < ENGINE_X + ENGINE_LENGTH + 100);
+      
+      // Add new air particles at intake
+      if (airParticles.length < MAX_PARTICLES * 0.8) {
+        airParticles.push({
+          x: ENGINE_X - 50,
+          y: ENGINE_Y + ENGINE_HEIGHT/2 + (Math.random() - 0.5) * ENGINE_HEIGHT * 0.6,
+          vx: 2 + Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5,
+          temperature: 520 - altitude * 0.00356, // Temperature lapse rate
+          pressure: 14.7 * Math.pow(1 - altitude * 0.0000068756, 5.2561),
+          size: 1 + Math.random(),
+          type: 'air',
+          combusted: false,
+          trail: []
+        });
+      }
+    }
+
+    // Update individual particle
+    function updateParticle(particle, dt) {
+      // Determine which section the particle is in
+      const relativeX = (particle.x - ENGINE_X) / ENGINE_LENGTH;
+      let section = null;
+      
+      Object.entries(SECTIONS).forEach(([key, sec]) => {
+        if (relativeX >= sec.start && relativeX < sec.end) {
+          section = key;
+        }
+      });
+      
+      // Apply section-specific effects
+      if (section) {
+        applyEngineEffects(particle, section, dt);
+      }
+      
+      // Update position
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      
+      // Keep particles within engine bounds vertically
+      if (particle.y < ENGINE_Y + 5) {
+        particle.y = ENGINE_Y + 5;
+        particle.vy = Math.abs(particle.vy) * 0.5;
+      }
+      if (particle.y > ENGINE_Y + ENGINE_HEIGHT - 5) {
+        particle.y = ENGINE_Y + ENGINE_HEIGHT - 5;
+        particle.vy = -Math.abs(particle.vy) * 0.5;
+      }
+      
+      // Add to trail
+      if (Math.random() < 0.1) {
+        particle.trail.push({ x: particle.x, y: particle.y });
+        if (particle.trail.length > 10) {
+          particle.trail.shift();
+        }
+      }
+    }
+
+    // Apply engine effects based on section
+    function applyEngineEffects(particle, section, dt) {
+      switch (section) {
+        case 'INTAKE':
+          // Slight acceleration and funnel effect
+          particle.vx += 0.1 * dt;
+          particle.vy *= 0.98;
+          break;
+          
+        case 'COMPRESSOR':
+          // Compression: increase pressure, temperature, decrease velocity
+          particle.pressure += 5 * throttlePosition * dt;
+          particle.temperature += 2 * throttlePosition * dt;
+          particle.vx *= 0.995;
+          
+          // Apply rotational effects from compressor blades
+          const compressorCenterX = ENGINE_X + ENGINE_LENGTH * (SECTIONS.COMPRESSOR.start + SECTIONS.COMPRESSOR.end) / 2;
+          const compressorCenterY = ENGINE_Y + ENGINE_HEIGHT / 2;
+          applyRotationalEffects(particle, compressorCenterX, compressorCenterY, compressorAngle * 0.1, ENGINE_HEIGHT / 3);
+          break;
+          
+        case 'COMBUSTOR':
+          // Combustion: dramatic temperature increase, pressure spike
+          if (particle.type === 'fuel' || (particle.type === 'air' && Math.random() < 0.02)) {
+            particle.combusted = true;
+            particle.temperature += 20 * throttlePosition * dt;
+            particle.vx += 0.5 * throttlePosition * dt;
+          }
+          break;
+          
+        case 'TURBINE':
+          // Expansion: pressure drop, some energy extraction
+          particle.pressure *= 0.998;
+          particle.vx += 0.2 * dt;
+          
+          // Apply rotational effects from turbine blades (counter-rotating)
+          const turbineCenterX = ENGINE_X + ENGINE_LENGTH * (SECTIONS.TURBINE.start + SECTIONS.TURBINE.end) / 2;
+          const turbineCenterY = ENGINE_Y + ENGINE_HEIGHT / 2;
+          applyRotationalEffects(particle, turbineCenterX, turbineCenterY, turbineAngle * 0.08, ENGINE_HEIGHT / 3);
+          break;
+          
+        case 'NOZZLE':
+          // Acceleration through nozzle
+          particle.vx += 0.3 * throttlePosition * dt;
+          break;
+      }
+    }
+
+    // Draw particles
+    function drawParticles() {
+      // Draw trails first
+      [...airParticles, ...fuelParticles].forEach(particle => {
+        if (particle.trail.length > 1) {
+          ctx.strokeStyle = particle.combusted ? 'rgba(255, 100, 0, 0.3)' : 'rgba(100, 150, 255, 0.2)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(particle.trail[0].x, particle.trail[0].y);
+          for (let i = 1; i < particle.trail.length; i++) {
+            ctx.lineTo(particle.trail[i].x, particle.trail[i].y);
+          }
+          ctx.stroke();
+        }
+      });
+      
+      // Draw particles
+      [...airParticles, ...fuelParticles].forEach(particle => {
+        let color;
+        let glowIntensity = 1 + particle.neighborPressure * 0.5; // Pressure affects glow
+        
+        if (particle.combusted) {
+          // Hot exhaust - orange to red gradient
+          const intensity = Math.min(particle.temperature / 2000, 1);
+          color = `rgba(255, ${100 - intensity * 50}, 0, 0.8)`;
+        } else if (particle.type === 'fuel') {
+          // Fuel - green
+          color = 'rgba(0, 255, 100, 0.6)';
+        } else {
+          // Cold air - blue, intensity based on pressure
+          const pressureIntensity = Math.min(particle.pressure / 50, 1);
+          color = `rgba(${100 + pressureIntensity * 100}, ${150 + pressureIntensity * 50}, 255, 0.6)`;
+        }
+        
+        // Draw pressure glow effect
+        if (particle.neighborPressure > 0.1) {
+          const glowGrad = ctx.createRadialGradient(
+            particle.x, particle.y, 0,
+            particle.x, particle.y, particle.size * glowIntensity * 3
+          );
+          glowGrad.addColorStop(0, color);
+          glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          
+          ctx.fillStyle = glowGrad;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * glowIntensity * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Draw main particle
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size * glowIntensity, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw swirl indicator for high-swirl particles
+        if (Math.abs(particle.swirl) > 0.1) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * 2, 0, particle.swirl * Math.PI);
+          ctx.stroke();
+        }
+      });
+    }
+
+    // Draw streamlines
+    function drawStreamlines() {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      
+      // Draw horizontal streamlines
+      for (let i = 0; i < 8; i++) {
+        const y = ENGINE_Y + (i + 1) * ENGINE_HEIGHT / 9;
+        ctx.beginPath();
+        ctx.moveTo(ENGINE_X - 20, y);
+        ctx.lineTo(ENGINE_X + ENGINE_LENGTH + 50, y);
+        ctx.stroke();
+      }
+    }
+
+    // Update performance display
+    function updatePerformanceDisplay() {
+      const rpm = Math.round(8000 + throttlePosition * 7000 + Math.sin(time) * 200);
+      const thrust = Math.round(throttlePosition * 25000 * (1 - altitude / 100000));
+      const exhaustTemp = Math.round(1200 + throttlePosition * 800);
+      const fuelFlow = Math.round(throttlePosition * 3000);
+      const compressionRatio = Math.round(15 + throttlePosition * 15);
+      const efficiency = Math.round(35 + throttlePosition * 15 - altitude / 2000);
+      
+      rpmDisplay.textContent = rpm.toLocaleString();
+      thrustDisplay.textContent = thrust.toLocaleString();
+      tempDisplay.textContent = exhaustTemp.toLocaleString();
+      fuelDisplay.textContent = fuelFlow.toLocaleString();
+      compressionDisplay.textContent = compressionRatio + ':1';
+      efficiencyDisplay.textContent = efficiency;
+    }
+
+    // Initialize and start
+    initParticles();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

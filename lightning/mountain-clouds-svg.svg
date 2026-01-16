@@ -1,0 +1,120 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sky Background -->
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a2a40" />
+      <stop offset="60%" stop-color="#4a6ea9" />
+    </linearGradient>
+    
+    <!-- Cloud Filter for fractal-like edges -->
+    <filter id="cloudFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="5"/>
+      <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  
+  <!-- Sky with gradient -->
+  <rect width="800" height="600" fill="url(#skyGradient)"/>
+  
+  <!-- Complex Clouds with Fractal Edges -->
+  <!-- Cloud Group 1 -->
+  <g fill="#f0f0f0" filter="url(#cloudFilter)">
+    <ellipse cx="120" cy="110" rx="70" ry="35" />
+    <ellipse cx="170" cy="95" rx="80" ry="45" />
+    <ellipse cx="230" cy="115" rx="75" ry="30" />
+    <ellipse cx="280" cy="100" rx="60" ry="40" />
+    <ellipse cx="150" cy="85" rx="55" ry="25" />
+    <ellipse cx="200" cy="120" rx="65" ry="30" />
+  </g>
+  
+  <!-- Cloud Group 2 -->
+  <g fill="#e8e8e8" filter="url(#cloudFilter)">
+    <ellipse cx="450" cy="85" rx="85" ry="40" />
+    <ellipse cx="500" cy="65" rx="75" ry="50" />
+    <ellipse cx="550" cy="95" rx="70" ry="35" />
+    <ellipse cx="600" cy="75" rx="65" ry="45" />
+    <ellipse cx="520" cy="50" rx="50" ry="30" />
+    <ellipse cx="570" cy="80" rx="60" ry="25" />
+  </g>
+  
+  <!-- Cloud Group 3 -->
+  <g fill="#f5f5f5" filter="url(#cloudFilter)">
+    <ellipse cx="90" cy="175" rx="60" ry="30" />
+    <ellipse cx="130" cy="155" rx="70" ry="35" />
+    <ellipse cx="180" cy="185" rx="65" ry="30" />
+    <ellipse cx="110" cy="150" rx="50" ry="25" />
+    <ellipse cx="160" cy="170" rx="55" ry="20" />
+  </g>
+  
+  <!-- Cloud Group 4 -->
+  <g fill="#e0e0e0" filter="url(#cloudFilter)">
+    <ellipse cx="650" cy="145" rx="80" ry="35" />
+    <ellipse cx="700" cy="125" rx="70" ry="40" />
+    <ellipse cx="750" cy="155" rx="60" ry="30" />
+    <ellipse cx="680" cy="115" rx="55" ry="25" />
+    <ellipse cx="730" cy="135" rx="65" ry="20" />
+  </g>
+  
+  <!-- Cloud Group 5 -->
+  <g fill="#f8f8f8" filter="url(#cloudFilter)">
+    <ellipse cx="340" cy="145" rx="90" ry="40" />
+    <ellipse cx="390" cy="125" rx="80" ry="45" />
+    <ellipse cx="440" cy="155" rx="75" ry="35" />
+    <ellipse cx="490" cy="135" rx="70" ry="40" />
+    <ellipse cx="370" cy="115" rx="60" ry="30" />
+    <ellipse cx="420" cy="145" rx="65" ry="25" />
+    <ellipse cx="470" cy="125" rx="55" ry="35" />
+  </g>
+  
+  <!-- Fractal-like Mountain Range -->
+  <path d="M0,600 
+    L0,400 
+    L20,405 L40,395 L60,410 L80,400 L100,415 
+    L120,405 L140,420 L160,410 L180,395 L200,410 
+    L220,400 L240,415 L260,405 L280,420 L300,410 
+    L320,395 L340,405 L360,390 L380,410 L400,395 
+    L410,385 L420,375 L430,365 L440,375 L450,360 
+    L460,370 L470,355 L480,365 L490,345 L500,355 
+    L510,365 L520,375 L530,360 L540,370 L550,350 
+    L560,365 L570,355 L580,370 L590,360 L600,375 
+    L620,365 L640,380 L660,370 L680,385 L700,375
+    L720,390 L740,380 L760,395 L780,385 L800,395
+    L800,600 Z" fill="#0a0a0a" />
+  
+  <!-- Second Mountain Range (detailed) -->
+  <path d="M0,600 
+    L0,450 
+    L15,455 L30,448 L45,456 L60,450 L75,458
+    L90,452 L105,460 L120,450 L135,456 L150,445
+    L165,452 L180,442 L195,450 L210,440 L225,450
+    L240,445 L255,455 L270,445 L285,460 L300,445
+    L315,455 L330,442 L345,452 L360,437 L375,447
+    L390,435 L405,445 L420,430 L435,440 L450,425
+    L465,435 L480,420 L495,430 L510,415 L525,430
+    L540,420 L555,435 L570,420 L585,440 L600,425
+    L615,440 L630,430 L645,445 L660,435 L675,450
+    L690,440 L705,455 L720,445 L735,455 L750,445
+    L765,455 L780,445 L800,455
+    L800,600 Z" fill="#111111" />
+  
+  <!-- Foreground Mountain with more detailed peaks -->
+  <path d="M0,600 
+    L0,510 
+    L10,515 L20,513 L30,518 L40,514 L50,520
+    L60,516 L70,521 L80,517 L90,522 L100,518
+    L110,523 L120,519 L130,524 L140,520 L150,525
+    L160,520 L170,526 L180,522 L190,527 L200,523
+    L210,528 L220,524 L230,529 L240,525 L250,530
+    L260,526 L270,531 L280,527 L290,532 L300,527
+    L310,533 L320,529 L330,534 L340,530 L350,535
+    L360,531 L370,536 L380,532 L390,537 L400,533
+    L410,538 L420,534 L430,539 L440,534 L450,540
+    L460,535 L470,541 L480,536 L490,541 L500,537
+    L510,542 L520,538 L530,543 L540,539 L550,544
+    L560,540 L570,545 L580,541 L590,546 L600,542
+    L610,547 L620,543 L630,548 L640,544 L650,549
+    L660,545 L670,550 L680,546 L690,551 L700,547
+    L710,552 L720,548 L730,553 L740,549 L750,554
+    L760,549 L770,555 L780,550 L790,556 L800,552
+    L800,600 Z" fill="#1a1a1a" />
+</svg>

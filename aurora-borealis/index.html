@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aurora Borealis Simulator</title>
+  <meta name="description" content="Mesmerizing Aurora Borealis simulation with realistic particle physics and magnetic field interactions">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      height: 100vh;
+    }
+    .aurora-view {
+      position: relative;
+      background: radial-gradient(ellipse at center bottom, #001122, #000000);
+    }
+    .controls-panel {
+      background: linear-gradient(135deg, #0a1a2a, #051015);
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #0a4a6a;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #1a2a3a, #0f1f2f);
+      border-radius: 12px;
+      border: 1px solid #2a4a6a;
+      box-shadow: 0 4px 12px rgba(0, 255, 200, 0.1);
+    }
+    .control-group h3 {
+      margin: 0 0 12px 0;
+      color: #00ff88;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 100px;
+      color: #88ddff;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #00ff88;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #00ff88;
+      min-width: 60px;
+      text-align: right;
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+    }
+    button {
+      background: linear-gradient(135deg, #2a4a6a, #1a3a5a);
+      color: #88ddff;
+      border: 1px solid #4a6a8a;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 3px;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 255, 136, 0.2);
+    }
+    button:hover {
+      background: linear-gradient(135deg, #3a5a7a, #2a4a6a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+    }
+    button.active {
+      background: linear-gradient(135deg, #00aa66, #006644);
+      border-color: #00ff88;
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+      color: #ffffff;
+    }
+    .aurora-types {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .intensity-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+    .color-scheme {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .scheme-preview {
+      height: 25px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .scheme-preview:hover {
+      transform: scale(1.05);
+      border-color: #88ddff;
+    }
+    .scheme-preview.active {
+      border-color: #00ff88;
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+    }
+    .info-panel {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 20, 40, 0.9);
+      padding: 15px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+    }
+    .stats {
+      background: rgba(0, 10, 20, 0.8);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-family: monospace;
+      font-size: 11px;
+      border: 1px solid #2a4a6a;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      margin: 6px 0;
+    }
+    .stat-value {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    kbd {
+      background: #1a3a5a;
+      border: 1px solid #4a6a8a;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    .intensity-indicator {
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(to right, #001122, #004488, #00aa66, #00ff88, #88ffaa);
+      border-radius: 4px;
+      margin: 8px 0;
+      position: relative;
+    }
+    .intensity-marker {
+      position: absolute;
+      width: 3px;
+      height: 12px;
+      background: #ffffff;
+      top: -2px;
+      border-radius: 1px;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    }
+    .weather-info {
+      font-size: 10px;
+      color: #88ddff;
+      margin: 8px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="aurora-view">
+      <canvas id="canvas"></canvas>
+      <div class="info-panel">
+        <h3>🌌 Aurora Borealis</h3>
+        <p><strong>Keyboard Controls:</strong></p>
+        <p><kbd>Space</kbd>: Solar flare burst</p>
+        <p><kbd>W</kbd>: Increase solar wind</p>
+        <p><kbd>S</kbd>: Decrease solar wind</p>
+        <p><kbd>A</kbd>: Shift magnetic field left</p>
+        <p><kbd>D</kbd>: Shift magnetic field right</p>
+        <p><kbd>R</kbd>: Reset to calm conditions</p>
+        <br>
+        <div class="weather-info">
+          <div>Solar Activity: <span id="solarActivity">Moderate</span></div>
+          <div>Magnetic Storm: <span id="magneticStorm">Quiet</span></div>
+          <div>Visibility: <span id="visibility">Excellent</span></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🌠 Aurora Control Center</h2>
+      
+      <div class="stats">
+        <div class="stat">
+          <span>Particles:</span>
+          <span class="stat-value" id="particleCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Solar Wind:</span>
+          <span class="stat-value" id="solarWindDisplay">50%</span>
+        </div>
+        <div class="stat">
+          <span>Magnetic Field:</span>
+          <span class="stat-value" id="magneticFieldDisplay">Normal</span>
+        </div>
+        <div class="stat">
+          <span>Aurora Intensity:</span>
+          <span class="stat-value" id="intensityDisplay">KP-3</span>
+        </div>
+        <div class="intensity-indicator">
+          <div class="intensity-marker" id="intensityMarker"></div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Aurora Type</h3>
+        <div class="aurora-types">
+          <button id="type-curtain" class="active">Curtain</button>
+          <button id="type-arc">Arc</button>
+          <button id="type-corona">Corona</button>
+          <button id="type-diffuse">Diffuse</button>
+          <button id="type-pulsating">Pulsating</button>
+          <button id="type-spiral">Spiral</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Color Palette</h3>
+        <div class="color-scheme">
+          <div class="scheme-preview active" style="background: linear-gradient(45deg, #00ff88, #88ffaa, #aaffcc);" data-scheme="classic"></div>
+          <div class="scheme-preview" style="background: linear-gradient(45deg, #4488ff, #88aaff, #aaccff);" data-scheme="blue"></div>
+          <div class="scheme-preview" style="background: linear-gradient(45deg, #ff4488, #ff88aa, #ffaacc);" data-scheme="pink"></div>
+          <div class="scheme-preview" style="background: linear-gradient(45deg, #ffaa00, #ffcc44, #ffee88);" data-scheme="gold"></div>
+          <div class="scheme-preview" style="background: linear-gradient(45deg, #aa44ff, #cc88ff, #ddaaff);" data-scheme="purple"></div>
+          <div class="scheme-preview" style="background: linear-gradient(45deg, #00ff88, #4488ff, #ff4488);" data-scheme="rainbow"></div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Solar Activity</h3>
+        <div class="slider-group">
+          <label>Solar Wind Speed:</label>
+          <input type="range" id="solarWind" min="0" max="100" value="50">
+          <span class="value-display" id="solarWindValue">500 km/s</span>
+        </div>
+        <div class="slider-group">
+          <label>Particle Density:</label>
+          <input type="range" id="particleDensity" min="1" max="100" value="40">
+          <span class="value-display" id="particleDensityValue">40</span>
+        </div>
+        <div class="slider-group">
+          <label>Solar Flare Activity:</label>
+          <input type="range" id="flareActivity" min="0" max="100" value="20">
+          <span class="value-display" id="flareActivityValue">20%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Magnetic Field</h3>
+        <div class="slider-group">
+          <label>Field Strength:</label>
+          <input type="range" id="magneticStrength" min="10" max="200" value="100">
+          <span class="value-display" id="magneticStrengthValue">100%</span>
+        </div>
+        <div class="slider-group">
+          <label>Field Tilt:</label>
+          <input type="range" id="fieldTilt" min="-50" max="50" value="0">
+          <span class="value-display" id="fieldTiltValue">0°</span>
+        </div>
+        <div class="slider-group">
+          <label>Storm Intensity:</label>
+          <input type="range" id="stormIntensity" min="0" max="100" value="30">
+          <span class="value-display" id="stormIntensityValue">KP-3</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Atmospheric Effects</h3>
+        <div class="slider-group">
+          <label>Altitude Range:</label>
+          <input type="range" id="altitude" min="80" max="400" value="200">
+          <span class="value-display" id="altitudeValue">200 km</span>
+        </div>
+        <div class="slider-group">
+          <label>Atmospheric Density:</label>
+          <input type="range" id="atmosphere" min="1" max="100" value="50">
+          <span class="value-display" id="atmosphereValue">50%</span>
+        </div>
+        <div class="slider-group">
+          <label>Collision Rate:</label>
+          <input type="range" id="collisionRate" min="1" max="100" value="60">
+          <span class="value-display" id="collisionRateValue">60%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Visual Settings</h3>
+        <div class="intensity-buttons">
+          <button id="glow-low">Low Glow</button>
+          <button id="glow-medium" class="active">Medium Glow</button>
+          <button id="glow-high">High Glow</button>
+          <button id="shimmer">Shimmer</button>
+        </div>
+        <div class="slider-group">
+          <label>Brightness:</label>
+          <input type="range" id="brightness" min="10" max="200" value="100">
+          <span class="value-display" id="brightnessValue">100%</span>
+        </div>
+        <div class="slider-group">
+          <label>Motion Blur:</label>
+          <input type="range" id="motionBlur" min="0" max="10" value="3">
+          <span class="value-display" id="motionBlurValue">3</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Simulation</h3>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+        <button id="saveBtn">Capture Aurora</button>
+        <button id="realtimeBtn">Real-time Data</button>
+        <div class="slider-group">
+          <label>Time Scale:</label>
+          <input type="range" id="timeScale" min="1" max="20" value="10">
+          <span class="value-display" id="timeScaleValue">10x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      const container = document.querySelector('.aurora-view');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Simulation state
+    let particles = [];
+    let magneticField = [];
+    let isRunning = true;
+    let time = 0;
+    let currentAuroraType = 'curtain';
+    let currentColorScheme = 'classic';
+    
+    // Parameters
+    let solarWindSpeed = 50;
+    let particleDensity = 40;
+    let flareActivity = 20;
+    let magneticStrength = 100;
+    let fieldTilt = 0;
+    let stormIntensity = 30;
+    let altitude = 200;
+    let atmosphericDensity = 50;
+    let collisionRate = 60;
+    let brightness = 100;
+    let motionBlur = 3;
+    let timeScale = 10;
+    let glowLevel = 'medium';
+    let shimmerEnabled = false;
+    
+    // Color schemes
+    const colorSchemes = {
+      classic: [
+        { r: 0, g: 255, b: 136 },    // Green
+        { r: 136, g: 255, b: 170 },  // Light green
+        { r: 170, g: 255, b: 204 }   // Pale green
+      ],
+      blue: [
+        { r: 68, g: 136, b: 255 },   // Blue
+        { r: 136, g: 170, b: 255 },  // Light blue
+        { r: 170, g: 204, b: 255 }   // Pale blue
+      ],
+      pink: [
+        { r: 255, g: 68, b: 136 },   // Pink
+        { r: 255, g: 136, b: 170 },  // Light pink
+        { r: 255, g: 170, b: 204 }   // Pale pink
+      ],
+      gold: [
+        { r: 255, g: 170, b: 0 },    // Gold
+        { r: 255, g: 204, b: 68 },   // Light gold
+        { r: 255, g: 238, b: 136 }   // Pale gold
+      ],
+      purple: [
+        { r: 170, g: 68, b: 255 },   // Purple
+        { r: 204, g: 136, b: 255 },  // Light purple
+        { r: 221, g: 170, b: 255 }   // Pale purple
+      ],
+      rainbow: [
+        { r: 0, g: 255, b: 136 },    // Green
+        { r: 68, g: 136, b: 255 },   // Blue
+        { r: 255, g: 68, b: 136 }    // Pink
+      ]
+    };
+    
+    // Particle class for solar wind
+    class SolarParticle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = Math.random() * 3 + 1;
+        this.life = 1.0;
+        this.maxLife = 200 + Math.random() * 100;
+        this.age = 0;
+        this.size = Math.random() * 2 + 1;
+        this.energy = Math.random() * 100 + 50;
+        this.collided = false;
+        this.trail = [];
+        this.magneticInfluence = 0;
+      }
+      
+      update(deltaTime) {
+        const dt = deltaTime * timeScale * 0.01;
+        this.age += dt;
+        
+        // Apply magnetic field forces
+        this.applyMagneticForces(dt);
+        
+        // Apply atmospheric interactions
+        this.applyAtmosphericEffects(dt);
+        
+        // Update position
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        
+        // Update trail
+        this.updateTrail();
+        
+        // Check for collision with atmosphere
+        this.checkAtmosphericCollision();
+        
+        // Update life
+        this.life = Math.max(0, 1 - (this.age / this.maxLife));
+        
+        return this.life > 0 && this.y < canvas.height + 50;
+      }
+      
+      applyMagneticForces(dt) {
+        // Simplified magnetic field interaction
+        const fieldStrength = magneticStrength * 0.01;
+        const heightFactor = (canvas.height - this.y) / canvas.height;
+        
+        // Magnetic deflection based on aurora type
+        switch(currentAuroraType) {
+          case 'curtain':
+            this.vx += Math.sin(this.y * 0.01 + time * 0.001) * fieldStrength * dt;
+            break;
+          case 'arc':
+            const arcCenter = canvas.width / 2;
+            const arcForce = (this.x - arcCenter) * 0.0001 * fieldStrength;
+            this.vx -= arcForce * dt;
+            break;
+          case 'corona':
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height * 0.8;
+            const dx = this.x - centerX;
+            const dy = this.y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+              this.vx += (dx / dist) * fieldStrength * 0.5 * dt;
+              this.vy += (dy / dist) * fieldStrength * 0.5 * dt;
+            }
+            break;
+          case 'spiral':
+            const spiralForce = fieldStrength * 0.5;
+            this.vx += Math.cos(this.y * 0.02 + time * 0.002) * spiralForce * dt;
+            this.vy += Math.sin(this.x * 0.02 + time * 0.002) * spiralForce * dt * 0.5;
+            break;
+        }
+        
+        // Field tilt effect
+        this.vx += fieldTilt * 0.01 * fieldStrength * dt;
+      }
+      
+      applyAtmosphericEffects(dt) {
+        // Atmospheric drag increases with density
+        const drag = atmosphericDensity * 0.0001;
+        this.vx *= (1 - drag * dt);
+        this.vy *= (1 - drag * dt);
+        
+        // Atmospheric heating effect
+        const heightFactor = Math.max(0, 1 - this.y / (canvas.height * 0.8));
+        this.energy += heightFactor * atmosphericDensity * 0.1 * dt;
+      }
+      
+      updateTrail() {
+        if (Math.random() < 0.5) {
+          this.trail.push({ 
+            x: this.x, 
+            y: this.y, 
+            alpha: this.life,
+            energy: this.energy 
+          });
+          if (this.trail.length > 15) {
+            this.trail.shift();
+          }
+        }
+        
+        // Fade trail
+        this.trail.forEach(point => {
+          point.alpha *= 0.95;
+        });
+      }
+      
+      checkAtmosphericCollision() {
+        const collisionAltitude = canvas.height * (1 - altitude / 400);
+        
+        if (this.y > collisionAltitude && !this.collided) {
+          const collisionChance = collisionRate * 0.01;
+          
+          if (Math.random() < collisionChance) {
+            this.collided = true;
+            this.createAuroraEmission();
+          }
+        }
+      }
+      
+      createAuroraEmission() {
+        // Create aurora light emission
+        const colors = colorSchemes[currentColorScheme];
+        const colorIndex = Math.floor(Math.random() * colors.length);
+        
+        for (let i = 0; i < 5; i++) {
+          const emissionParticle = {
+            x: this.x + (Math.random() - 0.5) * 20,
+            y: this.y + (Math.random() - 0.5) * 10,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            life: 1.0,
+            maxLife: 50 + Math.random() * 50,
+            age: 0,
+            color: colors[colorIndex],
+            intensity: this.energy * 0.01,
+            type: 'emission'
+          };
+          
+          particles.push(emissionParticle);
+        }
+      }
+      
+      draw() {
+        const colors = colorSchemes[currentColorScheme];
+        const alpha = this.life;
+        
+        // Draw trail
+        if (this.trail.length > 1) {
+          ctx.strokeStyle = `rgba(${colors[0].r}, ${colors[0].g}, ${colors[0].b}, ${alpha * 0.3})`;
+          ctx.lineWidth = this.size * 0.5;
+          ctx.beginPath();
+          
+          if (this.trail.length > 0) {
+            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            for (let i = 1; i < this.trail.length; i++) {
+              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            }
+          }
+          ctx.stroke();
+        }
+        
+        // Draw particle
+        if (this.collided) {
+          // Aurora emission glow
+          const glowSize = this.size * (3 + Math.sin(time * 0.01) * 0.5);
+          const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, glowSize
+          );
+          
+          const intensityFactor = brightness * 0.01;
+          glow.addColorStop(0, `rgba(${colors[1].r}, ${colors[1].g}, ${colors[1].b}, ${alpha * intensityFactor})`);
+          glow.addColorStop(0.5, `rgba(${colors[0].r}, ${colors[0].g}, ${colors[0].b}, ${alpha * intensityFactor * 0.5})`);
+          glow.addColorStop(1, `rgba(${colors[0].r}, ${colors[0].g}, ${colors[0].b}, 0)`);
+          
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Solar wind particle
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    
+    // Generate solar wind particles
+    function generateSolarWind() {
+      const rate = (solarWindSpeed * particleDensity * 0.0001) + (flareActivity * 0.001);
+      
+      if (Math.random() < rate) {
+        const x = Math.random() * canvas.width;
+        const y = -20;
+        particles.push(new SolarParticle(x, y));
+      }
+      
+      // Limit particle count
+      if (particles.length > 1500) {
+        particles.splice(0, particles.length - 1500);
+      }
+    }
+    
+    // Draw aurora curtains
+    function drawAuroraCurtains() {
+      const colors = colorSchemes[currentColorScheme];
+      
+      // Create aurora curtain effect
+      for (let x = 0; x < canvas.width; x += 20) {
+        const curtainHeight = canvas.height * 0.6;
+        const curtainY = canvas.height * 0.3;
+        
+        // Flowing curtain animation
+        const wave1 = Math.sin((x * 0.01) + (time * 0.002)) * 30;
+        const wave2 = Math.sin((x * 0.02) + (time * 0.003)) * 20;
+        const wave3 = Math.sin((x * 0.005) + (time * 0.001)) * 50;
+        
+        const curtainX = x + wave1 + wave2;
+        
+        // Aurora curtain gradient
+        const gradient = ctx.createLinearGradient(
+          curtainX, curtainY,
+          curtainX, curtainY + curtainHeight
+        );
+        
+        const intensity = (brightness * 0.01) * (0.3 + Math.sin(time * 0.001 + x * 0.01) * 0.2);
+        
+        gradient.addColorStop(0, `rgba(${colors[0].r}, ${colors[0].g}, ${colors[0].b}, 0)`);
+        gradient.addColorStop(0.3, `rgba(${colors[1].r}, ${colors[1].g}, ${colors[1].b}, ${intensity * 0.6})`);
+        gradient.addColorStop(0.6, `rgba(${colors[0].r}, ${colors[0].g}, ${colors[0].b}, ${intensity * 0.8})`);
+        gradient.addColorStop(1, `rgba(${colors[2].r}, ${colors[2].g}, ${colors[2].b}, ${intensity * 0.3})`);
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(curtainX - 10, curtainY, 20, curtainHeight + wave3);
+      }
+    }
+    
+    // Draw background stars and atmosphere
+    function drawBackground() {
+      // Night sky gradient
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGradient.addColorStop(0, '#000011');
+      skyGradient.addColorStop(0.5, '#001122');
+      skyGradient.addColorStop(1, '#002244');
+      
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Stars
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 200; i++) {
+        const x = (i * 1234) % canvas.width;
+        const y = (i * 5678) % (canvas.height * 0.7);
+        const size = ((i * 91) % 3) + 0.5;
+        const twinkle = Math.sin(time * 0.01 + i) * 0.3 + 0.7;
+        
+        ctx.globalAlpha = twinkle;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Horizon
+      ctx.fillStyle = '#001133';
+      ctx.fillRect(0, canvas.height * 0.85, canvas.width, canvas.height * 0.15);
+    }
+    
+    // Keyboard controls
+    let keys = {};
+    
+    window.addEventListener('keydown', (e) => {
+      keys[e.key.toLowerCase()] = true;
+      
+      switch(e.key.toLowerCase()) {
+        case ' ':
+          // Solar flare
+          flareActivity = Math.min(100, flareActivity + 30);
+          document.getElementById('flareActivity').value = flareActivity;
+          document.getElementById('flareActivityValue').textContent = flareActivity + '%';
+          e.preventDefault();
+          break;
+        case 'w':
+          solarWindSpeed = Math.min(100, solarWindSpeed + 10);
+          document.getElementById('solarWind').value = solarWindSpeed;
+          document.getElementById('solarWindValue').textContent = (solarWindSpeed * 10 + 100) + ' km/s';
+          break;
+        case 's':
+          solarWindSpeed = Math.max(0, solarWindSpeed - 10);
+          document.getElementById('solarWind').value = solarWindSpeed;
+          document.getElementById('solarWindValue').textContent = (solarWindSpeed * 10 + 100) + ' km/s';
+          break;
+        case 'a':
+          fieldTilt = Math.max(-50, fieldTilt - 10);
+          document.getElementById('fieldTilt').value = fieldTilt;
+          document.getElementById('fieldTiltValue').textContent = fieldTilt + '°';
+          break;
+        case 'd':
+          fieldTilt = Math.min(50, fieldTilt + 10);
+          document.getElementById('fieldTilt').value = fieldTilt;
+          document.getElementById('fieldTiltValue').textContent = fieldTilt + '°';
+          break;
+        case 'r':
+          // Reset to calm conditions
+          solarWindSpeed = 30;
+          flareActivity = 10;
+          stormIntensity = 20;
+          updateSliders();
+          break;
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Update all sliders
+    function updateSliders() {
+      document.getElementById('solarWind').value = solarWindSpeed;
+      document.getElementById('flareActivity').value = flareActivity;
+      document.getElementById('stormIntensity').value = stormIntensity;
+      
+      document.getElementById('solarWindValue').textContent = (solarWindSpeed * 10 + 100) + ' km/s';
+      document.getElementById('flareActivityValue').textContent = flareActivity + '%';
+      document.getElementById('stormIntensityValue').textContent = 'KP-' + Math.floor(stormIntensity / 16.7 + 1);
+    }
+    
+    // Controls setup
+    function setupControls() {
+      // Aurora type buttons
+      document.querySelectorAll('[id^="type-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="type-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentAuroraType = btn.id.replace('type-', '');
+        });
+      });
+      
+      // Color scheme selection
+      document.querySelectorAll('.scheme-preview').forEach(preview => {
+        preview.addEventListener('click', () => {
+          document.querySelectorAll('.scheme-preview').forEach(p => p.classList.remove('active'));
+          preview.classList.add('active');
+          currentColorScheme = preview.dataset.scheme;
+        });
+      });
+      
+      // Glow level buttons
+      document.querySelectorAll('[id^="glow-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="glow-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          glowLevel = btn.id.replace('glow-', '');
+        });
+      });
+      
+      // Shimmer toggle
+      document.getElementById('shimmer').addEventListener('click', () => {
+        shimmerEnabled = !shimmerEnabled;
+        document.getElementById('shimmer').classList.toggle('active', shimmerEnabled);
+      });
+      
+      // Sliders
+      const sliders = [
+        { id: 'solarWind', prop: 'solarWindSpeed', display: 'solarWindValue', format: v => (v * 10 + 100) + ' km/s' },
+        { id: 'particleDensity', prop: 'particleDensity', display: 'particleDensityValue' },
+        { id: 'flareActivity', prop: 'flareActivity', display: 'flareActivityValue', format: v => v + '%' },
+        { id: 'magneticStrength', prop: 'magneticStrength', display: 'magneticStrengthValue', format: v => v + '%' },
+        { id: 'fieldTilt', prop: 'fieldTilt', display: 'fieldTiltValue', format: v => v + '°' },
+        { id: 'stormIntensity', prop: 'stormIntensity', display: 'stormIntensityValue', format: v => 'KP-' + Math.floor(v / 16.7 + 1) },
+        { id: 'altitude', prop: 'altitude', display: 'altitudeValue', format: v => v + ' km' },
+        { id: 'atmosphere', prop: 'atmosphericDensity', display: 'atmosphereValue', format: v => v + '%' },
+        { id: 'collisionRate', prop: 'collisionRate', display: 'collisionRateValue', format: v => v + '%' },
+        { id: 'brightness', prop: 'brightness', display: 'brightnessValue', format: v => v + '%' },
+        { id: 'motionBlur', prop: 'motionBlur', display: 'motionBlurValue' },
+        { id: 'timeScale', prop: 'timeScale', display: 'timeScaleValue', format: v => v + 'x' }
+      ];
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        if (element && display) {
+          element.addEventListener('input', () => {
+            const value = parseFloat(element.value);
+            window[slider.prop] = value;
+            display.textContent = slider.format ? slider.format(value) : value;
+            updateStats();
+          });
+          
+          // Initialize display
+          const value = parseFloat(element.value);
+          display.textContent = slider.format ? slider.format(value) : value;
+        }
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        particles = [];
+        time = 0;
+      });
+      
+      document.getElementById('saveBtn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = `aurora-${Date.now()}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+      
+      document.getElementById('realtimeBtn').addEventListener('click', () => {
+        // Simulate real-time data
+        solarWindSpeed = 30 + Math.random() * 40;
+        flareActivity = Math.random() * 60;
+        stormIntensity = Math.random() * 80;
+        updateSliders();
+        updateStats();
+      });
+    }
+    
+    // Update statistics and displays
+    function updateStats() {
+      document.getElementById('particleCount').textContent = particles.length;
+      document.getElementById('solarWindDisplay').textContent = Math.round(solarWindSpeed) + '%';
+      document.getElementById('magneticFieldDisplay').textContent = magneticStrength > 80 ? 'Strong' : magneticStrength > 40 ? 'Normal' : 'Weak';
+      document.getElementById('intensityDisplay').textContent = 'KP-' + Math.floor(stormIntensity / 16.7 + 1);
+      
+      // Update intensity marker
+      const marker = document.getElementById('intensityMarker');
+      marker.style.left = (stormIntensity) + '%';
+      
+      // Update weather info
+      const solarActivityLevels = ['Quiet', 'Low', 'Moderate', 'High', 'Extreme'];
+      const solarLevel = Math.floor(solarWindSpeed / 20);
+      document.getElementById('solarActivity').textContent = solarActivityLevels[Math.min(4, solarLevel)];
+      
+      const stormLevels = ['Quiet', 'Minor', 'Moderate', 'Strong', 'Severe'];
+      const stormLevel = Math.floor(stormIntensity / 20);
+      document.getElementById('magneticStorm').textContent = stormLevels[Math.min(4, stormLevel)];
+      
+      const visibilityLevels = ['Poor', 'Fair', 'Good', 'Excellent', 'Perfect'];
+      const visLevel = Math.floor((100 - atmosphericDensity + brightness) / 40);
+      document.getElementById('visibility').textContent = visibilityLevels[Math.min(4, visLevel)];
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        time += 16;
+        
+        generateSolarWind();
+        
+        // Update particles
+        particles = particles.filter(particle => {
+          if (particle.update) {
+            return particle.update(16);
+          } else {
+            // Handle emission particles
+            particle.age += 16;
+            particle.life = Math.max(0, 1 - (particle.age / particle.maxLife));
+            return particle.life > 0;
+          }
+        });
+        
+        updateStats();
+      }
+      
+      // Clear canvas with motion blur
+      if (motionBlur > 0) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + motionBlur * 0.02})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      drawBackground();
+      
+      // Draw aurora curtains for ambient effect
+      if (currentAuroraType === 'curtain' || currentAuroraType === 'diffuse') {
+        drawAuroraCurtains();
+      }
+      
+      // Draw particles
+      particles.forEach(particle => {
+        if (particle.draw) {
+          particle.draw();
+        } else {
+          // Draw emission particles
+          const colors = colorSchemes[currentColorScheme];
+          const alpha = particle.life;
+          const glowSize = 5 + Math.sin(time * 0.01) * 2;
+          
+          const glow = ctx.createRadialGradient(
+            particle.x, particle.y, 0,
+            particle.x, particle.y, glowSize
+          );
+          glow.addColorStop(0, `rgba(${particle.color.r}, ${particle.color.g}, ${particle.color.b}, ${alpha})`);
+          glow.addColorStop(1, `rgba(${particle.color.r}, ${particle.color.g}, ${particle.color.b}, 0)`);
+          
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    setupControls();
+    updateStats();
+    animate();
+  </script>
+</body>
+</html>

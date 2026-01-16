@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LittleTaskMan - Task Management</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Load utility scripts first -->
+  <script src="/js/errorHandling.js"></script>
+  <script src="/js/gantt.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo-->
+    <span id="logo-text">littleTaskMan</span>
+    <!-- Tab Navigation -->
+    <div class="tabs">      
+      <div class="app-title">
+        <div>
+          <img src="images/logo.svg" width="128" height="90" alt="Little Path Man"/>
+        </div>
+      </div>
+      <div class="tab active" data-view="tasksView">Tasks</div>
+      <div class="tab" data-view="usersView">Users</div>
+      <div class="tab" data-view="projectsView">Projects</div>
+      <div class="tab" data-view="ganttView">Gantt Chart</div>
+    </div>
+    
+    <!-- Error Message Container -->
+    <div id="errorMessage" class="error-message"></div>
+
+  <!-- Tasks View -->
+  <div id="tasksView" class="view active">
+    <h2>Tasks</h2>
+    <span class="toggle-form" data-target="taskFormContainer">+ Add New Task</span>
+    <!-- Add/Edit Task Form -->
+    <div class="form-container" id="taskFormContainer">
+      <h3 id="taskFormTitle">Add New Task</h3>
+      <form id="taskForm">
+        <input type="hidden" id="taskId" value="">
+        <div>
+          <label>Project: </label>
+          <!-- Select populated from projects API -->
+          <select id="project" required></select>
+        </div>
+        <div>
+          <label>Title: </label>
+          <input type="text" id="title" required>
+        </div>
+        <div>
+          <label>User: </label>
+          <!-- Select populated from users API -->
+          <select id="assignedUser" required></select>
+        </div>
+        <div>
+          <label>Start Date: </label>
+          <input type="date" id="startDate" required>
+        </div>
+        <div>
+          <label>Deadline: </label>
+          <input type="date" id="deadline" required>
+        </div>
+        <div>
+          <label>Duration (days): </label>
+          <input type="number" id="duration" min="1" value="1">
+        </div>
+        <div>
+          <label>Status: </label>
+          <select id="status" required>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Blocked">Blocked</option>
+            <option value="Postponed">Postponed</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveTaskBtn" class="btn-primary">Save Task</button>
+          <button type="button" id="cancelTaskBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Tasks Table -->
+    <table id="tasksTable" class="collapsible-table">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Title</th>
+          <th>User</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Project groups and task rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Users View -->
+  <div id="usersView" class="view">
+    <h2>Users</h2>
+    <span class="toggle-form" data-target="userFormContainer">+ Add New User</span>
+    <!-- Add/Edit User Form -->
+    <div class="form-container" id="userFormContainer">
+      <h3 id="userFormTitle">Add New User</h3>
+      <form id="userForm">
+        <input type="hidden" id="userId" value="">
+        <div>
+          <label>Username: </label>
+          <input type="text" id="username" required>
+        </div>
+        <div>
+          <label>Role: </label>
+          <select id="role" required>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveUserBtn" class="btn-primary">Save User</button>
+          <button type="button" id="cancelUserBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Users Table -->
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- User rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Gantt View -->
+  <div id="ganttView" class="view">
+    <h2>Project Timeline</h2>
+    <div class="gantt-toolbar">
+      <select id="ganttProjectFilter">
+        <option value="all">All Projects</option>
+        <!-- Projects will be added here -->
+      </select>
+      <button id="zoomInBtn" class="btn-secondary">Zoom In</button>
+      <button id="zoomOutBtn" class="btn-secondary">Zoom Out</button>
+      <button id="todayBtn" class="btn-secondary">Today</button>
+    </div>
+    <div id="ganttChart" style="width:100%; height:500px;"></div>
+  </div>
+
+  <!-- Projects View -->
+  <div id="projectsView" class="view">
+    <h2>Projects</h2>
+    <span class="toggle-form" data-target="projectFormContainer">+ Add New Project</span>
+    <!-- Add/Edit Project Form -->
+    <div class="form-container" id="projectFormContainer">
+      <h3 id="projectFormTitle">Add New Project</h3>
+      <form id="projectForm">
+        <input type="hidden" id="projectIdField" value="">
+        <div>
+          <label>Project Name: </label>
+          <input type="text" id="projectName" required>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveProjectBtn" class="btn-primary">Save Project</button>
+          <button type="button" id="cancelProjectBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Projects Table -->
+    <table id="projectsTable">
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Project rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  
+  <script>
+    // API endpoints
+    const TASKS_API = '/api/tasks';
+    const USERS_API = '/api/users';
+    const PROJECTS_API = '/api/projects';
+    
+    // Declare functions for global access
+    window.editTask = null;
+    window.deleteTask = null;
+    window.editUser = null;
+    window.deleteUser = null;
+    window.editProject = null;
+    window.deleteProject = null;
+
+    /* ----------------- Utility Functions ----------------- */
+
+    // Function to map status to a corresponding CSS class
+    function getStatusClass(status) {
+      switch(status.toLowerCase()) {
+        case 'open': return 'status-open';
+        case 'in progress': return 'status-in-progress';
+        case 'completed': return 'status-completed';
+        default: return '';
+      }
+    }
+
+    /* ----------------- Tab Navigation ----------------- */
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.view).classList.add('active');
+      });
+    });
+
+    /* ----------------- Toggle Forms ----------------- */
+    document.querySelectorAll('.toggle-form').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const targetId = toggle.getAttribute('data-target');
+        const formContainer = document.getElementById(targetId);
+        formContainer.style.display = formContainer.style.display === 'block' ? 'none' : 'block';
+      });
+    });
+
+    /* ----------------- Tasks Functions ----------------- */
+    async function populateProjectOptions() {
+      try {
+        const projects = await fetchWithErrorHandling(PROJECTS_API);
+        const projectSelect = document.getElementById('project');
+        projectSelect.innerHTML = '<option value="">Select a project</option>';
+        projects.forEach(project => {
+          const option = document.createElement('option');
+          option.value = project.name; // or use project.id if preferred
+          option.textContent = project.name;
+          projectSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error populating project options:', error);
+      }
+    }
+
+    async function populateUserOptions() {
+      try {
+        const users = await fetchWithErrorHandling(USERS_API);
+        const userSelect = document.getElementById('assignedUser');
+        userSelect.innerHTML = '<option value="">Select a user</option>';
+        users.forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.username; // or use user.id if preferred
+          option.textContent = user.username;
+          userSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error populating user options:', error);
+      }
+    }
+
+    async function fetchTasks() {
+      try {
+        const tasks = await fetchWithErrorHandling(TASKS_API);
+        console.log('Tasks fetched:', tasks); // Debug log
+        renderTasks(tasks);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    }
+
+    function renderTasks(tasks) {
+      console.log('Rendering tasks:', tasks);
+      const tbody = document.querySelector('#tasksTable tbody');
+      console.log('Tasks table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!tasks || tasks.length === 0) {
+        console.log('No tasks found, rendering empty state');
+        if (typeof renderEmptyTasksState === 'function') {
+          renderEmptyTasksState(tbody);
+        } else {
+          console.error('renderEmptyTasksState function not found');
+          tbody.innerHTML = '<tr><td colspan="6">No tasks found. Error: renderEmptyTasksState function not found.</td></tr>';
+        }
+        return;
+      }
+      
+      // Group tasks by project
+      const tasksByProject = {};
+      tasks.forEach(task => {
+        const projectName = task.project;
+        if (!tasksByProject[projectName]) {
+          tasksByProject[projectName] = [];
+        }
+        tasksByProject[projectName].push(task);
+      });
+      
+      // Render each project group
+      Object.keys(tasksByProject).forEach(projectName => {
+        // Create project header row
+        const projectHeader = document.createElement('tr');
+        projectHeader.className = 'project-header';
+        projectHeader.dataset.project = projectName;
+        
+        // Use a unique ID for the project to link tasks to it
+        const projectId = 'project-' + projectName.replace(/\s+/g, '-').toLowerCase();
+        projectHeader.id = projectId;
+        
+        projectHeader.innerHTML = `
+          <td colspan="6" class="project-name">
+            <div class="project-toggle">
+              <span class="toggle-icon">▼</span>
+              <span class="project-title">${projectName}</span>
+              <span class="task-count">(${tasksByProject[projectName].length} tasks)</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(projectHeader);
+        
+        // Add click event to the project header in the DOM (after it's added)
+        projectHeader.querySelector('.project-toggle').addEventListener('click', function() {
+          const projectRows = document.querySelectorAll(`.task-row[data-project="${projectName}"]`);
+          const toggleIcon = this.querySelector('.toggle-icon');
+          
+          // Toggle visibility
+          projectRows.forEach(row => {
+            row.classList.toggle('hidden');
+          });
+          
+          // Change toggle icon
+          toggleIcon.textContent = toggleIcon.textContent === '▼' ? '►' : '▼';
+        });
+        
+        // Render tasks for this project
+        tasksByProject[projectName].forEach(task => {
+          console.log('Creating row for task:', task);
+          const tr = document.createElement('tr');
+          tr.className = 'task-row';
+          tr.dataset.project = projectName;
+          
+          tr.innerHTML = `
+            <td class="task-project-cell">
+              <span class="task-indent"></span>
+              ${task.project}
+            </td>
+            <td>${task.title}</td>
+            <td>${task.assignedUser}</td>
+            <td>${task.deadline}</td>
+            <td><div class="status-bar ${getStatusClass(task.status)}">${task.status}</div></td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-secondary" onclick="editTask('${task.id}')">Edit</button>
+                <button class="btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+      
+      console.log('Finished rendering tasks');
+    }
+    
+    // Helper function to render empty tasks state
+    function renderEmptyTasksState(tbody) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.className = 'empty-state';
+      td.innerHTML = `
+        <div class="empty-state-message">
+          <p>No tasks found</p>
+          <button onclick="document.querySelector('[data-target=\\'taskFormContainer\\']').click()">
+            Create your first task
+          </button>
+        </div>
+      `;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('taskId').value;
+      const taskData = {
+        project: document.getElementById('project').value,
+        title: document.getElementById('title').value,
+        assignedUser: document.getElementById('assignedUser').value,
+        start_date: document.getElementById('startDate').value,
+        deadline: document.getElementById('deadline').value,
+        duration: parseInt(document.getElementById('duration').value) || 1,
+        status: document.getElementById('status').value
+      };
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${TASKS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+        } else {
+          await fetchWithErrorHandling(TASKS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+        }
+        resetTaskForm();
+        fetchTasks();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving task:', error);
+      }
+    });
+
+    // Define editTask in the global scope
+    window.editTask = async function(id) {
+      try {
+        const task = await fetchWithErrorHandling(`${TASKS_API}/${id}`);
+        
+        // Refresh select options to ensure they contain the latest data
+        await populateProjectOptions();
+        await populateUserOptions();
+        
+        // Populate the form fields with the existing task data
+        document.getElementById('taskId').value = task.id;
+        document.getElementById('project').value = task.project;         // Pre-select the project
+        document.getElementById('title').value = task.title;
+        document.getElementById('assignedUser').value = task.assignedUser;   // Pre-select the user
+        document.getElementById('startDate').value = task.start_date || '';
+        document.getElementById('deadline').value = task.deadline;
+        document.getElementById('duration').value = task.duration || 1;
+        document.getElementById('status').value = task.status;
+        
+        // Update the form title and show the form
+        document.getElementById('taskFormTitle').textContent = 'Edit Task';
+        document.getElementById('taskFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching task for edit:', error);
+      }
+    }
+
+    // Define deleteTask in the global scope
+    window.deleteTask = async function(id) {
+      if (confirm('Are you sure you want to delete this task?')) {
+        try {
+          await fetchWithErrorHandling(`${TASKS_API}/${id}`, { method: 'DELETE' });
+          fetchTasks();
+        } catch (error) {
+          console.error('Error deleting task:', error);
+        }
+      }
+    }
+
+    function resetTaskForm() {
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskId').value = '';
+      document.getElementById('taskFormTitle').textContent = 'Add New Task';
+      document.getElementById('taskFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelTaskBtn').addEventListener('click', resetTaskForm);
+
+    /* ----------------- Users Functions ----------------- */
+    async function fetchUsers() {
+      try {
+        const users = await fetchWithErrorHandling(USERS_API);
+        console.log('Users fetched:', users); // Debug log
+        renderUsers(users);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+
+    function renderUsers(users) {
+      console.log('Rendering users:', users);
+      const tbody = document.querySelector('#usersTable tbody');
+      console.log('Users table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!users || users.length === 0) {
+        console.log('No users found, rendering empty state');
+        if (typeof renderEmptyUsersState === 'function') {
+          renderEmptyUsersState(tbody);
+        } else {
+          console.error('renderEmptyUsersState function not found');
+          tbody.innerHTML = '<tr><td colspan="3">No users found. Error: renderEmptyUsersState function not found.</td></tr>';
+        }
+        return;
+      }
+      
+      users.forEach(user => {
+        console.log('Creating row for user:', user);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="editUser('${user.id}')">Edit</button>
+              <button class="btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      console.log('Finished rendering users');
+    }
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('userId').value;
+      const userData = {
+        username: document.getElementById('username').value,
+        role: document.getElementById('role').value
+      };
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${USERS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          });
+        } else {
+          await fetchWithErrorHandling(USERS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          });
+        }
+        resetUserForm();
+        fetchUsers();
+        // Also refresh task users in case the updated user should be available
+        populateUserOptions();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving user:', error);
+      }
+    });
+
+    // Define editUser in the global scope
+    window.editUser = async function(id) {
+      try {
+        const user = await fetchWithErrorHandling(`${USERS_API}/${id}`);
+        document.getElementById('userId').value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('role').value = user.role;
+        document.getElementById('userFormTitle').textContent = 'Edit User';
+        document.getElementById('userFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching user for edit:', error);
+      }
+    }
+
+    // Define deleteUser in the global scope
+    window.deleteUser = async function(id) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        try {
+          await fetchWithErrorHandling(`${USERS_API}/${id}`, { method: 'DELETE' });
+          fetchUsers();
+          populateUserOptions();
+        } catch (error) {
+          console.error('Error deleting user:', error);
+        }
+      }
+    }
+
+    function resetUserForm() {
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('userFormTitle').textContent = 'Add New User';
+      document.getElementById('userFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelUserBtn').addEventListener('click', resetUserForm);
+
+    /* ----------------- Gantt Chart View ----------------- */
+    // Gantt chart initialization and functions will be added here
+    
+    /* ----------------- Projects Functions ----------------- */
+    async function fetchProjects() {
+      try {
+        const projects = await fetchWithErrorHandling(PROJECTS_API);
+        console.log('Projects fetched:', projects); // Debug log
+        renderProjects(projects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    }
+
+    function renderProjects(projects) {
+      console.log('Rendering projects:', projects);
+      const tbody = document.querySelector('#projectsTable tbody');
+      console.log('Projects table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!projects || projects.length === 0) {
+        console.log('No projects found, rendering empty state');
+        if (typeof renderEmptyProjectsState === 'function') {
+          renderEmptyProjectsState(tbody);
+        } else {
+          console.error('renderEmptyProjectsState function not found');
+          tbody.innerHTML = '<tr><td colspan="2">No projects found. Error: renderEmptyProjectsState function not found.</td></tr>';
+        }
+        return;
+      }
+      
+      projects.forEach(project => {
+        console.log('Creating row for project:', project);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${project.name}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="editProject('${project.id}')">Edit</button>
+              <button class="btn-danger" onclick="deleteProject('${project.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      console.log('Finished rendering projects');
+    }
+
+    document.getElementById('projectForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('projectIdField').value;
+      const projectData = { name: document.getElementById('projectName').value };
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${PROJECTS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectData)
+          });
+        } else {
+          await fetchWithErrorHandling(PROJECTS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectData)
+          });
+        }
+        resetProjectForm();
+        fetchProjects();
+        // Also refresh project options for tasks
+        populateProjectOptions();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving project:', error);
+      }
+    });
+
+    // Define editProject in the global scope
+    window.editProject = async function(id) {
+      try {
+        const project = await fetchWithErrorHandling(`${PROJECTS_API}/${id}`);
+        document.getElementById('projectIdField').value = project.id;
+        document.getElementById('projectName').value = project.name;
+        document.getElementById('projectFormTitle').textContent = 'Edit Project';
+        document.getElementById('projectFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching project for edit:', error);
+      }
+    }
+
+    // Define deleteProject in the global scope
+    window.deleteProject = async function(id) {
+      if (confirm('Are you sure you want to delete this project?')) {
+        try {
+          await fetchWithErrorHandling(`${PROJECTS_API}/${id}`, { method: 'DELETE' });
+          fetchProjects();
+          populateProjectOptions();
+        } catch (error) {
+          console.error('Error deleting project:', error);
+        }
+      }
+    }
+
+    function resetProjectForm() {
+      document.getElementById('projectForm').reset();
+      document.getElementById('projectIdField').value = '';
+      document.getElementById('projectFormTitle').textContent = 'Add New Project';
+      document.getElementById('projectFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelProjectBtn').addEventListener('click', resetProjectForm);
+
+    /* ----------------- Initialization ----------------- */
+    (async function init() {
+      await populateProjectOptions();
+      await populateUserOptions();
+      fetchTasks();
+      fetchUsers();
+      fetchProjects();
+    })();
+  </script>
+  </div><!-- end .container -->
+</body>
+</html>

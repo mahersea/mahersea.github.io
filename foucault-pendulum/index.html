@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Foucault Pendulum • Three.js</title>
+  <style>
+    :root { --bg:#000; --fg:#eee; }
+    body  { margin:0; background:var(--bg); color:var(--fg); font-family:sans-serif; }
+    #ui   { position:fixed; top:10px; left:10px; background:#111a; padding:10px 14px;
+            border-radius:8px; backdrop-filter:blur(4px); }
+    #ui label { display:block; font-size:0.85rem; margin:6px 0 2px; }
+    #ui input { width:180px; }
+    #ui span  { float:right; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label>Latitude (°) <span id="latVal">45</span></label>
+    <input type="range" id="lat"  min="-90" max="90" value="45">
+    
+    <label>Length (m) <span id="lenVal">30</span></label>
+    <input type="range" id="len"  min="5" max="50" value="30">
+    
+    <label>Amplitude (°) <span id="ampVal">4</span></label>
+    <input type="range" id="amp"  min="1" max="20" value="4">
+    
+    <label>Time‑warp × <span id="spdVal">60</span></label>
+    <input type="range" id="spd"  min="1" max="300" value="60">
+    
+    <label><input type="checkbox" id="trail" checked> Fade trail</label>
+  </div>
+
+
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+  /* ---------- scene setup ---------- */
+  const scene = new THREE.Scene();
+  const cam   = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .1, 1000);
+  cam.position.set(0,12,35);
+  scene.add(new THREE.AmbientLight(0xffffff, .8));
+  const light = new THREE.DirectionalLight(0xffffff,.6); light.position.set(20,50,20); scene.add(light);
+
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  /* ---------- ground compass ---------- */
+  const compass = new THREE.Group();
+  const circ    = new THREE.RingGeometry(19.8,20, 64);
+  const matLine = new THREE.MeshBasicMaterial({color:0x444444, side:THREE.DoubleSide});
+  compass.add(new THREE.Mesh(circ,matLine));
+
+  // cardinal spokes
+  const spokeGeom = new THREE.CylinderGeometry(.05,.05,20,6);
+  ['N','E','S','W'].forEach((d,i)=>{
+    const s = new THREE.Mesh(spokeGeom,matLine);
+    s.rotation.z = i*Math.PI/2;  s.position.set(0,0,0);
+    compass.add(s);
+  });
+  compass.rotation.x = -Math.PI/2;
+  scene.add(compass);
+
+  /* ---------- pendulum parts ---------- */
+  const g = 9.80665;           // m s‑2
+  let  L    = 30,              // default length (slider)
+       Adeg = 4,               // small amplitude in °
+       ω,  A,                  // derived freq / amplitude in radians
+       φdeg = 45,              // latitude °
+       Ω,                       // precession rate
+       speed=60;               // time‑warp
+  const bobGeom = new THREE.SphereGeometry(1.2,32,32);
+  const bobMat  = new THREE.MeshStandardMaterial({color:0xd06040, metalness:.3, roughness:.4});
+  const bob     = new THREE.Mesh(bobGeom,bobMat);
+  scene.add(bob);
+
+  const rodMat  = new THREE.MeshStandardMaterial({color:0xa0a0a0, metalness:.5, roughness:.6});
+  const rodGeom = new THREE.CylinderGeometry(.05,.05,1,8,1,true);
+  const rod     = new THREE.Mesh(rodGeom,rodMat);
+  scene.add(rod);
+
+  /* ---------- trail ---------- */
+  const trailMat = new THREE.LineBasicMaterial({color:0x00ffff, transparent:true, opacity:.8});
+  const trailGeom= new THREE.BufferGeometry().setFromPoints([new THREE.Vector3()]);
+  const trailLine= new THREE.Line(trailGeom, trailMat);
+  scene.add(trailLine);
+  let trailPts=[];
+
+  /* ---------- orbit-ish controls ---------- */
+  let dragging=false, old={x:0,y:0}, rot={x:-.3,y:0};
+  renderer.domElement.addEventListener('mousedown',e=>{dragging=true;old.x=e.clientX;old.y=e.clientY});
+  window.addEventListener('mouseup',   ()=>dragging=false);
+  window.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    rot.y += (e.clientX-old.x)*0.005;
+    rot.x += (e.clientY-old.y)*0.005;
+    rot.x = Math.max(-Math.PI/2, Math.min(Math.PI/2,rot.x));
+    old.x=e.clientX; old.y=e.clientY;
+  });
+  window.addEventListener('wheel',e=>{
+    cam.position.multiplyScalar(1+e.deltaY*0.001);
+  });
+
+  /* ---------- helpers ---------- */
+  function updateParams(){
+    ω   = Math.sqrt(g/L);
+    A   = THREE.MathUtils.degToRad(Adeg);
+    Ω   = (2*Math.PI/86400)*Math.sin(THREE.MathUtils.degToRad(φdeg)); // rad s‑1
+    bob.position.set(0,-L,0);
+    rod.scale.set(1,L,1);
+    rod.position.set(0,-L/2,0);
+    rod.rotation.z=0;
+    trailPts=[]; trailGeom.setFromPoints(trailPts);
+  }
+
+  /* ---------- UI wiring ---------- */
+  const qs = id=>document.getElementById(id);
+  ['lat','len','amp','spd'].forEach(id=>{
+    qs(id).addEventListener('input',e=>{
+      ({lat:φdeg,len:L,amp:Adeg,spd:speed}[id]=parseFloat(e.target.value));
+      qs(id+'Val').textContent=e.target.value;
+      updateParams();
+    });
+  });
+  updateParams();
+
+  /* ---------- animation ---------- */
+  let t=0, last=performance.now();
+  function animate(now){
+    const dt = (now-last)/1000 * speed; last=now; t+=dt;
+
+    // small‑angle bob displacement in its (slow‑rotating) swing plane:
+    const θ = A*Math.cos(ω*t);
+    const xLocal =  L* Math.sin(θ);
+    const yLocal = -L* Math.cos(θ);       // vertical
+    const α = Ω*t;                         // rotation of swing plane
+
+    bob.position.set( xLocal*Math.cos(α), yLocal, xLocal*Math.sin(α) );
+    rod.lookAt(bob.position);
+    rod.scale.y = L;
+    rod.position.copy(bob.position).addScaledVector(rod.up, -L/2);
+
+    /* trail */
+    if(qs('trail').checked){
+      trailPts.push(bob.position.clone());
+      if(trailPts.length>1200) trailPts.shift();
+      trailGeom.setFromPoints(trailPts);
+      // exponential fade
+      trailMat.opacity = .8 * Math.exp(-trailPts.length/1200);
+    } else {
+      trailPts=[]; trailGeom.setFromPoints(trailPts);
+    }
+
+    /* camera */
+    cam.position.set( 35*Math.sin(rot.y)*Math.cos(rot.x),
+                      35*Math.sin(rot.x),
+                      35*Math.cos(rot.y)*Math.cos(rot.x) );
+    cam.lookAt(0,0,0);
+
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.render(scene, cam);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
+  </script>
+</body>
+</html>

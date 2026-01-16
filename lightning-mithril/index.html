@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mithril Canvas Playground</title>
+  <style>
+    body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: sans-serif; color: #eee; }
+    #controls { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; }
+    #controls label { display: block; margin-bottom: 8px; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="controls"></div>
+
+  <!-- MithrilJS CDN -->
+  <script src="https://unpkg.com/mithril/mithril.js"></script>
+  <script>
+    // Lightning simulation with fade
+    function LightningSimulator(canvas, opts) {
+      this.ctx = canvas.getContext('2d');
+      this.width = canvas.width = window.innerWidth;
+      this.height = canvas.height = window.innerHeight;
+      this.opts = opts;
+      this.strikes = [];
+      window.addEventListener('resize', () => {
+        this.width = canvas.width = window.innerWidth;
+        this.height = canvas.height = window.innerHeight;
+      });
+    }
+    LightningSimulator.prototype.spark = function() {
+      // generate a lightning path
+      const x0 = Math.random() * this.width;
+      const y0 = 0;
+      const segments = [];
+      let x = x0, y = y0;
+      const stepY = this.height / 10;
+      for (let i = 0; i < 12; i++) {
+        const nx = x + (Math.random() - 0.5) * stepY;
+        const ny = y + stepY;
+        segments.push({ x1: x, y1: y, x2: nx, y2: ny });
+        x = nx; y = ny;
+      }
+      this.strikes.push({ segments, alpha: 1.0, life: 0 });
+    };
+    LightningSimulator.prototype.update = function() {
+      // chance to spark
+      if (Math.random() < this.opts.frequency) this.spark();
+      // fade canvas to black
+      this.ctx.fillStyle = `rgba(0,0,0,${this.opts.fade})`;
+      this.ctx.fillRect(0, 0, this.width, this.height);
+      // draw strikes
+      this.strikes.forEach((strike, i) => {
+        this.ctx.strokeStyle = `rgba(255,255,255,${strike.alpha})`;
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        strike.segments.forEach(seg => {
+          this.ctx.moveTo(seg.x1, seg.y1);
+          this.ctx.lineTo(seg.x2, seg.y2);
+        });
+        this.ctx.stroke();
+        strike.life += 1;
+        strike.alpha *= this.opts.decay;
+        if (strike.life > 8) this.strikes.splice(i, 1);
+      });
+    };
+
+    // Mithril component
+    const App = {
+      oninit(vnode) {
+        vnode.state.opts = {
+          frequency: 0.005,
+          decay: 0.85,
+          fade: 0.1
+        };
+      },
+      oncreate(vnode) {
+        const canvas = document.getElementById('canvas');
+        vnode.state.sim = new LightningSimulator(canvas, vnode.state.opts);
+        function loop() {
+          vnode.state.sim.update();
+          requestAnimationFrame(loop);
+        }
+        loop();
+      },
+      view(vnode) {
+        return m('div', {}, [
+          m(Controls, { opts: vnode.state.opts })
+        ]);
+      }
+    };
+
+    const Controls = {
+      view({ attrs }) {
+        return m('#controls', attrs.opts, [
+          m('label', 'Frequency: ' + attrs.opts.frequency.toFixed(3)),
+          m('input[type=range][min=0][max=0.05][step=0.001]', {
+            value: attrs.opts.frequency,
+            oninput: (e) => { attrs.opts.frequency = parseFloat(e.target.value); }
+          }),
+          m('label', 'Decay: ' + attrs.opts.decay.toFixed(2)),
+          m('input[type=range][min=0.7][max=0.99][step=0.01]', {
+            value: attrs.opts.decay,
+            oninput: (e) => { attrs.opts.decay = parseFloat(e.target.value); }
+          }),
+          m('label', 'Fade: ' + attrs.opts.fade.toFixed(2)),
+          m('input[type=range][min=0.05][max=0.3][step=0.01]', {
+            value: attrs.opts.fade,
+            oninput: (e) => { attrs.opts.fade = parseFloat(e.target.value); }
+          })
+        ]);
+      }
+    };
+
+    // mount the app
+    m.mount(document.body, App);
+  </script>
+</body>
+</html>

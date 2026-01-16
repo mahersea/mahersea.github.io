@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Street Vehicles Traffic Simulation</title>
+  <meta name="description" content="Interactive street traffic simulation with vehicle pathfinding, trail tracking, and sound effects">
+  <style>
+    body { 
+      margin: 0; 
+      background: #1a1a1a; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      height: 100vh;
+    }
+    .simulation-view {
+      position: relative;
+      background: #2a2a2a;
+    }
+    .controls-panel {
+      background: #1a1a1a;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #333;
+    }
+    canvas {
+      display: block;
+      outline: none;
+      position: relative;
+      background: #2a2a2a;
+    }
+    .cursor-indicator {
+      position: absolute;
+      border: 3px solid #ff6b35;
+      background: rgba(255, 107, 53, 0.3);
+      pointer-events: none;
+      z-index: 10;
+      transition: all 0.1s ease;
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .control-group h3 {
+      margin: 0 0 10px 0;
+      color: #ff6b35;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 80px;
+      color: #ccc;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #ff6b35;
+    }
+    select {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin: 0 5px;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #ff6b35;
+      min-width: 50px;
+      text-align: right;
+      font-weight: bold;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #444;
+      border-color: #666;
+    }
+    button.active {
+      background: #ff6b35;
+      border-color: #ff6b35;
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    .stats {
+      background: #0a0a0a;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #333;
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 2px 0;
+    }
+    .metric-value {
+      color: #ff6b35;
+      font-weight: bold;
+    }
+    .mode-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .info-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 300px;
+      font-size: 12px;
+      border: 1px solid #333;
+    }
+    .trail-strength {
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(to right, #000000, #440000, #880000, #ff4400, #ff8844);
+      border-radius: 3px;
+      margin: 5px 0;
+    }
+    kbd {
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 10px;
+    }
+    .time-display {
+      font-family: monospace;
+      font-size: 14px;
+      color: #ff6b35;
+      text-align: center;
+      margin: 10px 0;
+      padding: 5px;
+      background: #333;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="simulation-view">
+      <canvas id="canvas" tabindex="0"></canvas>
+      <div class="info-panel">
+        <h3>🚗 Street Traffic Simulation</h3>
+        <p><strong>Keyboard Controls:</strong></p>
+        <p><kbd>D</kbd>: Add destination | <kbd>T</kbd>: Add traffic light</p>
+        <p><kbd>O</kbd>: Add obstruction | <kbd>V</kbd>: Add vehicles</p>
+        <p><kbd>Space</kbd>: Rush hour | <kbd>S</kbd>: Toggle sound</p>
+        <p><kbd>C</kbd>: Clear trails | <kbd>R</kbd>: Reset simulation</p>
+        <p><kbd>P</kbd>: Pause/Resume | <kbd>N</kbd>: Toggle night mode</p>
+        <p><kbd>↑↓←→</kbd>: Move cursor | <strong>Grid-based placement!</strong></p>
+        <br>
+        <div style="font-size: 11px; color: #ff6b35; margin-top: 5px;">
+          Cursor: <span id="cursorPos">0, 0</span>
+        </div>
+        <br>
+        <div style="font-size: 11px; color: #aaa;">
+          Traffic Density:
+          <div class="trail-strength"></div>
+          Light → Heavy
+        </div>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🚦 Traffic Control</h2>
+      
+      <div class="time-display" id="timeDisplay">06:00 AM</div>
+      
+      <div class="stats">
+        <div class="metric">
+          <span>Vehicles:</span>
+          <span class="metric-value" id="vehicleCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Destinations:</span>
+          <span class="metric-value" id="destinationCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Traffic Lights:</span>
+          <span class="metric-value" id="trafficLightCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Obstructions:</span>
+          <span class="metric-value" id="obstructionCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Traffic Density:</span>
+          <span class="metric-value" id="trafficDensity">0%</span>
+        </div>
+        <div class="metric">
+          <span>Avg Speed:</span>
+          <span class="metric-value" id="avgSpeed">0 mph</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Raga & Sound</h3>
+        <div class="slider-group">
+          <label>Sound Volume:</label>
+          <input type="range" id="soundVolume" min="0" max="100" value="50">
+          <span class="value-display" id="soundVolumeValue">50%</span>
+        </div>
+        <button id="soundToggle" class="active">🔊 Sound On</button>
+        <div class="slider-group">
+          <label>Raga:</label>
+          <select id="ragaSelect">
+            <option value="none" selected>None (Default)</option>
+            <option value="Bilawal">Bilawal (C Major)</option>
+            <option value="Yaman">Yaman (Lydian)</option>
+            <option value="Kalyan">Kalyan (Bright Major)</option>
+            <option value="Bhairavi">Bhairavi (Natural Minor)</option>
+          </select>
+        </div>
+        <div style="font-size: 10px; color: #aaa; margin: 5px 0;">
+          🎵 Car=1st • Truck=2nd • Bus=3rd • Bike=4th • Emergency=5th • Skateboard=6th • Pedestrian=7th
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Traffic Settings</h3>
+        <div class="slider-group">
+          <label>Spawn Rate:</label>
+          <input type="range" id="spawnRate" min="1" max="20" value="5">
+          <span class="value-display" id="spawnRateValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Max Vehicles:</label>
+          <input type="range" id="maxVehicles" min="50" max="500" value="200">
+          <span class="value-display" id="maxVehiclesValue">200</span>
+        </div>
+        <div class="slider-group">
+          <label>Vehicle Speed:</label>
+          <input type="range" id="vehicleSpeed" min="1" max="10" value="3">
+          <span class="value-display" id="vehicleSpeedValue">3</span>
+        </div>
+        <div class="slider-group">
+          <label>Grid Size:</label>
+          <input type="range" id="gridSize" min="20" max="60" value="40">
+          <span class="value-display" id="gridSizeValue">40</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Trail System</h3>
+        <div class="slider-group">
+          <label>Trail Length:</label>
+          <input type="range" id="trailStrength" min="5" max="50" value="20">
+          <span class="value-display" id="trailStrengthValue">20</span>
+        </div>
+        <div class="slider-group">
+          <label>Fade Rate:</label>
+          <input type="range" id="fadeRate" min="1" max="10" value="5">
+          <span class="value-display" id="fadeRateValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Trail Influence:</label>
+          <input type="range" id="trailInfluence" min="0" max="100" value="30">
+          <span class="value-display" id="trailInfluenceValue">30%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Environment</h3>
+        <div class="mode-buttons">
+          <button id="mode-day" class="active">Day</button>
+          <button id="mode-night">Night</button>
+          <button id="mode-rush">Rush Hour</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Controls</h3>
+        <button id="pauseBtn">Pause</button>
+        <button id="clearTrails">Clear Trails</button>
+        <button id="resetBtn">Reset All</button>
+        <button id="addVehicles">Add Vehicles</button>
+        <button id="addObstruction">Add Obstruction</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Audio context for sound effects
+    let audioContext;
+    let soundEnabled = true;
+    let masterVolume = 0.5;
+    let currentRaga = 'none';
+    
+    // Raga scales (frequencies in Hz) - 7 notes each
+    const ragaScales = {
+      Bilawal: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88], // C major scale
+      Yaman: [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37],   // Lydian mode
+      Kalyan: [261.63, 293.66, 329.63, 369.99, 392.00, 440.00, 493.88],  // Major with #4
+      Bhairavi: [261.63, 277.18, 311.13, 349.23, 392.00, 415.30, 466.16] // Natural minor
+    };
+    
+    // Vehicle to raga note mapping (each vehicle gets its own note)
+    const vehicleRagaMapping = {
+      'car': 0,        // 1st note (tonic)
+      'truck': 1,      // 2nd note  
+      'bus': 2,        // 3rd note
+      'bike': 3,       // 4th note
+      'emergency': 4,  // 5th note
+      'skateboard': 5, // 6th note
+      'pedestrian': 6  // 7th note
+    };
+    
+    // Initialize audio context
+    function initAudio() {
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.log('Audio not supported');
+        soundEnabled = false;
+      }
+    }
+    
+    // Get raga frequency for vehicle type
+    function getRagaFrequency(vehicleType) {
+      if (currentRaga === 'none' || !ragaScales[currentRaga]) {
+        // Use default frequency if no raga selected
+        return vehicleType.sound || 220;
+      }
+      
+      const scale = ragaScales[currentRaga];
+      const noteIndex = vehicleRagaMapping[vehicleType.type] || 0;
+      return scale[noteIndex] || 220;
+    }
+    
+    // Enhanced sound generation with raga support
+    function playEngineSound(frequencyOrVehicleType = 80, duration = 0.1) {
+      if (!soundEnabled || !audioContext) return;
+      
+      // Handle both old frequency parameter and new vehicleType parameter
+      let frequency;
+      let vehicleType = null;
+      if (typeof frequencyOrVehicleType === 'object' && frequencyOrVehicleType.type) {
+        // New vehicleType object - use raga frequency
+        vehicleType = frequencyOrVehicleType;
+        frequency = getRagaFrequency(vehicleType);
+      } else if (typeof frequencyOrVehicleType === 'number') {
+        // Old frequency parameter
+        frequency = frequencyOrVehicleType;
+      } else {
+        // Fallback
+        frequency = 220;
+      }
+      
+      // Validate frequency
+      if (!isFinite(frequency) || frequency <= 0) {
+        frequency = 220; // Safe fallback
+      }
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      
+      // Different waveforms for different vehicle types
+      if (vehicleType) {
+        switch(vehicleType.type) {
+          case 'car':
+            oscillator.type = 'sine';
+            break;
+          case 'truck':
+            oscillator.type = 'sawtooth';
+            break;
+          case 'bus':
+            oscillator.type = 'square';
+            break;
+          case 'bike':
+            oscillator.type = 'triangle';
+            break;
+          case 'emergency':
+            oscillator.type = 'sine';
+            // Add vibrato for emergency vehicles
+            const vibrato = audioContext.createOscillator();
+            const vibratoGain = audioContext.createGain();
+            vibrato.frequency.setValueAtTime(6, audioContext.currentTime);
+            vibratoGain.gain.setValueAtTime(8, audioContext.currentTime);
+            vibrato.connect(vibratoGain);
+            vibratoGain.connect(oscillator.frequency);
+            vibrato.start(audioContext.currentTime);
+            vibrato.stop(audioContext.currentTime + duration);
+            break;
+          case 'skateboard':
+            oscillator.type = 'triangle';
+            break;
+          case 'pedestrian':
+            oscillator.type = 'sine';
+            break;
+          default:
+            oscillator.type = 'sine';
+        }
+      } else {
+        oscillator.type = 'sawtooth';
+      }
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(masterVolume * 0.1, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+    
+    function playHornSound() {
+      if (!soundEnabled || !audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(330, audioContext.currentTime + 0.3);
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(masterVolume * 0.2, audioContext.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    }
+    
+    // Simulation state
+    let vehicles = [];
+    let destinations = [];
+    let trafficLights = [];
+    let obstructions = [];
+    let trailMap = null;
+    let tempTrailMap = null;
+    let isRunning = true;
+    let gridSize = 40;
+    let spawnRate = 5;
+    let maxVehicles = 200;
+    let nightMode = false;
+    let rushHour = false;
+    let gameTime = 6 * 60; // Start at 6:00 AM (in minutes)
+    
+    // Cursor control
+    let cursorX = 0;
+    let cursorY = 0;
+    let keys = {};
+    
+    // Vehicle types and colors (7 vehicles = 7 notes per raga)
+    const vehicleTypes = [
+      { type: 'car', color: '#ff4444', size: 2, speed: 1.0, sound: 100 },
+      { type: 'truck', color: '#4444ff', size: 3, speed: 0.8, sound: 80 },
+      { type: 'bus', color: '#ffff44', size: 4, speed: 0.6, sound: 70 },
+      { type: 'bike', color: '#44ff44', size: 1, speed: 1.3, sound: 150 },
+      { type: 'emergency', color: '#ff44ff', size: 2, speed: 1.5, sound: 200 },
+      { type: 'skateboard', color: '#ff8844', size: 1, speed: 1.8, sound: 250 },
+      { type: 'pedestrian', color: '#8844ff', size: 1, speed: 0.4, sound: 300 }
+    ];
+    
+    // Parameters
+    let vehicleSpeed = 3;
+    let trailLength = 60;
+    let fadeRate = 5;
+    let trailInfluence = 0.3;
+    
+    // Initialize trail map
+    function initializeTrailMap() {
+      const width = Math.ceil(canvas.width / gridSize);
+      const height = Math.ceil(canvas.height / gridSize);
+      trailMap = new Float32Array(width * height);
+      tempTrailMap = new Float32Array(width * height);
+      console.log(`Initialized trail map: ${width} x ${height} = ${width * height} cells`);
+    }
+    
+    function resizeCanvas() {
+      const container = document.querySelector('.simulation-view');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      initializeTrailMap();
+      
+      // Update cursor position after resize
+      if (typeof updateCursorDisplay === 'function') {
+        updateCursorDisplay();
+      }
+    }
+    
+    // Initial setup
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    initAudio();
+    
+    // Vehicle class
+    class Vehicle {
+      constructor(x, y, destination) {
+        this.x = x;
+        this.y = y;
+        this.gridX = Math.floor(x / gridSize);
+        this.gridY = Math.floor(y / gridSize);
+        this.destination = destination;
+        this.path = [];
+        this.pathIndex = 0;
+        this.angle = 0;
+        this.speed = vehicleSpeed;
+        this.targetX = x;
+        this.targetY = y;
+        this.moving = false;
+        this.type = vehicleTypes[Math.floor(Math.random() * vehicleTypes.length)];
+        this.lastSoundTime = 0;
+        this.stuckTime = 0;
+        this.lastPosition = { x: x, y: y };
+        this.trail = []; // Add trail array
+        this.maxTrailLength = trailLength;
+        
+        // Find initial path
+        this.findPath();
+      }
+      
+      findPath() {
+        // Simple A* pathfinding
+        const start = { x: this.gridX, y: this.gridY };
+        const end = { x: Math.floor(this.destination.x / gridSize), y: Math.floor(this.destination.y / gridSize) };
+        
+        this.path = this.aStar(start, end);
+        this.pathIndex = 0;
+      }
+      
+      aStar(start, end) {
+        const openSet = [start];
+        const closedSet = [];
+        const gScore = {};
+        const fScore = {};
+        const cameFrom = {};
+        
+        const key = (node) => `${node.x},${node.y}`;
+        
+        gScore[key(start)] = 0;
+        fScore[key(start)] = this.heuristic(start, end);
+        
+        while (openSet.length > 0) {
+          // Find node with lowest fScore
+          let current = openSet[0];
+          let currentIndex = 0;
+          for (let i = 1; i < openSet.length; i++) {
+            if (fScore[key(openSet[i])] < fScore[key(current)]) {
+              current = openSet[i];
+              currentIndex = i;
+            }
+          }
+          
+          if (current.x === end.x && current.y === end.y) {
+            // Reconstruct path
+            const path = [];
+            let node = current;
+            while (node) {
+              path.unshift(node);
+              node = cameFrom[key(node)];
+            }
+            return path;
+          }
+          
+          openSet.splice(currentIndex, 1);
+          closedSet.push(current);
+          
+          // Check neighbors
+          const neighbors = [
+            { x: current.x + 1, y: current.y },
+            { x: current.x - 1, y: current.y },
+            { x: current.x, y: current.y + 1 },
+            { x: current.x, y: current.y - 1 }
+          ];
+          
+          for (const neighbor of neighbors) {
+            if (neighbor.x < 0 || neighbor.x >= Math.ceil(canvas.width / gridSize) ||
+                neighbor.y < 0 || neighbor.y >= Math.ceil(canvas.height / gridSize)) {
+              continue;
+            }
+            
+            if (closedSet.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
+              continue;
+            }
+            
+            // Check if neighbor is blocked by obstruction
+            if (isGridBlocked(neighbor.x, neighbor.y)) {
+              continue;
+            }
+            
+            const tentativeGScore = gScore[key(current)] + 1;
+            
+            if (!openSet.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
+              openSet.push(neighbor);
+            } else if (tentativeGScore >= (gScore[key(neighbor)] || Infinity)) {
+              continue;
+            }
+            
+            cameFrom[key(neighbor)] = current;
+            gScore[key(neighbor)] = tentativeGScore;
+            fScore[key(neighbor)] = gScore[key(neighbor)] + this.heuristic(neighbor, end);
+          }
+        }
+        
+        return [start, end]; // Direct path if no route found
+      }
+      
+      heuristic(a, b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+      }
+      
+      update() {
+        // Update speed from global setting
+        this.speed = vehicleSpeed;
+        
+        // Check if stuck
+        const distMoved = Math.sqrt(
+          Math.pow(this.x - this.lastPosition.x, 2) + 
+          Math.pow(this.y - this.lastPosition.y, 2)
+        );
+        
+        if (distMoved < 0.1) {
+          this.stuckTime++;
+          if (this.stuckTime > 60) { // Stuck for 1 second
+            this.findPath(); // Recalculate path
+            this.stuckTime = 0;
+          }
+        } else {
+          this.stuckTime = 0;
+        }
+        
+        this.lastPosition = { x: this.x, y: this.y };
+        
+        // Follow path with smooth grid-based movement
+        if (this.path.length > this.pathIndex + 1) {
+          const target = this.path[this.pathIndex + 1];
+          const targetPixelX = target.x * gridSize + gridSize / 2;
+          const targetPixelY = target.y * gridSize + gridSize / 2;
+          
+          // Check if we need to start moving to a new target
+          if (!this.moving) {
+            // Set new target if we've reached the current one
+            if (Math.abs(this.x - this.targetX) < 1 && Math.abs(this.y - this.targetY) < 1) {
+              this.pathIndex++;
+              if (this.pathIndex + 1 < this.path.length) {
+                const nextTarget = this.path[this.pathIndex + 1];
+                this.targetX = nextTarget.x * gridSize + gridSize / 2;
+                this.targetY = nextTarget.y * gridSize + gridSize / 2;
+                
+                // Set angle based on movement direction
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                  this.angle = dx > 0 ? 0 : Math.PI; // Right or Left
+                } else {
+                  this.angle = dy > 0 ? Math.PI / 2 : -Math.PI / 2; // Down or Up
+                }
+                
+                this.moving = true;
+              }
+            } else {
+              // Continue moving to current target
+              this.moving = true;
+            }
+          }
+          
+          // Smooth movement towards target
+          if (this.moving) {
+            // Check for traffic light
+            const atIntersection = this.checkTrafficLight();
+            if (!atIntersection) {
+              const dx = this.targetX - this.x;
+              const dy = this.targetY - this.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              
+              if (distance > 1) {
+                // Move towards target
+                const moveSpeed = this.speed * this.type.speed * 0.5;
+                this.x += (dx / distance) * moveSpeed;
+                this.y += (dy / distance) * moveSpeed;
+                
+                // Update grid position
+                this.gridX = Math.floor(this.x / gridSize);
+                this.gridY = Math.floor(this.y / gridSize);
+                
+                // Update trail
+                this.updateTrail();
+                
+                // Play engine sound occasionally
+                if (Date.now() - this.lastSoundTime > 3000 + Math.random() * 4000) {
+                  playEngineSound(this.type, 0.2 + Math.random() * 0.3);
+                  this.lastSoundTime = Date.now();
+                }
+              } else {
+                // Reached target
+                this.x = this.targetX;
+                this.y = this.targetY;
+                this.moving = false;
+              }
+            }
+          }
+        } else {
+          // Reached destination, remove vehicle
+          return false;
+        }
+        
+        return true;
+      }
+      
+      checkTrafficLight() {
+        for (const light of trafficLights) {
+          const dx = this.x - light.x;
+          const dy = this.y - light.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < gridSize && light.state === 'red') {
+            return true; // Stop for red light
+          }
+        }
+        return false;
+      }
+      
+      sampleTrailGradient(x, y) {
+        const gx = Math.floor(x / gridSize);
+        const gy = Math.floor(y / gridSize);
+        const width = Math.ceil(canvas.width / gridSize);
+        
+        if (gx <= 0 || gx >= width - 1 || gy <= 0 || gy >= Math.ceil(canvas.height / gridSize) - 1) {
+          return { x: 0, y: 0 };
+        }
+        
+        const center = trailMap[gy * width + gx] || 0;
+        const left = trailMap[gy * width + (gx - 1)] || 0;
+        const right = trailMap[gy * width + (gx + 1)] || 0;
+        const up = trailMap[(gy - 1) * width + gx] || 0;
+        const down = trailMap[(gy + 1) * width + gx] || 0;
+        
+        return {
+          x: (left - right) * 0.1,
+          y: (up - down) * 0.1
+        };
+      }
+      
+      updateTrail() {
+        // Add current position to trail
+        this.trail.push({ x: this.x, y: this.y, alpha: 1.0 });
+        
+        // Update max trail length from global setting
+        this.maxTrailLength = trailLength;
+        
+        // Limit trail length
+        if (this.trail.length > this.maxTrailLength) {
+          this.trail.shift();
+        }
+        
+        // Fade trail points
+        this.trail.forEach((point, index) => {
+          point.alpha = (index / this.trail.length) * (fadeRate / 10);
+        });
+      }
+      
+      checkTrailCollision() {
+        const gx = Math.floor(this.x / gridSize);
+        const gy = Math.floor(this.y / gridSize);
+        const width = Math.ceil(canvas.width / gridSize);
+        
+        if (gx >= 0 && gx < width && gy >= 0 && gy < Math.ceil(canvas.height / gridSize)) {
+          const index = gy * width + gx;
+          const trailValue = trailMap[index] || 0;
+          
+          if (trailValue > 100 && Math.random() < 0.005) { // 0.5% chance when on heavy trail
+            playHornSound(this.type);
+          }
+        }
+      }
+      
+      draw() {
+        // Draw trail first (behind vehicle)
+        this.drawTrail();
+        
+        // Vehicle body
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        
+        ctx.fillStyle = this.type.color;
+        ctx.fillRect(-this.type.size * 2, -this.type.size, this.type.size * 4, this.type.size * 2);
+        
+        // Headlights for night mode
+        if (nightMode) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(this.type.size * 2, -this.type.size * 0.5, 2, this.type.size * 0.4);
+          ctx.fillRect(this.type.size * 2, this.type.size * 0.1, 2, this.type.size * 0.4);
+        }
+        
+        ctx.restore();
+        
+        // Check for trail collision
+        this.checkTrailCollision();
+      }
+      
+      drawTrail() {
+        if (this.trail.length < 2) return;
+        
+        // Draw trail as connected line segments
+        ctx.strokeStyle = this.type.color;
+        ctx.lineWidth = this.type.size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        for (let i = 1; i < this.trail.length; i++) {
+          const point = this.trail[i];
+          const prevPoint = this.trail[i - 1];
+          
+          // Set alpha based on trail position
+          const alpha = point.alpha;
+          const color = this.type.color;
+          
+          // Convert color to rgba with alpha
+          if (color.startsWith('#')) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          } else {
+            ctx.strokeStyle = color;
+          }
+          
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.moveTo(prevPoint.x, prevPoint.y);
+          ctx.lineTo(point.x, point.y);
+          ctx.stroke();
+        }
+        
+        ctx.globalAlpha = 1.0;
+      }
+    }
+    
+    // Traffic Light class
+    class TrafficLight {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.state = 'green'; // green, yellow, red
+        this.timer = 0;
+        this.greenDuration = 180; // 3 seconds
+        this.yellowDuration = 60; // 1 second
+        this.redDuration = 120; // 2 seconds
+      }
+      
+      update() {
+        this.timer++;
+        
+        switch (this.state) {
+          case 'green':
+            if (this.timer > this.greenDuration) {
+              this.state = 'yellow';
+              this.timer = 0;
+            }
+            break;
+          case 'yellow':
+            if (this.timer > this.yellowDuration) {
+              this.state = 'red';
+              this.timer = 0;
+            }
+            break;
+          case 'red':
+            if (this.timer > this.redDuration) {
+              this.state = 'green';
+              this.timer = 0;
+            }
+            break;
+        }
+      }
+      
+      draw() {
+        // Traffic light post
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(this.x - 2, this.y - 10, 4, 20);
+        
+        // Light colors
+        const colors = {
+          green: this.state === 'green' ? '#00ff00' : '#003300',
+          yellow: this.state === 'yellow' ? '#ffff00' : '#333300',
+          red: this.state === 'red' ? '#ff0000' : '#330000'
+        };
+        
+        // Draw lights
+        ctx.fillStyle = colors.red;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y - 8, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = colors.yellow;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = colors.green;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y + 8, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Update trail map (simplified - trails are now handled per vehicle)
+    function updateTrails() {
+      // Trails are now updated individually in each vehicle's updateTrail() method
+    }
+    
+    // Draw street grid
+    function drawGrid() {
+      ctx.strokeStyle = nightMode ? '#444444' : '#666666';
+      ctx.lineWidth = 1;
+      
+      // Vertical lines
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      
+      // Horizontal lines
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+    
+    // No longer needed - trails are drawn by individual vehicles
+    function drawTrails() {
+      // Vehicle trails are now drawn individually in vehicle.drawTrail()
+    }
+    
+    // Draw destinations
+    function drawDestinations() {
+      destinations.forEach((dest, index) => {
+        const gradient = ctx.createRadialGradient(
+          dest.x, dest.y, 0,
+          dest.x, dest.y, 20
+        );
+        gradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
+        gradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(dest.x, dest.y, 20, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`D${index + 1}`, dest.x, dest.y - 25);
+      });
+    }
+    
+    // Draw obstructions
+    function drawObstructions() {
+      obstructions.forEach(obs => {
+        ctx.fillStyle = '#666666';
+        ctx.fillRect(obs.x, obs.y, gridSize, gridSize);
+        
+        ctx.strokeStyle = '#999999';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(obs.x, obs.y, gridSize, gridSize);
+        
+        // Draw X pattern
+        ctx.strokeStyle = '#ff4444';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(obs.x + 5, obs.y + 5);
+        ctx.lineTo(obs.x + gridSize - 5, obs.y + gridSize - 5);
+        ctx.moveTo(obs.x + gridSize - 5, obs.y + 5);
+        ctx.lineTo(obs.x + 5, obs.y + gridSize - 5);
+        ctx.stroke();
+      });
+    }
+    
+    // Spawn vehicle
+    function spawnVehicle() {
+      if (vehicles.length >= maxVehicles || destinations.length === 0) return;
+      
+      // Spawn at edge of screen
+      const edge = Math.floor(Math.random() * 4);
+      let x, y;
+      
+      switch (edge) {
+        case 0: // Top
+          x = Math.random() * canvas.width;
+          y = 0;
+          break;
+        case 1: // Right
+          x = canvas.width;
+          y = Math.random() * canvas.height;
+          break;
+        case 2: // Bottom
+          x = Math.random() * canvas.width;
+          y = canvas.height;
+          break;
+        case 3: // Left
+          x = 0;
+          y = Math.random() * canvas.height;
+          break;
+      }
+      
+      // Pick random destination
+      const destination = destinations[Math.floor(Math.random() * destinations.length)];
+      vehicles.push(new Vehicle(x, y, destination));
+    }
+    
+    // Update time of day
+    function updateTime() {
+      gameTime += 0.5; // 0.5 minutes per frame (fast time)
+      if (gameTime >= 24 * 60) gameTime = 0;
+      
+      const hours = Math.floor(gameTime / 60);
+      const minutes = Math.floor(gameTime % 60);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      
+      document.getElementById('timeDisplay').textContent = 
+        `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+      
+      // Auto night mode
+      nightMode = hours < 6 || hours >= 20;
+      
+      // Rush hour detection
+      rushHour = (hours >= 7 && hours <= 9) || (hours >= 17 && hours <= 19);
+    }
+    
+    // Check if grid position is blocked by obstruction
+    function isGridBlocked(gridX, gridY) {
+      return obstructions.some(obs => obs.gridX === gridX && obs.gridY === gridY);
+    }
+    
+    // Update statistics
+    function updateStats() {
+      document.getElementById('vehicleCount').textContent = vehicles.length;
+      document.getElementById('destinationCount').textContent = destinations.length;
+      document.getElementById('trafficLightCount').textContent = trafficLights.length;
+      document.getElementById('obstructionCount').textContent = obstructions.length;
+      
+      // Calculate traffic density
+      const totalTrail = trailMap.reduce((sum, value) => sum + value, 0);
+      const maxPossibleTrail = trailMap.length * 255;
+      const density = (totalTrail / maxPossibleTrail) * 100;
+      document.getElementById('trafficDensity').textContent = density.toFixed(1) + '%';
+      
+      // Calculate average speed
+      const avgSpeed = vehicles.length > 0 ? 
+        vehicles.reduce((sum, v) => sum + v.speed, 0) / vehicles.length : 0;
+      document.getElementById('avgSpeed').textContent = (avgSpeed * 10).toFixed(1) + ' mph';
+    }
+    
+    // Input handling
+    function setupControls() {
+      // Sliders
+      const sliders = [
+        { id: 'spawnRate', prop: 'spawnRate', display: 'spawnRateValue' },
+        { id: 'maxVehicles', prop: 'maxVehicles', display: 'maxVehiclesValue' },
+        { id: 'vehicleSpeed', prop: 'vehicleSpeed', display: 'vehicleSpeedValue' },
+        { id: 'gridSize', prop: 'gridSize', display: 'gridSizeValue', callback: initializeTrailMap },
+        { id: 'trailStrength', prop: 'trailLength', display: 'trailStrengthValue' },
+        { id: 'fadeRate', prop: 'fadeRate', display: 'fadeRateValue' },
+        { id: 'trailInfluence', prop: 'trailInfluence', display: 'trailInfluenceValue', convert: v => v/100 },
+        { id: 'soundVolume', prop: 'masterVolume', display: 'soundVolumeValue', convert: v => v/100, format: v => v + '%' }
+      ];
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        element.addEventListener('input', () => {
+          const value = parseFloat(element.value);
+          window[slider.prop] = slider.convert ? slider.convert(value) : value;
+          display.textContent = slider.format ? slider.format(value) : value;
+          
+          // Special handling for vehicle speed - update all existing vehicles
+          if (slider.prop === 'vehicleSpeed') {
+            vehicles.forEach(vehicle => {
+              vehicle.speed = vehicleSpeed;
+            });
+            console.log(`Updated speed for ${vehicles.length} vehicles to ${vehicleSpeed}`);
+          }
+          
+          // Special handling for trail length
+          if (slider.prop === 'trailLength') {
+            vehicles.forEach(vehicle => {
+              vehicle.maxTrailLength = trailLength;
+              // Trim existing trails if they're too long
+              while (vehicle.trail.length > trailLength) {
+                vehicle.trail.shift();
+              }
+            });
+          }
+          
+          // Special handling for grid size - update cursor and vehicles
+          if (slider.prop === 'gridSize') {
+            // Update cursor position to stay in bounds
+            cursorX = Math.min(cursorX, Math.floor(canvas.width / gridSize) - 1);
+            cursorY = Math.min(cursorY, Math.floor(canvas.height / gridSize) - 1);
+            updateCursorDisplay();
+            
+            // Update vehicle grid positions
+            vehicles.forEach(vehicle => {
+              vehicle.gridX = Math.floor(vehicle.x / gridSize);
+              vehicle.gridY = Math.floor(vehicle.y / gridSize);
+              vehicle.findPath(); // Recalculate path with new grid
+            });
+            console.log(`Grid size changed to ${gridSize}, updated ${vehicles.length} vehicles`);
+          }
+          
+          if (slider.callback) slider.callback();
+        });
+        
+        display.textContent = slider.format ? slider.format(element.value) : element.value;
+      });
+      
+      // Mode buttons
+      document.getElementById('mode-day').addEventListener('click', () => {
+        nightMode = false;
+        rushHour = false;
+        updateModeButtons();
+      });
+      
+      document.getElementById('mode-night').addEventListener('click', () => {
+        nightMode = true;
+        rushHour = false;
+        updateModeButtons();
+      });
+      
+      document.getElementById('mode-rush').addEventListener('click', () => {
+        rushHour = true;
+        updateModeButtons();
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      });
+      
+      document.getElementById('clearTrails').addEventListener('click', () => {
+        trailMap.fill(0);
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        vehicles = [];
+        destinations = [];
+        trafficLights = [];
+        obstructions = [];
+        trailMap.fill(0);
+      });
+      
+      document.getElementById('addVehicles').addEventListener('click', () => {
+        for (let i = 0; i < 10; i++) {
+          spawnVehicle();
+        }
+      });
+      
+      // Sound toggle button
+      document.getElementById('soundToggle').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        const btn = document.getElementById('soundToggle');
+        btn.textContent = soundEnabled ? '🔊 Sound On' : '🔇 Sound Off';
+        btn.classList.toggle('active', soundEnabled);
+      });
+      
+      // Add obstruction button
+      document.getElementById('addObstruction').addEventListener('click', () => {
+        const x = cursorX * gridSize;
+        const y = cursorY * gridSize;
+        
+        // Check if position is already occupied
+        if (!isGridBlocked(cursorX, cursorY)) {
+          obstructions.push({
+            x: x,
+            y: y,
+            gridX: cursorX,
+            gridY: cursorY
+          });
+        }
+      });
+      
+      // Raga selection
+      document.getElementById('ragaSelect').addEventListener('change', (e) => {
+        currentRaga = e.target.value;
+        console.log(`Raga changed to: ${currentRaga}`);
+      });
+    }
+    
+    function updateModeButtons() {
+      document.querySelectorAll('[id^="mode-"]').forEach(btn => btn.classList.remove('active'));
+      if (rushHour) {
+        document.getElementById('mode-rush').classList.add('active');
+      } else if (nightMode) {
+        document.getElementById('mode-night').classList.add('active');
+      } else {
+        document.getElementById('mode-day').classList.add('active');
+      }
+    }
+    
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      keys[key] = true;
+      
+      if (['d', 't', 'o', 'v', ' ', 's', 'c', 'r', 'p', 'n', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        e.preventDefault();
+      }
+      
+      // Handle arrow key movement immediately on keydown
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        handleArrowKeyPress(key);
+        return;
+      }
+      
+      if (key === 'd') {
+        // Add destination at cursor
+        destinations.push({
+          x: cursorX * gridSize + gridSize / 2,
+          y: cursorY * gridSize + gridSize / 2
+        });
+      } else if (key === 't') {
+        // Add traffic light at cursor
+        trafficLights.push(new TrafficLight(
+          cursorX * gridSize + gridSize / 2,
+          cursorY * gridSize + gridSize / 2
+        ));
+      } else if (key === 'o') {
+        // Add obstruction at cursor
+        const x = cursorX * gridSize;
+        const y = cursorY * gridSize;
+        
+        if (!isGridBlocked(cursorX, cursorY)) {
+          obstructions.push({
+            x: x,
+            y: y,
+            gridX: cursorX,
+            gridY: cursorY
+          });
+        }
+      } else if (key === 'v') {
+        // Add vehicles
+        for (let i = 0; i < 10; i++) {
+          spawnVehicle();
+        }
+      } else if (key === ' ') {
+        // Rush hour mode
+        rushHour = !rushHour;
+        updateModeButtons();
+      } else if (key === 's') {
+        // Toggle sound
+        soundEnabled = !soundEnabled;
+        const btn = document.getElementById('soundToggle');
+        btn.textContent = soundEnabled ? '🔊 Sound On' : '🔇 Sound Off';
+        btn.classList.toggle('active', soundEnabled);
+      } else if (key === 'c') {
+        trailMap.fill(0);
+      } else if (key === 'r') {
+        vehicles = [];
+        destinations = [];
+        trafficLights = [];
+        obstructions = [];
+        trailMap.fill(0);
+      } else if (key === 'p') {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      } else if (key === 'n') {
+        nightMode = !nightMode;
+        updateModeButtons();
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        // Update time
+        updateTime();
+        
+        // Spawn vehicles
+        const currentSpawnRate = rushHour ? spawnRate * 2 : spawnRate;
+        if (Math.random() < currentSpawnRate / 1000) { // Fixed: was /100, now /1000 for more reasonable spawn rate
+          spawnVehicle();
+        }
+        
+        // Update vehicles
+        vehicles = vehicles.filter(vehicle => vehicle.update());
+        
+        // Update traffic lights
+        trafficLights.forEach(light => light.update());
+        
+        // Update trails
+        updateTrails();
+        
+        // Update statistics
+        updateStats();
+      }
+      
+      // Clear canvas
+      ctx.fillStyle = nightMode ? '#0a0a0a' : '#2a2a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw grid
+      drawGrid();
+      
+      // Draw trails
+      drawTrails();
+      
+      // Draw destinations
+      drawDestinations();
+      
+      // Draw obstructions
+      drawObstructions();
+      
+      // Draw traffic lights
+      trafficLights.forEach(light => light.draw());
+      
+      // Draw vehicles
+      vehicles.forEach(vehicle => vehicle.draw());
+      
+      // Draw cursor
+      drawCursor();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize cursor
+    function initializeCursor() {
+      cursorX = Math.floor(canvas.width / gridSize / 2);
+      cursorY = Math.floor(canvas.height / gridSize / 2);
+      updateCursorDisplay();
+    }
+    
+    // Draw cursor on canvas
+    function drawCursor() {
+      const x = cursorX * gridSize;
+      const y = cursorY * gridSize;
+      
+      // Draw cursor border
+      ctx.strokeStyle = '#ff6b35';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]); // Dashed line for visibility
+      ctx.strokeRect(x, y, gridSize, gridSize);
+      
+      // Draw cursor fill
+      ctx.fillStyle = 'rgba(255, 107, 53, 0.2)';
+      ctx.fillRect(x, y, gridSize, gridSize);
+      
+      // Reset line dash
+      ctx.setLineDash([]);
+    }
+    
+    // Update cursor display (now just updates text)
+    function updateCursorDisplay() {
+      document.getElementById('cursorPos').textContent = `${cursorX}, ${cursorY}`;
+    }
+    
+    // Handle single arrow key press movement
+    let lastKeyPress = {};
+    
+    function handleArrowKeyPress(key) {
+      const now = Date.now();
+      
+      // Only move if this is a new key press (not held down)
+      if (!lastKeyPress[key] || now - lastKeyPress[key] > 150) {
+        let moved = false;
+        
+        if (key === 'arrowup') {
+          cursorY = Math.max(0, cursorY - 1);
+          moved = true;
+        } else if (key === 'arrowdown') {
+          cursorY = Math.min(Math.floor(canvas.height / gridSize) - 1, cursorY + 1);
+          moved = true;
+        } else if (key === 'arrowleft') {
+          cursorX = Math.max(0, cursorX - 1);
+          moved = true;
+        } else if (key === 'arrowright') {
+          cursorX = Math.min(Math.floor(canvas.width / gridSize) - 1, cursorX + 1);
+          moved = true;
+        }
+        
+        if (moved) {
+          updateCursorDisplay();
+          lastKeyPress[key] = now;
+        }
+      }
+    }
+    
+    // Initialize
+    setupControls();
+    initializeCursor();
+    
+    // Add some initial destinations
+    destinations.push(
+      { x: canvas.width * 0.2, y: canvas.height * 0.3 },
+      { x: canvas.width * 0.8, y: canvas.height * 0.7 },
+      { x: canvas.width * 0.5, y: canvas.height * 0.2 }
+    );
+    
+    // Add some traffic lights
+    trafficLights.push(
+      new TrafficLight(canvas.width * 0.4, canvas.height * 0.4),
+      new TrafficLight(canvas.width * 0.6, canvas.height * 0.6)
+    );
+    
+    // Start simulation
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Console - Deep Dive into Internet Protocols &amp; Tools</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    /* Layout styling */
+    #container {
+      display: flex;
+      flex: 1;
+      margin-top: 60px; /* Provide space for fixed toggle */
+    }
+    /* Menu styling */
+    #menu {
+      width: 250px;
+      padding: 20px;
+      background: var(--primary5);
+      border: 1px solid var(--primary3);
+      margin-right: 20px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    #menu ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    /* First-level menu items */
+    #menu > ul > li {
+      margin-bottom: 10px;
+    }
+    #menu > ul > li > a {
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--link);
+    }
+    #menu > ul > li > a:hover {
+      text-decoration: underline;
+    }
+    /* Sub-menu styling */
+    ul.submenu {
+      list-style: none;
+      padding-left: 15px;
+      margin-top: 5px;
+    }
+    ul.submenu li {
+      margin-bottom: 8px;
+    }
+    ul.submenu a {
+      color: var(--primary1);
+      font-weight: normal;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    ul.submenu a:hover {
+      text-decoration: underline;
+    }
+    /* Content styling */
+    #content {
+      flex: 1;
+      padding: 20px;
+      background: var(--primary5);
+      border: 1px solid var(--primary3);
+      box-sizing: border-box;
+      border-radius: 8px;
+      overflow-y: auto;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    @media (max-width: 768px) {
+      #container {
+        flex-direction: column;
+      }
+      #menu {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <h1>Learning Console - Internet Protocols &amp; Tools</h1>
+  <div id="container">
+    <nav id="menu">
+      <h2>Menu</h2>
+      <ul>
+        <li>
+          <a href="#" onclick="loadSection('introduction')">Introduction</a>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('protocols')">Internet Protocols</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('protocols', 'http')">HTTP/HTTPS</a></li>
+            <li><a href="#" onclick="loadSubSection('protocols', 'ftp')">FTP/SFTP</a></li>
+            <li><a href="#" onclick="loadSubSection('protocols', 'websockets')">WebSockets</a></li>
+            <li><a href="#" onclick="loadSubSection('protocols', 'other')">Other Protocols</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('tools')">Tools (Postman &amp; cURL)</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('tools', 'postman')">Postman</a></li>
+            <li><a href="#" onclick="loadSubSection('tools', 'curl')">cURL</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('httpDeepDive')">HTTP/HTTPS Deep Dive</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('httpDeepDive', 'methods')">HTTP Methods</a></li>
+            <li><a href="#" onclick="loadSubSection('httpDeepDive', 'requests')">Crafting Requests</a></li>
+            <li><a href="#" onclick="loadSubSection('httpDeepDive', 'responses')">Handling Responses</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('practical')">Practical Examples</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('practical', 'postmanExamples')">Using Postman</a></li>
+            <li><a href="#" onclick="loadSubSection('practical', 'curlExamples')">Using cURL</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('advanced')">Advanced Topics</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('advanced', 'authentication')">Authentication &amp; Security</a></li>
+            <li><a href="#" onclick="loadSubSection('advanced', 'errorHandling')">Error Handling &amp; Debugging</a></li>
+            <li><a href="#" onclick="loadSubSection('advanced', 'automation')">Automation &amp; Scripting</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('additional')">Additional Protocols &amp; Tools</a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadSubSection('additional', 'ftp')">FTP/SFTP</a></li>
+            <li><a href="#" onclick="loadSubSection('additional', 'websockets')">WebSockets</a></li>
+            <li><a href="#" onclick="loadSubSection('additional', 'specialized')">Other Specialized Protocols</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" onclick="loadSection('conclusion')">Conclusion &amp; Next Steps</a>
+        </li>
+      </ul>
+    </nav>
+    <div id="content">
+      <!-- Dynamic content will appear here -->
+    </div>
+  </div>
+  
+  <a href="../" class="back-link">Back to Learning Projects</a>
+  
+  <script src="../common.js"></script>
+  <script>
+    // Main sections content with deep details
+    const sections = {
+      introduction: `<h2>Introduction</h2>
+        <p>This portal is designed to be your one-stop resource for learning about various internet protocols and the tools used to access data through them. Explore in-depth explanations, practical examples, and advanced techniques—all within this console. Whether you're a beginner looking to understand the basics or an experienced developer seeking advanced topics, you'll find valuable information here.</p>
+        <p>The console is organized into several main topics:</p>
+        <ul>
+          <li><strong>Internet Protocols:</strong> Learn how data is transferred using different protocols like HTTP, FTP, and WebSockets.</li>
+          <li><strong>Tools:</strong> Discover how to use Postman and cURL to interact with APIs.</li>
+          <li><strong>HTTP/HTTPS Deep Dive:</strong> Understand the inner workings of HTTP methods, request construction, and response handling.</li>
+          <li><strong>Practical Examples:</strong> See real-world examples and code snippets.</li>
+          <li><strong>Advanced Topics:</strong> Explore authentication, error handling, and automation.</li>
+          <li><strong>Additional Protocols &amp; Tools:</strong> Investigate protocols and tools beyond the basics.</li>
+        </ul>`,
+
+      protocols: `<h2>Internet Protocols</h2>
+        <p>Internet protocols are the rules and conventions for communication between network devices. They determine how data is formatted, transmitted, and received over the internet.</p>
+        <p>This section covers the most commonly used protocols in web development:</p>
+        <ul>
+          <li><strong>HTTP/HTTPS:</strong> The foundation for data exchange on the web, used for RESTful APIs and web pages.</li>
+          <li><strong>FTP/SFTP:</strong> Protocols for transferring files between systems, with SFTP adding a secure layer.</li>
+          <li><strong>WebSockets:</strong> Enable real-time, full-duplex communication ideal for live applications.</li>
+          <li><strong>Other Protocols:</strong> Learn about SOAP, GraphQL, and more for specialized data interactions.</li>
+        </p>`,
+
+      tools: `<h2>Tools (Postman &amp; cURL)</h2>
+        <p>This section provides an in-depth look at the tools that enable you to interact with APIs and internet protocols.</p>
+        <p><strong>Postman:</strong> A graphical interface for creating, testing, and documenting API calls. It provides features such as environments, collections, and automated testing.</p>
+        <p><strong>cURL:</strong> A versatile command-line tool that supports various protocols. It is ideal for scripting and automation, allowing you to integrate API calls into your workflows.</p>`,
+
+      httpDeepDive: `<h2>HTTP/HTTPS Deep Dive</h2>
+        <p>HTTP and HTTPS are critical protocols for web communication. In this section, we explore:</p>
+        <ul>
+          <li><strong>HTTP Methods:</strong> An explanation of GET, POST, PUT, DELETE, and PATCH, and when to use them.</li>
+          <li><strong>Crafting Requests:</strong> How to structure requests including headers, query parameters, and body data.</li>
+          <li><strong>Handling Responses:</strong> Understanding status codes, error messages, and response parsing.</li>
+        </ul>`,
+
+      practical: `<h2>Practical Examples</h2>
+        <p>Apply what you've learned with practical examples. This section includes:</p>
+        <ul>
+          <li><strong>Using Postman:</strong> Step-by-step examples of creating requests, testing endpoints, and analyzing responses with Postman.</li>
+          <li><strong>Using cURL:</strong> Command-line examples demonstrating common HTTP operations and how to integrate them into scripts.</li>
+        </ul>`,
+
+      advanced: `<h2>Advanced Topics</h2>
+        <p>For those ready to dive deeper, this section covers advanced aspects of API interaction:</p>
+        <ul>
+          <li><strong>Authentication &amp; Security:</strong> In-depth guides on using API keys, OAuth, JWTs, and HTTPS to secure your API calls.</li>
+          <li><strong>Error Handling &amp; Debugging:</strong> Techniques for diagnosing issues, interpreting error codes, and using logging to troubleshoot problems.</li>
+          <li><strong>Automation &amp; Scripting:</strong> Best practices for integrating API calls into CI/CD pipelines and automating repetitive tasks with scripting.</li>
+        </ul>`,
+
+      additional: `<h2>Additional Protocols &amp; Tools</h2>
+        <p>Beyond the basics, there are many protocols and tools available to address specific needs:</p>
+        <ul>
+          <li><strong>FTP/SFTP:</strong> Detailed discussion of file transfer commands, security considerations, and best practices for large data transfers.</li>
+          <li><strong>WebSockets:</strong> Explore how to implement real-time communication, including use cases in chat applications and live updates.</li>
+          <li><strong>Other Specialized Protocols:</strong> An overview of SOAP, GraphQL, and other protocols that offer alternative approaches to data exchange.</li>
+        </ul>`,
+
+      conclusion: `<h2>Conclusion &amp; Next Steps</h2>
+        <p>This console has provided a comprehensive look into internet protocols and the tools used to access them. You've learned:</p>
+        <ul>
+          <li>The fundamentals of protocols like HTTP, FTP, and WebSockets.</li>
+          <li>How to use tools like Postman and cURL for testing and automation.</li>
+          <li>Advanced techniques for authentication, error handling, and scripting.</li>
+        </ul>
+        <p>To continue your learning journey, consider:</p>
+        <ul>
+          <li>Experimenting with live APIs using the examples provided.</li>
+          <li>Reading official documentation for protocols and tools.</li>
+          <li>Joining developer communities to share insights and ask questions.</li>
+        </ul>
+        <p>Happy learning!</p>`
+    };
+
+    // Sub-sections deep details
+    const subsections = {
+      protocols: {
+        http: `<h3>HTTP/HTTPS</h3>
+          <p>HTTP (HyperText Transfer Protocol) is the standard for web communication. It is stateless and uses methods such as GET, POST, PUT, DELETE, and PATCH. HTTPS adds a layer of security via TLS/SSL encryption.</p>
+          <ul>
+            <li><strong>Structure:</strong> Consists of a request line, headers, and an optional body.</li>
+            <li><strong>Statelessness:</strong> Each request is independent; sessions must be managed separately.</li>
+            <li><strong>Use Cases:</strong> REST APIs, web pages, file transfers.</li>
+          </ul>`,
+        ftp: `<h3>FTP/SFTP</h3>
+          <p>FTP (File Transfer Protocol) is used for transferring files between systems. SFTP (SSH File Transfer Protocol) secures file transfers using SSH.</p>
+          <ul>
+            <li><strong>Commands:</strong> Common commands include <code>get</code>, <code>put</code>, and <code>ls</code>.</li>
+            <li><strong>Security:</strong> SFTP encrypts data and commands, offering a secure alternative.</li>
+          </ul>`,
+        websockets: `<h3>WebSockets</h3>
+          <p>WebSockets provide full-duplex, persistent connections over a single TCP socket, ideal for real-time applications.</p>
+          <ul>
+            <li><strong>Real-Time Communication:</strong> Enables instant data updates, such as chat or live feeds.</li>
+            <li><strong>Connection:</strong> Once established, the connection remains open until closed by either party.</li>
+          </ul>`,
+        other: `<h3>Other Protocols</h3>
+          <p>Beyond HTTP and FTP, protocols like SOAP and GraphQL provide alternative approaches:</p>
+          <ul>
+            <li><strong>SOAP:</strong> A protocol that uses XML for messaging and has built-in error handling and security standards.</li>
+            <li><strong>GraphQL:</strong> Allows clients to specify exactly what data is needed, reducing over-fetching and under-fetching.</li>
+          </ul>`
+      },
+      tools: {
+        postman: `<h3>Postman</h3>
+          <p>Postman simplifies API development with its user-friendly interface, enabling you to create, test, and document API calls. It supports environments, collections, and automated testing.</p>
+          <ul>
+            <li><strong>Features:</strong> Request history, variable management, and collaboration tools.</li>
+            <li><strong>Use Cases:</strong> Prototyping, debugging, and monitoring APIs.</li>
+          </ul>`,
+        curl: `<h3>cURL</h3>
+          <p>cURL is a command-line tool that supports a wide range of protocols. It is highly useful for scripting and integrating API calls into automated workflows.</p>
+          <ul>
+            <li><strong>Flexibility:</strong> Supports HTTP, HTTPS, FTP, and more.</li>
+            <li><strong>Examples:</strong> Use <code>curl -X GET [URL]</code> for a GET request, or <code>curl -d "data" [URL]</code> for POST.</li>
+          </ul>`
+      },
+      httpDeepDive: {
+        methods: `<h3>HTTP Methods</h3>
+          <p>HTTP defines several methods for interaction:</p>
+          <ul>
+            <li><strong>GET:</strong> Retrieve data without side effects.</li>
+            <li><strong>POST:</strong> Submit data to be processed.</li>
+            <li><strong>PUT:</strong> Replace existing data entirely.</li>
+            <li><strong>DELETE:</strong> Remove data.</li>
+            <li><strong>PATCH:</strong> Partially update data.</li>
+          </ul>`,
+        requests: `<h3>Crafting Requests</h3>
+          <p>Creating a well-formed HTTP request involves:</p>
+          <ul>
+            <li><strong>Headers:</strong> Specify content type, authentication tokens, and more.</li>
+            <li><strong>Query Parameters:</strong> Used to filter or sort data.</li>
+            <li><strong>Body:</strong> Contains the data payload in formats such as JSON or XML.</li>
+          </ul>`,
+        responses: `<h3>Handling Responses</h3>
+          <p>Understanding HTTP responses is key to API integration:</p>
+          <ul>
+            <li><strong>Status Codes:</strong> Inform whether the request was successful (200), created (201), not found (404), or resulted in an error (500).</li>
+            <li><strong>Parsing:</strong> Response bodies are typically JSON or XML and require parsing to extract data.</li>
+            <li><strong>Error Handling:</strong> Use error messages and logs to debug failed requests.</li>
+          </ul>`
+      },
+      practical: {
+        postmanExamples: `<h3>Using Postman</h3>
+          <p>Learn through step-by-step examples:</p>
+          <ul>
+            <li><strong>Setting Up:</strong> Create a new request, configure the URL, and choose the HTTP method.</li>
+            <li><strong>Headers &amp; Body:</strong> Add required headers and a JSON body for POST requests.</li>
+            <li><strong>Testing:</strong> Use Postman's built-in testing tools to assert response values.</li>
+          </ul>`,
+        curlExamples: `<h3>Using cURL</h3>
+          <p>Common cURL commands include:</p>
+          <ul>
+            <li><strong>GET Request:</strong> <code>curl -X GET "https://api.example.com/data"</code></li>
+            <li><strong>POST Request:</strong> <code>curl -X POST -H "Content-Type: application/json" -d '{"key":"value"}' "https://api.example.com/data"</code></li>
+            <li><strong>Authentication:</strong> Include an API token with <code>-H "Authorization: Bearer YOUR_TOKEN"</code></li>
+          </ul>`
+      },
+      advanced: {
+        authentication: `<h3>Authentication &amp; Security</h3>
+          <p>Secure API interactions by implementing:</p>
+          <ul>
+            <li><strong>API Keys:</strong> Use simple key-based authentication for trusted clients.</li>
+            <li><strong>OAuth:</strong> Implement token-based authentication for complex, user-driven scenarios.</li>
+            <li><strong>JWTs:</strong> JSON Web Tokens allow secure, stateless authentication.</li>
+          </ul>`,
+        errorHandling: `<h3>Error Handling &amp; Debugging</h3>
+          <p>Strategies to diagnose and fix issues:</p>
+          <ul>
+            <li><strong>Status Codes:</strong> Learn what different HTTP codes indicate.</li>
+            <li><strong>Logging:</strong> Use server and client logs to trace problems.</li>
+            <li><strong>Retries:</strong> Implement automatic retries for transient errors.</li>
+          </ul>`,
+        automation: `<h3>Automation &amp; Scripting</h3>
+          <p>Integrate API calls into your workflows:</p>
+          <ul>
+            <li><strong>Scripting:</strong> Use Bash, Python, or other scripting languages to automate tasks.</li>
+            <li><strong>CI/CD:</strong> Integrate API tests into your continuous integration pipelines.</li>
+            <li><strong>Scheduling:</strong> Automate periodic data retrieval or processing tasks.</li>
+          </ul>`
+      },
+      additional: {
+        ftp: `<h3>Accessing FTP/SFTP Data</h3>
+          <p>File transfer protocols provide alternative methods for moving data:</p>
+          <ul>
+            <li><strong>FTP Commands:</strong> Familiarize yourself with commands such as <code>ls</code>, <code>get</code>, and <code>put</code>.</li>
+            <li><strong>SFTP Security:</strong> Use SFTP to ensure data is encrypted during transfer.</li>
+          </ul>`,
+        websockets: `<h3>Working with WebSockets</h3>
+          <p>Real-time data exchange is enabled through WebSockets:</p>
+          <ul>
+            <li><strong>Establishing Connections:</strong> Learn how to open and maintain persistent connections.</li>
+            <li><strong>Data Exchange:</strong> Send and receive messages asynchronously.</li>
+            <li><strong>Use Cases:</strong> Ideal for live chat, gaming, and real-time dashboards.</li>
+          </ul>`,
+        specialized: `<h3>Other Specialized Protocols</h3>
+          <p>Some protocols offer unique advantages for specific scenarios:</p>
+          <ul>
+            <li><strong>SOAP:</strong> A protocol that uses XML messaging with built-in security and error handling.</li>
+            <li><strong>GraphQL:</strong> A query language that allows precise data requests, minimizing over-fetching.</li>
+          </ul>`
+      }
+    };
+
+    // Function to load a main section
+    function loadSection(sectionId) {
+      document.getElementById('content').innerHTML = sections[sectionId] || '<p>Section not found.</p>';
+    }
+
+    // Function to load a sub-section given a main section and subtopic key
+    function loadSubSection(sectionId, subId) {
+      const subContent = subsections[sectionId] && subsections[sectionId][subId];
+      if (subContent) {
+        document.getElementById('content').innerHTML = subContent;
+      } else {
+        loadSection(sectionId);
+      }
+    }
+
+    // Load default section on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSection('introduction');
+    });
+  </script>
+</body>
+</html>

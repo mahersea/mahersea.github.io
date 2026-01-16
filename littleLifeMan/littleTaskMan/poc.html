@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Task Management - Status Display</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .status-bar {
+      display: inline-block;
+      width: 60px;
+      height: 20px;
+      border-radius: 4px;
+      text-align: center;
+      color: #fff;
+      font-size: 0.8em;
+      line-height: 20px;
+    }
+    /* Status color mappings */
+    .status-open {
+      background-color: #e74c3c; /* Red */
+    }
+    .status-in-progress {
+      background-color: #f39c12; /* Orange */
+    }
+    .status-completed {
+      background-color: #27ae60; /* Green */
+    }
+  </style>
+</head>
+<body>
+  <h2>Task List</h2>
+  <table id="tasksTable">
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Title</th>
+        <th>User</th>
+        <th>Deadline</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Task rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Sample tasks JSON data
+    const tasks = [
+      {
+        "id": 1,
+        "project": "Demo's project",
+        "title": "Demo's task",
+        "assignedUser": "Demo",
+        "deadline": "2025-03-30",
+        "status": "Open" // could be "Open", "In Progress", "Completed"
+      },
+      {
+        "id": 2,
+        "project": "Your first project",
+        "title": "Congratulations! This is your first task",
+        "assignedUser": "Admin",
+        "deadline": "2025-03-31",
+        "status": "In Progress"
+      },
+      {
+        "id": 3,
+        "project": "Another project",
+        "title": "Finalize the report",
+        "assignedUser": "Admin",
+        "deadline": "2025-04-05",
+        "status": "Completed"
+      }
+    ];
+
+    // Function to map status to a corresponding CSS class
+    function getStatusClass(status) {
+      switch(status.toLowerCase()) {
+        case 'open':
+          return 'status-open';
+        case 'in progress':
+          return 'status-in-progress';
+        case 'completed':
+          return 'status-completed';
+        default:
+          return '';
+      }
+    }
+
+    // Function to render tasks in the table
+    function renderTasks() {
+      const tbody = document.querySelector('#tasksTable tbody');
+      tbody.innerHTML = ''; // Clear previous rows
+
+      tasks.forEach(task => {
+        const tr = document.createElement('tr');
+
+        // Create cells for each property
+        const projectTd = document.createElement('td');
+        projectTd.textContent = task.project;
+        tr.appendChild(projectTd);
+
+        const titleTd = document.createElement('td');
+        titleTd.textContent = task.title;
+        tr.appendChild(titleTd);
+
+        const userTd = document.createElement('td');
+        userTd.textContent = task.assignedUser;
+        tr.appendChild(userTd);
+
+        const deadlineTd = document.createElement('td');
+        deadlineTd.textContent = task.deadline;
+        tr.appendChild(deadlineTd);
+
+        const statusTd = document.createElement('td');
+        const statusBar = document.createElement('div');
+        statusBar.classList.add('status-bar', getStatusClass(task.status));
+        statusBar.textContent = task.status;
+        statusTd.appendChild(statusBar);
+        tr.appendChild(statusTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render the table on page load
+    renderTasks();
+  </script>
+</body>
+</html>

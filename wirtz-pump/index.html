@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wirtz Pump Simulation</title>
+  <meta name="description" content="Interactive simulation of a Wirtz pump showing fluid movement through eccentric rotation">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000000; 
+    }
+    .controls { 
+      margin: 10px auto; 
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+    input[type="range"] {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wirtz Pump Simulation</h1>
+  <p style="max-width: 600px; margin: 0 auto 10px;">This simulation shows how eccentric rotation creates a pumping action. Adjust the controls below to change the simulation parameters.</p>
+  
+  <div class="controls">
+    <div class="control-group">
+      <button id="pauseBtn">Pause</button>
+    </div>
+    <div class="control-group">
+      <label for="speedRange">Speed: </label>
+      <input type="range" id="speedRange" min="1" max="100" value="50">
+    </div>
+    <div class="control-group">
+      <label for="eccRange">Eccentricity: </label>
+      <input type="range" id="eccRange" min="0" max="100" value="50">
+    </div>
+    <div class="control-group">
+      <label for="trailCheck">Show trail: </label>
+      <input type="checkbox" id="trailCheck" checked>
+    </div>
+    <div class="control-group">
+      <label for="fadeCheck">Fade trail: </label>
+      <input type="checkbox" id="fadeCheck" checked>
+    </div>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    // Get the canvas and context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas dimensions
+    canvas.width = 800;
+    canvas.height = 800;
+
+    // Center of the canvas
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // Animation variables
+    let animationId;
+    let isAnimating = true;
+    let angle = 0;
+    let trailPoints = [];
+    const maxTrailLength = 500;
+    let rotationSpeed = 0.01;
+    let eccentricity = 0.5;
+    let showTrail = true;
+    let fadingEnabled = true;
+    let lastTimestamp = 0;
+
+    // Pump dimensions
+    const outerRadius = 250;
+    const innerRadius = 150;
+    let fluidParticles = [];
+    const numParticles = 300;
+    
+    // Physics constants
+    const fluidViscosity = 0.02; // Fluid resistance
+    const particleInteraction = 0.005; // How much particles push each other
+    const wallFriction = 0.7; // Wall friction coefficient
+
+    // Controls
+    const pauseBtn = document.getElementById('pauseBtn');
+    const speedRange = document.getElementById('speedRange');
+    const eccRange = document.getElementById('eccRange');
+    const trailCheck = document.getElementById('trailCheck');
+    const fadeCheck = document.getElementById('fadeCheck');
+
+    // Initialize fluid particles
+    function initParticles() {
+      fluidParticles = [];
+      
+      for (let i = 0; i < numParticles; i++) {
+        // Random position within the outer circle
+        const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+        const a = Math.random() * Math.PI * 2;
+        
+        fluidParticles.push({
+          x: r * Math.cos(a),
+          y: r * Math.sin(a),
+          vx: 0,
+          vy: 0,
+          pressure: 0,
+          color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+          size: Math.random() * 2 + 2,
+          trail: []
+        });
+      }
+    }
+
+    // Event listeners for controls
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    });
+
+    speedRange.addEventListener('input', () => {
+      rotationSpeed = speedRange.value / 5000;
+    });
+
+    eccRange.addEventListener('input', () => {
+      eccentricity = eccRange.value / 100;
+    });
+
+    trailCheck.addEventListener('input', () => {
+      showTrail = trailCheck.checked;
+    });
+
+    fadeCheck.addEventListener('input', () => {
+      fadingEnabled = fadeCheck.checked;
+    });
+
+    // Function to draw the stationary outer casing
+    function drawOuterCasing() {
+      // Gradient for the outer casing
+      const outerGradient = ctx.createRadialGradient(
+        cx, cy, outerRadius - 10,
+        cx, cy, outerRadius
+      );
+      outerGradient.addColorStop(0, '#333');
+      outerGradient.addColorStop(1, '#666');
+      
+      ctx.strokeStyle = outerGradient;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Inner edge of the casing
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerRadius - 8, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Function to draw the eccentric rotor
+    function drawRotor() {
+      const offsetX = eccentricity * (outerRadius - innerRadius) * Math.cos(angle);
+      const offsetY = eccentricity * (outerRadius - innerRadius) * Math.sin(angle);
+      
+      // Gradient for the rotor
+      const rotorGradient = ctx.createRadialGradient(
+        cx + offsetX, cy + offsetY, 0,
+        cx + offsetX, cy + offsetY, innerRadius
+      );
+      rotorGradient.addColorStop(0, '#444');
+      rotorGradient.addColorStop(0.7, '#333');
+      rotorGradient.addColorStop(1, '#222');
+      
+      ctx.fillStyle = rotorGradient;
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth = 3;
+      
+      ctx.beginPath();
+      ctx.arc(cx + offsetX, cy + offsetY, innerRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw a mark on the rotor to show rotation
+      const gradient = ctx.createRadialGradient(
+        cx + offsetX + innerRadius * 0.8 * Math.cos(angle),
+        cy + offsetY + innerRadius * 0.8 * Math.sin(angle),
+        0,
+        cx + offsetX + innerRadius * 0.8 * Math.cos(angle),
+        cy + offsetY + innerRadius * 0.8 * Math.sin(angle),
+        10
+      );
+      gradient.addColorStop(0, '#ff5555');
+      gradient.addColorStop(1, '#aa0000');
+      
+      ctx.fillStyle = gradient;
+      const markX = cx + offsetX + innerRadius * 0.8 * Math.cos(angle);
+      const markY = cy + offsetY + innerRadius * 0.8 * Math.sin(angle);
+      ctx.beginPath();
+      ctx.arc(markX, markY, 8, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Add a highlight to the rotor
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(
+        cx + offsetX, 
+        cy + offsetY, 
+        innerRadius - 5, 
+        -Math.PI/4, 
+        Math.PI/4
+      );
+      ctx.stroke();
+    }
+
+    // Function to update fluid particles
+    function updateParticles(deltaTime) {
+      const dt = Math.min(deltaTime, 32) / 16; // Cap deltaTime and normalize
+      const offsetX = eccentricity * (outerRadius - innerRadius) * Math.cos(angle);
+      const offsetY = eccentricity * (outerRadius - innerRadius) * Math.sin(angle);
+      const rotorVx = -eccentricity * (outerRadius - innerRadius) * Math.sin(angle) * rotationSpeed;
+      const rotorVy = eccentricity * (outerRadius - innerRadius) * Math.cos(angle) * rotationSpeed;
+      
+      // Calculate particle density / pressure
+      fluidParticles.forEach(particle => {
+        particle.pressure = 0;
+        
+        fluidParticles.forEach(other => {
+          if (particle === other) return;
+          
+          const dx = particle.x - other.x;
+          const dy = particle.y - other.y;
+          const distSq = dx * dx + dy * dy;
+          
+          if (distSq < 100) {
+            // Add pressure based on proximity
+            particle.pressure += (100 - distSq) / 100;
+          }
+        });
+      });
+      
+      // Update particle positions
+      fluidParticles.forEach(particle => {
+        // Get particle position relative to center
+        const dx = particle.x;
+        const dy = particle.y;
+        const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+        
+        // Determine if particle is inside the rotor
+        const dxFromRotor = dx - offsetX;
+        const dyFromRotor = dy - offsetY;
+        const distFromRotorSq = dxFromRotor * dxFromRotor + dyFromRotor * dyFromRotor;
+        const distFromRotor = Math.sqrt(distFromRotorSq);
+        
+        // Track particle position for trail
+        if (showTrail && Math.random() < 0.1) { // Only record some positions to save memory
+          particle.trail.push({ x: particle.x, y: particle.y });
+          if (particle.trail.length > 20) {
+            particle.trail.shift();
+          }
+        } else if (!showTrail) {
+          particle.trail = [];
+        }
+        
+        if (distFromRotor < innerRadius) {
+          // Particle is inside the rotor - move with it
+          particle.x = offsetX + dxFromRotor;
+          particle.y = offsetY + dyFromRotor;
+          
+          // Set velocity to match rotor at this point
+          const angleToParticle = Math.atan2(dyFromRotor, dxFromRotor);
+          particle.vx = -rotationSpeed * distFromRotor * Math.sin(angleToParticle);
+          particle.vy = rotationSpeed * distFromRotor * Math.cos(angleToParticle);
+          
+          // Add rotor translation velocity
+          particle.vx += rotorVx;
+          particle.vy += rotorVy;
+        } else {
+          // Particle is in the fluid region
+          
+          // Apply pressure forces
+          const pressureForceX = -particle.pressure * dx / distFromCenter * particleInteraction;
+          const pressureForceY = -particle.pressure * dy / distFromCenter * particleInteraction;
+          
+          // Rotor pushing effect - stronger when closer to rotor
+          const pushFactor = Math.max(0, 1 - distFromRotor / (outerRadius - innerRadius));
+          
+          // Calculate the point on rotor closest to the particle
+          const angleToRotor = Math.atan2(dy - offsetY, dx - offsetX);
+          const rotorPointX = offsetX + innerRadius * Math.cos(angleToRotor);
+          const rotorPointY = offsetY + innerRadius * Math.sin(angleToRotor);
+          
+          // Get rotor surface velocity at that point
+          const surfaceVx = -rotationSpeed * innerRadius * Math.sin(angleToRotor) + rotorVx;
+          const surfaceVy = rotationSpeed * innerRadius * Math.cos(angleToRotor) + rotorVy;
+          
+          // Apply rotor force proportional to proximity and relative velocity
+          const relVx = surfaceVx - particle.vx;
+          const relVy = surfaceVy - particle.vy;
+          
+          // Apply forces to velocity
+          particle.vx += (relVx * pushFactor * 0.1 + pressureForceX) * dt;
+          particle.vy += (relVy * pushFactor * 0.1 + pressureForceY) * dt;
+          
+          // Apply fluid viscosity (drag)
+          particle.vx *= (1 - fluidViscosity * dt);
+          particle.vy *= (1 - fluidViscosity * dt);
+          
+          // Add a small random movement for realistic fluid behavior
+          particle.vx += (Math.random() - 0.5) * 0.05 * dt;
+          particle.vy += (Math.random() - 0.5) * 0.05 * dt;
+          
+          // Update position
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          
+          // Handle wall collisions
+          const newDist = Math.sqrt(particle.x * particle.x + particle.y * particle.y);
+          if (newDist > outerRadius - 5) {
+            // Calculate normal vector for the wall at collision point
+            const nx = particle.x / newDist;
+            const ny = particle.y / newDist;
+            
+            // Project velocity onto normal
+            const vDotN = particle.vx * nx + particle.vy * ny;
+            
+            // Only reflect if moving towards the wall
+            if (vDotN > 0) {
+              // Reflect velocity with some energy loss
+              particle.vx -= 2 * vDotN * nx * wallFriction;
+              particle.vy -= 2 * vDotN * ny * wallFriction;
+            }
+            
+            // Move particle just inside the boundary
+            particle.x = (outerRadius - 6) * nx;
+            particle.y = (outerRadius - 6) * ny;
+          }
+        }
+      });
+    }
+
+    // Function to draw fluid particles
+    function drawParticles() {
+      // Draw trails first (if enabled)
+      if (showTrail) {
+        fluidParticles.forEach(particle => {
+          if (particle.trail.length > 1) {
+            ctx.strokeStyle = particle.color.replace('hsl', 'hsla').replace(')', ', 0.3)');
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            ctx.moveTo(cx + particle.trail[0].x, cy + particle.trail[0].y);
+            
+            for (let i = 1; i < particle.trail.length; i++) {
+              ctx.lineTo(cx + particle.trail[i].x, cy + particle.trail[i].y);
+            }
+            
+            ctx.stroke();
+          }
+        });
+      }
+      
+      // Draw particles
+      fluidParticles.forEach(particle => {
+        // Adjust color based on pressure/velocity
+        const speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+        const hue = 180 + particle.pressure * 5;
+        const lightness = 50 + Math.min(speed * 50, 40); // Brighter for faster particles
+        const color = `hsl(${hue}, 100%, ${lightness}%)`;
+        
+        // Draw particle with glow effect
+        const glow = ctx.createRadialGradient(
+          cx + particle.x, 
+          cy + particle.y, 
+          0,
+          cx + particle.x, 
+          cy + particle.y, 
+          particle.size * 2
+        );
+        glow.addColorStop(0, color);
+        glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(cx + particle.x, cy + particle.y, particle.size * 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw particle core
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx + particle.x, cy + particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Animation loop
+    function animate(timestamp) {
+      // Calculate time delta for smooth animation
+      const deltaTime = lastTimestamp ? timestamp - lastTimestamp : 16;
+      lastTimestamp = timestamp;
+      
+      // Clear canvas with fading effect
+      if (fadingEnabled) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      // Add a subtle background glow from the center
+      const bgGlow = ctx.createRadialGradient(
+        cx, cy, 0,
+        cx, cy, outerRadius
+      );
+      bgGlow.addColorStop(0, 'rgba(10, 30, 50, 0.1)');
+      bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = bgGlow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw outer casing
+      drawOuterCasing();
+      
+      // Update and draw particles
+      updateParticles(deltaTime);
+      drawParticles();
+      
+      // Draw rotor
+      drawRotor();
+      
+      // Update angle based on delta time for consistent speed
+      angle += rotationSpeed * (deltaTime / 16);
+
+      // Draw title/info overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(cx - 100, cy + outerRadius + 20, 200, 30);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Wirtz Pump Simulation', cx, cy + outerRadius + 40);
+
+      // Continue animation
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Initialize particles
+    initParticles();
+
+    // Add resize handler for responsiveness
+    window.addEventListener('resize', () => {
+      // Keep canvas centered but adjust size
+      const maxDimension = Math.min(window.innerWidth - 40, window.innerHeight - 150);
+      if (maxDimension < 800) {
+        canvas.width = maxDimension;
+        canvas.height = maxDimension;
+        cx = canvas.width / 2;
+        cy = canvas.height / 2;
+      }
+    });
+    
+    // Add reset button
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = 'Reset';
+    resetBtn.addEventListener('click', () => {
+      initParticles();
+    });
+    document.querySelector('.controls').appendChild(resetBtn);
+    
+    // Start the animation
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Little Life Manager</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Accessible Color Palettes with Dark Mode Companions */
+    :root {
+      /* Base Theme */
+      --primary: #1976D2;       /* Blue 700 */
+      --primary-dark: #0D47A1;  /* Blue 900 */
+      --secondary: #FF5722;     /* Deep Orange 500 */
+      --secondary-dark: #BF360C; /* Deep Orange 900 */
+      --surface: #FFFFFF;       /* White */
+      --surface-dark: #121212;  /* Dark Gray */
+      --background: #F5F5F5;    /* Gray 100 */
+      --background-dark: #212121; /* Gray 900 */
+      --text: #212121;          /* Gray 900 */
+      --text-dark: #FAFAFA;     /* Gray 50 */
+      --text-secondary: #757575; /* Gray 600 */
+      --text-secondary-dark: #BDBDBD; /* Gray 400 */
+      --border: #E0E0E0;        /* Gray 300 */
+      --border-dark: #424242;   /* Gray 800 */
+      --shadow: 0 2px 5px rgba(0,0,0,0.1);
+      --shadow-dark: 0 2px 5px rgba(0,0,0,0.4);
+
+      /* Project Specific Palettes - Light Mode */
+      --birthday-primary: #E91E63;     /* Pink 500 */
+      --birthday-secondary: #F8BBD0;   /* Pink 100 */
+      
+      --lesson-primary: #1565C0;       /* Blue 800 */
+      --lesson-secondary: #BBDEFB;     /* Blue 100 */
+      
+      --money-primary: #2E7D32;        /* Green 800 */
+      --money-secondary: #C8E6C9;      /* Green 100 */
+      
+      --note-primary: #00897B;         /* Teal 600 */
+      --note-secondary: #B2DFDB;       /* Teal 100 */
+      
+      --path-primary: #5E35B1;         /* Deep Purple 600 */
+      --path-secondary: #D1C4E9;       /* Deep Purple 100 */
+      
+      --project-primary: #3949AB;      /* Indigo 600 */
+      --project-secondary: #C5CAE9;    /* Indigo 100 */
+      
+      --song-primary: #1E88E5;         /* Blue 600 */
+      --song-secondary: #BBDEFB;       /* Blue 100 */
+      
+      --sound-primary: #D32F2F;        /* Red 700 */
+      --sound-secondary: #FFCDD2;      /* Red 100 */
+      
+      --task-primary: #00796B;         /* Teal 700 */
+      --task-secondary: #B2DFDB;       /* Teal 100 */
+      
+      --topic-primary: #00695C;        /* Teal 800 */
+      --topic-secondary: #B2DFDB;      /* Teal 100 */
+
+      /* Project Specific Palettes - Dark Mode */
+      --birthday-primary-dark: #AD1457; /* Pink 800 */
+      --birthday-secondary-dark: #880E4F; /* Pink 900 */
+      
+      --lesson-primary-dark: #0D47A1;    /* Blue 900 */
+      --lesson-secondary-dark: #0277BD;  /* Light Blue 800 */
+      
+      --money-primary-dark: #1B5E20;     /* Green 900 */
+      --money-secondary-dark: #2E7D32;   /* Green 800 */
+      
+      --note-primary-dark: #004D40;      /* Teal 900 */
+      --note-secondary-dark: #00695C;    /* Teal 800 */
+      
+      --path-primary-dark: #4527A0;      /* Deep Purple 800 */
+      --path-secondary-dark: #311B92;    /* Deep Purple 900 */
+      
+      --project-primary-dark: #283593;   /* Indigo 800 */
+      --project-secondary-dark: #1A237E; /* Indigo 900 */
+      
+      --song-primary-dark: #1565C0;      /* Blue 800 */
+      --song-secondary-dark: #0D47A1;    /* Blue 900 */
+      
+      --sound-primary-dark: #B71C1C;     /* Red 900 */
+      --sound-secondary-dark: #C62828;   /* Red 800 */
+      
+      --task-primary-dark: #004D40;      /* Teal 900 */
+      --task-secondary-dark: #00695C;    /* Teal 800 */
+      
+      --topic-primary-dark: #004D40;     /* Teal 900 */
+      --topic-secondary-dark: #00695C;   /* Teal 800 */
+
+      /* Status Colors - Light Mode */
+      --status-open: #EF5350;          /* Red 400 */
+      --status-in-progress: #FFA726;   /* Orange 400 */
+      --status-completed: #66BB6A;     /* Green 400 */
+      --status-blocked: #7E57C2;       /* Deep Purple 400 */
+      --status-postponed: #78909C;     /* Blue Gray 400 */
+
+      /* Status Colors - Dark Mode */
+      --status-open-dark: #C62828;     /* Red 800 */
+      --status-in-progress-dark: #EF6C00; /* Orange 800 */
+      --status-completed-dark: #2E7D32; /* Green 800 */
+      --status-blocked-dark: #4527A0;  /* Deep Purple 800 */
+      --status-postponed-dark: #455A64; /* Blue Gray 800 */
+    }
+
+    /* Dark Mode Settings */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: var(--primary-dark);
+        --secondary: var(--secondary-dark);
+        --surface: var(--surface-dark);
+        --background: var(--background-dark);
+        --text: var(--text-dark);
+        --text-secondary: var(--text-secondary-dark);
+        --border: var(--border-dark);
+        --shadow: var(--shadow-dark);
+        
+        --status-open: var(--status-open-dark);
+        --status-in-progress: var(--status-in-progress-dark);
+        --status-completed: var(--status-completed-dark);
+        --status-blocked: var(--status-blocked-dark);
+        --status-postponed: var(--status-postponed-dark);
+      }
+    }
+
+    /* Typography */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--text);
+      margin: 20px;
+      background-color: var(--background);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: var(--surface);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: -30px;
+      margin-bottom: 40px;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      z-index: 100;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .theme-toggle:active {
+      transform: translateY(0);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      .theme-toggle {
+        background-color: #333; /* Darker background in dark mode */
+      }
+      
+      .theme-toggle:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      }
+    }
+    
+    .theme-icon {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    
+    .light-icon {
+      display: none;
+    }
+    
+    .dark-icon {
+      display: block;
+    }
+    
+    .dark-mode .light-icon {
+      display: block;
+    }
+    
+    .dark-mode .dark-icon {
+      display: none;
+    }
+    
+    /* Theme transition effects */
+    body {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .container, .project-card, .project-link, .filter-button {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Project Grid */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .project-card {
+      background-color: var(--surface);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .project-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .project-card:hover {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      }
+    }
+
+    .project-header {
+      padding: 20px;
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+    }
+
+    /* Project Colors - using the defined palette variables */
+    .project-card[data-project="birthday"] .project-header { 
+      background-color: var(--birthday-primary); 
+    }
+    .project-card[data-project="lesson"] .project-header { 
+      background-color: var(--lesson-primary); 
+    }
+    .project-card[data-project="money"] .project-header { 
+      background-color: var(--money-primary); 
+    }
+    .project-card[data-project="note"] .project-header { 
+      background-color: var(--note-primary); 
+    }
+    .project-card[data-project="path"] .project-header { 
+      background-color: var(--path-primary); 
+    }
+    .project-card[data-project="project"] .project-header { 
+      background-color: var(--project-primary); 
+    }
+    .project-card[data-project="song"] .project-header { 
+      background-color: var(--song-primary); 
+    }
+    .project-card[data-project="sound"] .project-header { 
+      background-color: var(--sound-primary); 
+    }
+    .project-card[data-project="task"] .project-header { 
+      background-color: var(--task-primary); 
+    }
+    .project-card[data-project="topic"] .project-header { 
+      background-color: var(--topic-primary); 
+    }
+
+    /* Handle dark mode for project headers */
+    @media (prefers-color-scheme: dark) {
+      .project-card[data-project="birthday"] .project-header { 
+        background-color: var(--birthday-primary-dark); 
+      }
+      .project-card[data-project="lesson"] .project-header { 
+        background-color: var(--lesson-primary-dark); 
+      }
+      .project-card[data-project="money"] .project-header { 
+        background-color: var(--money-primary-dark); 
+      }
+      .project-card[data-project="note"] .project-header { 
+        background-color: var(--note-primary-dark); 
+      }
+      .project-card[data-project="path"] .project-header { 
+        background-color: var(--path-primary-dark); 
+      }
+      .project-card[data-project="project"] .project-header { 
+        background-color: var(--project-primary-dark); 
+      }
+      .project-card[data-project="song"] .project-header { 
+        background-color: var(--song-primary-dark); 
+      }
+      .project-card[data-project="sound"] .project-header { 
+        background-color: var(--sound-primary-dark); 
+      }
+      .project-card[data-project="task"] .project-header { 
+        background-color: var(--task-primary-dark); 
+      }
+      .project-card[data-project="topic"] .project-header { 
+        background-color: var(--topic-primary-dark); 
+      }
+    }
+
+    .project-name {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: white; /* Ensure high contrast against colored headers */
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Add subtle shadow for better readability */
+    }
+
+    .project-logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 10px;
+      display: block;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      padding: 10px;
+    }
+
+    .project-content {
+      padding: 20px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-description {
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .project-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .project-link {
+      display: flex;
+      padding: 12px 15px;
+      background-color: var(--background);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: 600;
+      text-align: left;
+      transition: all 0.2s ease;
+      border: 1px solid var(--border);
+      align-items: center;
+      gap: 8px;
+    }
+
+    .project-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .project-link:hover {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      }
+    }
+
+    .link-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    /* Light mode icons */
+    .static-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239E9E9E"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>');
+    }
+
+    .local-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234CAF50"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>');
+    }
+
+    .deployed-icon {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231976D2"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.987 7.987 0 015.08 16zm2.95-8H5.08a7.987 7.987 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 01-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>');
+    }
+
+    /* Dark mode icons */
+    @media (prefers-color-scheme: dark) {
+      .static-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23BDBDBD"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>');
+      }
+
+      .local-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2381C784"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>');
+      }
+
+      .deployed-icon {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364B5F6"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.987 7.987 0 015.08 16zm2.95-8H5.08a7.987 7.987 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 01-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>');
+      }
+    }
+
+    .link-label {
+      flex-grow: 1;
+    }
+
+    .link-type {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .project-link.static-link {
+      background-color: var(--background);
+    }
+
+    .project-link.local-link {
+      background-color: rgba(129, 199, 132, 0.1); /* Green 300 with 10% opacity */
+      border-color: rgba(129, 199, 132, 0.3); /* Green 300 with 30% opacity */
+    }
+
+    .project-link.deployed-link {
+      background-color: rgba(33, 150, 243, 0.1); /* Blue 500 with 10% opacity */
+      border-color: rgba(33, 150, 243, 0.3); /* Blue 500 with 30% opacity */
+    }
+
+    /* Project-specific hover colors */
+    .project-card[data-project="birthday"] .project-link:hover { 
+      background-color: rgba(233, 30, 99, 0.1); /* Pink with opacity */
+    }
+    .project-card[data-project="lesson"] .project-link:hover { 
+      background-color: rgba(21, 101, 192, 0.1); /* Blue with opacity */
+    }
+    .project-card[data-project="money"] .project-link:hover { 
+      background-color: rgba(46, 125, 50, 0.1); /* Green with opacity */
+    }
+    .project-card[data-project="note"] .project-link:hover { 
+      background-color: rgba(0, 137, 123, 0.1); /* Teal with opacity */
+    }
+    .project-card[data-project="path"] .project-link:hover { 
+      background-color: rgba(94, 53, 177, 0.1); /* Purple with opacity */
+    }
+    .project-card[data-project="project"] .project-link:hover { 
+      background-color: rgba(57, 73, 171, 0.1); /* Indigo with opacity */
+    }
+    .project-card[data-project="song"] .project-link:hover { 
+      background-color: rgba(30, 136, 229, 0.1); /* Blue with opacity */
+    }
+    .project-card[data-project="sound"] .project-link:hover { 
+      background-color: rgba(211, 47, 47, 0.1); /* Red with opacity */
+    }
+    .project-card[data-project="task"] .project-link:hover { 
+      background-color: rgba(0, 121, 107, 0.1); /* Teal with opacity */
+    }
+    .project-card[data-project="topic"] .project-link:hover { 
+      background-color: rgba(0, 105, 92, 0.1); /* Teal with opacity */
+    }
+
+    .app-badge {
+      display: inline-block;
+      background-color: var(--status-completed);
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    .static-badge {
+      display: inline-block;
+      background-color: var(--text-secondary);
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        margin: 0;
+      }
+      
+      .container {
+        padding: 20px;
+        border-radius: 0;
+      }
+      
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Status filter buttons */
+    .filter-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-button {
+      padding: 8px 16px;
+      background-color: var(--background);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      color: var(--text);
+    }
+
+    .filter-button.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filter-button:hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+
+    .filter-button.active:hover {
+      background-color: var(--primary-dark);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .filter-button:hover {
+        background-color: rgba(255,255,255,0.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+    <svg class="theme-icon dark-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 8.69V4H15.31L12 0.69L8.69 4H4V8.69L0.69 12L4 15.31V20H8.69L12 23.31L15.31 20H20V15.31L23.31 12L20 8.69ZM12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12C18 15.31 15.31 18 12 18ZM12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8Z" fill="#333333"/>
+    </svg>
+    <svg class="theme-icon light-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3ZM12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19Z" fill="white"/>
+      <path d="M12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17Z" fill="white"/>
+      <path d="M2 13H4V11H2V13ZM6 5.99L7.41 7.4L9 5.82L7.59 4.41L6 5.99ZM12 1H10V3H12V1ZM20 11V13H22V11H20ZM18.58 4.42L17.17 5.83L18.78 7.4L20.18 6L18.58 4.42ZM12 21H10V23H12V21ZM17.99 18.58L16.58 17.17L15 18.76L16.41 20.17L17.99 18.58ZM6 18.58L7.42 20.17L9 18.59L7.59 17.18L6 18.58Z" fill="white"/>
+    </svg>
+  </button>
+
+  <div class="container">
+    <header class="header">
+      <h1>Little Life Manager</h1>
+      <p class="subtitle">A collection of tools to organize different aspects of life</p>
+    </header>
+
+    <div class="filter-container">
+      <button class="filter-button active" data-filter="all">All Projects</button>
+      <button class="filter-button" data-filter="app">Apps Only</button>
+      <button class="filter-button" data-filter="static">Static Only</button>
+    </div>
+
+    <div class="projects-grid">
+      <!-- Birthday Manager -->
+      <div class="project-card" data-type="static" data-project="birthday">
+        <div class="project-header">
+          <img src="littleBirthdayMan/public/images/logo.svg" alt="Birthday Manager" class="project-logo">
+          <h2 class="project-name">littleBirthdayMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Track upcoming birthdays and special occasions. Never forget an important date again.</p>
+          <div class="project-links">
+            <a href="littleBirthdayMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3001/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3001</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lesson Manager -->
+      <div class="project-card" data-type="static" data-project="lesson">
+        <div class="project-header">
+          <img src="littleLessonMan/public/images/logo.svg" alt="Lesson Manager" class="project-logo">
+          <h2 class="project-name">littleLessonMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Organize learning materials and track educational progress for various subjects.</p>
+          <div class="project-links">
+            <a href="littleLessonMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3002/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3002</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Money Manager -->
+      <div class="project-card" data-type="static" data-project="money">
+        <div class="project-header">
+          <img src="littleMoneyMan/public/images/logo.svg" alt="Money Manager" class="project-logo">
+          <h2 class="project-name">littleMoneyMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Track expenses, set budgets, and monitor your financial health with simple tools.</p>
+          <div class="project-links">
+            <a href="littleMoneyMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3004/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3004</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note Manager -->
+      <div class="project-card" data-type="static" data-project="note">
+        <div class="project-header">
+          <img src="littleNoteMan/public/images/logo.svg" alt="Note Manager" class="project-logo">
+          <h2 class="project-name">littleNoteMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Create, organize, and search through your notes and important information.</p>
+          <div class="project-links">
+            <a href="littleNoteMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3005/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3005</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Path Manager -->
+      <div class="project-card" data-type="static" data-project="path">
+        <div class="project-header">
+          <img src="littlePathMan/public/images/logo.svg" alt="Path Manager" class="project-logo">
+          <h2 class="project-name">littlePathMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Map out your goals and visualize the path to achieving them step by step.</p>
+          <div class="project-links">
+            <a href="littlePathMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3006/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3006</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Manager -->
+      <div class="project-card" data-type="static" data-project="project">
+        <div class="project-header">
+          <img src="littleProjectMan/public/images/logo.svg" alt="Project Manager" class="project-logo">
+          <h2 class="project-name">littleProjectMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Organize and track the progress of your various personal and professional projects.</p>
+          <div class="project-links">
+            <a href="littleProjectMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3007/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3007</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Song Manager -->
+      <div class="project-card" data-type="static" data-project="song">
+        <div class="project-header">
+          <img src="littleSongMan/public/images/logo.svg" alt="Song Manager" class="project-logo">
+          <h2 class="project-name">littleSongMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Catalog your favorite songs, create playlists, and track your music collection.</p>
+          <div class="project-links">
+            <a href="littleSongMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3008/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3008</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sound Manager -->
+      <div class="project-card" data-type="static" data-project="sound">
+        <div class="project-header">
+          <img src="littleSoundMan/public/images/logo.svg" alt="Sound Manager" class="project-logo">
+          <h2 class="project-name">littleSoundMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Organize audio files, sound effects, and create custom sound collections.</p>
+          <div class="project-links">
+            <a href="littleSoundMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3009/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3009</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Manager -->
+      <div class="project-card" data-type="app" data-project="task">
+        <div class="project-header">
+          <img src="littleTaskMan/public/images/logo.svg" alt="Task Manager" class="project-logo">
+          <h2 class="project-name">littleTaskMan <span class="app-badge">App</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Manage your to-do list, track progress, and organize tasks by project and priority.</p>
+          <div class="project-links">
+            <a href="littleTaskMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3003/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3003</span>
+            </a>
+            <a href="https://littletaskman.example.com" class="project-link deployed-link">
+              <span class="link-icon deployed-icon"></span>
+              <span class="link-label">Live Deployment</span>
+              <span class="link-type">example.com</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topic Manager -->
+      <div class="project-card" data-type="static" data-project="topic">
+        <div class="project-header">
+          <img src="littleTopicMan/public/images/logo.svg" alt="Topic Manager" class="project-logo">
+          <h2 class="project-name">littleTopicMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Organize information by topic, create knowledge maps, and connect related ideas.</p>
+          <div class="project-links">
+            <a href="littleTopicMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3010/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3010</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2024 Little Life Manager Suite | A monorepo of life organization tools</p>
+    </footer>
+  </div>
+
+  <script>
+    // Theme handling functions
+    const themeConfig = {
+      // Check if dark mode is preferred by user or previously set
+      checkDarkMode: function() {
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme) {
+          return storedTheme === 'dark';
+        }
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      },
+      
+      // Toggle between light and dark mode
+      toggleTheme: function() {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        
+        // Update theme meta tag for mobile browsers
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute('content', isDarkMode ? '#212121' : '#FFFFFF');
+        }
+      },
+      
+      // Initialize theme based on preferences
+      initTheme: function() {
+        // Add meta tag for theme color if it doesn't exist
+        if (!document.querySelector('meta[name="theme-color"]')) {
+          const meta = document.createElement('meta');
+          meta.name = 'theme-color';
+          meta.content = this.checkDarkMode() ? '#212121' : '#FFFFFF';
+          document.head.appendChild(meta);
+        }
+        
+        // Apply dark mode class if needed
+        if (this.checkDarkMode()) {
+          document.body.classList.add('dark-mode');
+        }
+        
+        // Set up theme toggle button - using bind to maintain 'this' context
+        document.getElementById('theme-toggle').addEventListener('click', this.toggleTheme.bind(this));
+      }
+    };
+    
+    // Initialize theme
+    themeConfig.initTheme();
+    
+    // Project filtering
+    document.querySelectorAll('.filter-button').forEach(button => {
+      button.addEventListener('click', () => {
+        // Update active button
+        document.querySelectorAll('.filter-button').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        
+        const filterValue = button.getAttribute('data-filter');
+        
+        // Filter projects
+        document.querySelectorAll('.project-card').forEach(card => {
+          if (filterValue === 'all' || card.getAttribute('data-type') === filterValue) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Check deployed links and mark them as available/unavailable
+    document.querySelectorAll('.deployed-link').forEach(link => {
+      const url = link.getAttribute('href');
+      
+      // This is just a simulation since we can't actually check external URLs from client-side JavaScript
+      // due to CORS restrictions. In a real implementation, you might want a server-side solution
+      // or a service that provides the status of your deployments.
+      if (url.includes('example.com')) {
+        // This is just a placeholder link
+        link.style.opacity = '0.6';
+        link.innerHTML = `
+          <span class="link-icon deployed-icon"></span>
+          <span class="link-label">Live Deployment (Coming Soon)</span>
+          <span class="link-type">Not available yet</span>
+        `;
+        link.style.pointerEvents = 'none';
+        link.style.cursor = 'not-allowed';
+      }
+    });
+
+    // Function to check if localhost links are active
+    function checkLocalhostLinks() {
+      document.querySelectorAll('.local-link').forEach(link => {
+        const url = link.getAttribute('href');
+        const port = url.match(/localhost:(\d+)/)[1];
+        
+        // Create a fetch request with a timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 500);
+        
+        fetch(url, { 
+          method: 'HEAD',
+          mode: 'no-cors',
+          signal: controller.signal
+        })
+        .then(() => {
+          // Link appears to be active
+          link.classList.add('active-link');
+          clearTimeout(timeoutId);
+        })
+        .catch(() => {
+          // Link is not active
+          link.style.opacity = '0.6';
+          link.innerHTML = `
+            <span class="link-icon local-icon"></span>
+            <span class="link-label">Local Server (Offline)</span>
+            <span class="link-type">Not running</span>
+          `;
+          link.style.pointerEvents = 'none';
+          link.style.cursor = 'not-allowed';
+          clearTimeout(timeoutId);
+        });
+      });
+    }
+    
+    // Check localhost links on page load
+    window.addEventListener('load', checkLocalhostLinks);
+  </script>
+</body>
+</html>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>littlePathMan - Problem Solving &amp; Path Planning</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Load utility scripts first -->
+  <script src="/js/errorHandling.js"></script>
+  <script src="/js/gantt.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo-->
+    <span id="logo-text">littlePathMan</span>
+    <!-- Tab Navigation -->
+    <div class="tabs">      
+      <div class="app-title">
+        <div>
+          <img src="images/logo.svg" width="128" height="90" alt="Little Path Man"/>
+        </div>
+      </div>
+      <div class="tab active" data-view="tasksView">Steps</div>
+      <div class="tab" data-view="usersView">Users</div>
+      <div class="tab" data-view="problemsView">Problems</div>
+      <div class="tab" data-view="ganttView">Gantt Chart</div>
+      <div class="tab" data-view="chatView">Problem Solver</div>
+    </div>
+    
+    <!-- Error Message Container -->
+    <div id="errorMessage" class="error-message"></div>
+
+  <!-- Steps View -->
+  <div id="tasksView" class="view active">
+    <h2>Steps</h2>
+    <span class="toggle-form" data-target="taskFormContainer">+ Add New Step</span>
+    <!-- Add/Edit Step Form -->
+    <div class="form-container" id="taskFormContainer">
+      <h3 id="taskFormTitle">Add New Step</h3>
+      <form id="taskForm">
+        <input type="hidden" id="taskId" value="">
+        <div>
+          <label>Problem: </label>
+          <!-- Select populated from problems API -->
+          <select id="problem" required></select>
+        </div>
+        <div>
+          <label>Title: </label>
+          <input type="text" id="title" required>
+        </div>
+        <div>
+          <label>User: </label>
+          <!-- Select populated from users API -->
+          <select id="assignedUser" required></select>
+        </div>
+        <div>
+          <label>Start Date: </label>
+          <input type="date" id="startDate" required>
+        </div>
+        <div>
+          <label>Deadline: </label>
+          <input type="date" id="deadline" required>
+        </div>
+        <div>
+          <label>Duration (days): </label>
+          <input type="number" id="duration" min="1" value="1">
+        </div>
+        <div>
+          <label>Status: </label>
+          <select id="status" required>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Blocked">Blocked</option>
+            <option value="Postponed">Postponed</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveTaskBtn" class="btn-primary">Save Step</button>
+          <button type="button" id="cancelTaskBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Steps Table -->
+    <table id="tasksTable">
+      <thead>
+        <tr>
+          <th>Problem</th>
+          <th>Step</th>
+          <th>User</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Step rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Users View -->
+  <div id="usersView" class="view">
+    <h2>Users</h2>
+    <span class="toggle-form" data-target="userFormContainer">+ Add New User</span>
+    <!-- Add/Edit User Form -->
+    <div class="form-container" id="userFormContainer">
+      <h3 id="userFormTitle">Add New User</h3>
+      <form id="userForm">
+        <input type="hidden" id="userId" value="">
+        <div>
+          <label>Username: </label>
+          <input type="text" id="username" required>
+        </div>
+        <div>
+          <label>Role: </label>
+          <select id="role" required>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveUserBtn" class="btn-primary">Save User</button>
+          <button type="button" id="cancelUserBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Users Table -->
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- User rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Gantt View -->
+  <div id="ganttView" class="view">
+    <h2>Problem Timeline</h2>
+    <div class="gantt-toolbar">
+      <select id="ganttProblemFilter">
+        <option value="all">All Problems</option>
+        <!-- Problems will be added here -->
+      </select>
+      <button id="zoomInBtn" class="btn-secondary">Zoom In</button>
+      <button id="zoomOutBtn" class="btn-secondary">Zoom Out</button>
+      <button id="todayBtn" class="btn-secondary">Today</button>
+    </div>
+    <div id="ganttChart" style="width:100%; height:500px;"></div>
+  </div>
+
+  <!-- Problems View -->
+  <div id="problemsView" class="view">
+    <h2>Problems</h2>
+    <span class="toggle-form" data-target="problemFormContainer">+ Add New Problem</span>
+    <!-- Add/Edit Problem Form -->
+    <div class="form-container" id="problemFormContainer">
+      <h3 id="problemFormTitle">Add New Problem</h3>
+      <form id="problemForm">
+        <input type="hidden" id="problemIdField" value="">
+        <div>
+          <label>Problem Name: </label>
+          <input type="text" id="problemName" required>
+        </div>
+        <div>
+          <label>Description: </label>
+          <textarea id="description"></textarea>
+        </div>
+        <div>
+          <label>Priority: </label>
+          <select id="priority" required>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div>
+          <label>Status: </label>
+          <select id="problemStatus" required>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Solved">Solved</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" id="saveProblemBtn" class="btn-primary">Save Problem</button>
+          <button type="button" id="cancelProblemBtn" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <!-- Problems Table -->
+    <table id="problemsTable">
+      <thead>
+        <tr>
+          <th>Problem Name</th>
+          <th>Description</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Problem rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Chat Problem Solver View -->
+  <div id="chatView" class="view">
+    <h2>Problem Solver</h2>
+    <div class="problem-selector">
+      <label for="chatProblemSelect">Select a problem to solve:</label>
+      <select id="chatProblemSelect">
+        <option value="">Choose a problem</option>
+        <!-- Problems will be loaded here -->
+      </select>
+    </div>
+    
+    <div id="chatInterface" style="display: none;">
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be displayed here -->
+        </div>
+        <div class="chat-input-container">
+          <textarea class="chat-input" id="chatInput" placeholder="Describe your problem or ask a question..."></textarea>
+          <button class="chat-send-btn" id="chatSendBtn">Send</button>
+        </div>
+      </div>
+      
+      <div class="problem-plan">
+        <h3>Problem Solving Plan</h3>
+        <p>As you discuss your problem, we'll help you create a structured plan to solve it.</p>
+        <div class="plan-steps" id="planSteps">
+          <!-- Plan steps will be added here -->
+        </div>
+        <div class="action-buttons" style="margin-top: 20px;">
+          <button id="createTasksBtn" class="btn-primary">Convert Plan to Steps</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <script>
+    // API endpoints
+    const TASKS_API = '/api/tasks';
+    const USERS_API = '/api/users';
+    const PROBLEMS_API = '/api/problems';
+    const CHAT_API = '/api/chat';
+    
+    // Declare functions for global access
+    window.editTask = null;
+    window.deleteTask = null;
+    window.editUser = null;
+    window.deleteUser = null;
+    window.editProblem = null;
+    window.deleteProblem = null;
+
+    /* ----------------- Utility Functions ----------------- */
+
+    // Function to map status to a corresponding CSS class
+    function getStatusClass(status) {
+      switch(status.toLowerCase()) {
+        case 'open': return 'status-open';
+        case 'in progress': return 'status-in-progress';
+        case 'completed': 
+        case 'solved': return 'status-completed';
+        case 'blocked': 
+        case 'on hold': return 'status-blocked';
+        case 'postponed': return 'status-postponed';
+        default: return '';
+      }
+    }
+
+    /* ----------------- Tab Navigation ----------------- */
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.view).classList.add('active');
+      });
+    });
+
+    /* ----------------- Toggle Forms ----------------- */
+    document.querySelectorAll('.toggle-form').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const targetId = toggle.getAttribute('data-target');
+        const formContainer = document.getElementById(targetId);
+        formContainer.style.display = formContainer.style.display === 'block' ? 'none' : 'block';
+      });
+    });
+
+    /* ----------------- Tasks Functions ----------------- */
+    async function populateProblemOptions() {
+      try {
+        const problems = await fetchWithErrorHandling(PROBLEMS_API);
+        const problemSelect = document.getElementById('problem');
+        problemSelect.innerHTML = '<option value="">Select a problem</option>';
+        problems.forEach(problem => {
+          const option = document.createElement('option');
+          option.value = problem.name; // or use problem.id if preferred
+          option.textContent = problem.name;
+          problemSelect.appendChild(option);
+        });
+        
+        // Also populate the chat problem selector
+        const chatProblemSelect = document.getElementById('chatProblemSelect');
+        chatProblemSelect.innerHTML = '<option value="">Choose a problem</option>';
+        problems.forEach(problem => {
+          const option = document.createElement('option');
+          option.value = problem.id; // Use ID for the chat functionality
+          option.textContent = problem.name;
+          chatProblemSelect.appendChild(option);
+        });
+        
+        // And the Gantt chart filter
+        const ganttProblemFilter = document.getElementById('ganttProblemFilter');
+        ganttProblemFilter.innerHTML = '<option value="all">All Problems</option>';
+        problems.forEach(problem => {
+          const option = document.createElement('option');
+          option.value = problem.name;
+          option.textContent = problem.name;
+          ganttProblemFilter.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error populating problem options:', error);
+      }
+    }
+
+    async function populateUserOptions() {
+      try {
+        const users = await fetchWithErrorHandling(USERS_API);
+        const userSelect = document.getElementById('assignedUser');
+        userSelect.innerHTML = '<option value="">Select a user</option>';
+        users.forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.username; // or use user.id if preferred
+          option.textContent = user.username;
+          userSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error populating user options:', error);
+      }
+    }
+
+    async function fetchTasks() {
+      try {
+        const tasks = await fetchWithErrorHandling(TASKS_API);
+        console.log('Tasks fetched:', tasks); // Debug log
+        renderTasks(tasks);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    }
+
+    function renderTasks(tasks) {
+      console.log('Rendering tasks:', tasks);
+      const tbody = document.querySelector('#tasksTable tbody');
+      console.log('Tasks table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!tasks || tasks.length === 0) {
+        console.log('No tasks found, rendering empty state');
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No steps found. Click "+ Add New Step" to create one.</td></tr>';
+        return;
+      }
+      
+      tasks.forEach(task => {
+        console.log('Creating row for task:', task);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${task.project || task.problem}</td>
+          <td>${task.title}</td>
+          <td>${task.assignedUser}</td>
+          <td>${task.deadline}</td>
+          <td><div class="status-bar ${getStatusClass(task.status)}">${task.status}</div></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="editTask('${task.id}')">Edit</button>
+              <button class="btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      console.log('Finished rendering tasks');
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('taskId').value;
+      const taskData = {
+        problem: document.getElementById('problem').value,
+        title: document.getElementById('title').value,
+        assignedUser: document.getElementById('assignedUser').value,
+        start_date: document.getElementById('startDate').value,
+        deadline: document.getElementById('deadline').value,
+        duration: parseInt(document.getElementById('duration').value) || 1,
+        status: document.getElementById('status').value
+      };
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${TASKS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+        } else {
+          await fetchWithErrorHandling(TASKS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+        }
+        resetTaskForm();
+        fetchTasks();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving task:', error);
+      }
+    });
+
+    // Define editTask in the global scope
+    window.editTask = async function(id) {
+      try {
+        const task = await fetchWithErrorHandling(`${TASKS_API}/${id}`);
+        
+        // Refresh select options to ensure they contain the latest data
+        await populateProblemOptions();
+        await populateUserOptions();
+        
+        // Populate the form fields with the existing task data
+        document.getElementById('taskId').value = task.id;
+        document.getElementById('problem').value = task.problem || task.project;  // Support both new and old field names
+        document.getElementById('title').value = task.title;
+        document.getElementById('assignedUser').value = task.assignedUser;   // Pre-select the user
+        document.getElementById('startDate').value = task.start_date || '';
+        document.getElementById('deadline').value = task.deadline;
+        document.getElementById('duration').value = task.duration || 1;
+        document.getElementById('status').value = task.status;
+        
+        // Update the form title and show the form
+        document.getElementById('taskFormTitle').textContent = 'Edit Step';
+        document.getElementById('taskFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching task for edit:', error);
+      }
+    }
+
+    // Define deleteTask in the global scope
+    window.deleteTask = async function(id) {
+      if (confirm('Are you sure you want to delete this step?')) {
+        try {
+          await fetchWithErrorHandling(`${TASKS_API}/${id}`, { method: 'DELETE' });
+          fetchTasks();
+        } catch (error) {
+          console.error('Error deleting task:', error);
+        }
+      }
+    }
+
+    function resetTaskForm() {
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskId').value = '';
+      document.getElementById('taskFormTitle').textContent = 'Add New Step';
+      document.getElementById('taskFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelTaskBtn').addEventListener('click', resetTaskForm);
+
+    /* ----------------- Users Functions ----------------- */
+    async function fetchUsers() {
+      try {
+        const users = await fetchWithErrorHandling(USERS_API);
+        console.log('Users fetched:', users); // Debug log
+        renderUsers(users);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+
+    function renderUsers(users) {
+      console.log('Rendering users:', users);
+      const tbody = document.querySelector('#usersTable tbody');
+      console.log('Users table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!users || users.length === 0) {
+        console.log('No users found, rendering empty state');
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No users found. Click "+ Add New User" to create one.</td></tr>';
+        return;
+      }
+      
+      users.forEach(user => {
+        console.log('Creating row for user:', user);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="editUser('${user.id}')">Edit</button>
+              <button class="btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      console.log('Finished rendering users');
+    }
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('userId').value;
+      const userData = {
+        username: document.getElementById('username').value,
+        role: document.getElementById('role').value
+      };
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${USERS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          });
+        } else {
+          await fetchWithErrorHandling(USERS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          });
+        }
+        resetUserForm();
+        fetchUsers();
+        // Also refresh task users in case the updated user should be available
+        populateUserOptions();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving user:', error);
+      }
+    });
+
+    // Define editUser in the global scope
+    window.editUser = async function(id) {
+      try {
+        const user = await fetchWithErrorHandling(`${USERS_API}/${id}`);
+        document.getElementById('userId').value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('role').value = user.role;
+        document.getElementById('userFormTitle').textContent = 'Edit User';
+        document.getElementById('userFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching user for edit:', error);
+      }
+    }
+
+    // Define deleteUser in the global scope
+    window.deleteUser = async function(id) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        try {
+          await fetchWithErrorHandling(`${USERS_API}/${id}`, { method: 'DELETE' });
+          fetchUsers();
+          populateUserOptions();
+        } catch (error) {
+          console.error('Error deleting user:', error);
+        }
+      }
+    }
+
+    function resetUserForm() {
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('userFormTitle').textContent = 'Add New User';
+      document.getElementById('userFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelUserBtn').addEventListener('click', resetUserForm);
+
+    /* ----------------- Gantt Chart View ----------------- */
+    // Gantt chart initialization and functions will be added here
+    
+    /* ----------------- Problems Functions ----------------- */
+    async function fetchProblems() {
+      try {
+        const problems = await fetchWithErrorHandling(PROBLEMS_API);
+        console.log('Problems fetched:', problems); // Debug log
+        renderProblems(problems);
+      } catch (error) {
+        console.error('Error fetching problems:', error);
+      }
+    }
+
+    function renderProblems(problems) {
+      console.log('Rendering problems:', problems);
+      const tbody = document.querySelector('#problemsTable tbody');
+      console.log('Problems table body element:', tbody);
+      tbody.innerHTML = '';
+      
+      if (!problems || problems.length === 0) {
+        console.log('No problems found, rendering empty state');
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No problems found. Click "+ Add New Problem" to create one.</td></tr>';
+        return;
+      }
+      
+      problems.forEach(problem => {
+        console.log('Creating row for problem:', problem);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${problem.name}</td>
+          <td>${problem.description || 'No description'}</td>
+          <td>${problem.priority || 'Medium'}</td>
+          <td><div class="status-bar ${getStatusClass(problem.status || 'Open')}">${problem.status || 'Open'}</div></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="editProblem('${problem.id}')">Edit</button>
+              <button class="btn-danger" onclick="deleteProblem('${problem.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      console.log('Finished rendering problems');
+    }
+
+    document.getElementById('problemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('Problem form submitted');
+      
+      const id = document.getElementById('problemIdField').value;
+      const name = document.getElementById('problemName').value;
+      const description = document.getElementById('description').value;
+      const priority = document.getElementById('priority').value;
+      const status = document.getElementById('problemStatus').value;
+      
+      console.log('Form values:', { id, name, description, priority, status });
+      
+      const problemData = { 
+        name: name,
+        description: description,
+        priority: priority,
+        status: status
+      };
+      
+      console.log('Submitting problem data:', problemData);
+      
+      try {
+        if (id) {
+          await fetchWithErrorHandling(`${PROBLEMS_API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(problemData)
+          });
+        } else {
+          const response = await fetchWithErrorHandling(PROBLEMS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(problemData)
+          });
+          console.log('Problem created:', response);
+        }
+        resetProblemForm();
+        fetchProblems();
+        // Also refresh problem options for tasks
+        populateProblemOptions();
+      } catch (error) {
+        // Error is already displayed by fetchWithErrorHandling
+        console.error('Error saving problem:', error);
+      }
+    });
+
+    // Define editProblem in the global scope
+    window.editProblem = async function(id) {
+      try {
+        const problem = await fetchWithErrorHandling(`${PROBLEMS_API}/${id}`);
+        document.getElementById('problemIdField').value = problem.id;
+        document.getElementById('problemName').value = problem.name;
+        document.getElementById('description').value = problem.description || '';
+        document.getElementById('priority').value = problem.priority || 'Medium';
+        document.getElementById('problemStatus').value = problem.status || 'Open';
+        document.getElementById('problemFormTitle').textContent = 'Edit Problem';
+        document.getElementById('problemFormContainer').style.display = 'block';
+      } catch (error) {
+        console.error('Error fetching problem for edit:', error);
+      }
+    }
+
+    // Define deleteProblem in the global scope
+    window.deleteProblem = async function(id) {
+      if (confirm('Are you sure you want to delete this problem?')) {
+        try {
+          await fetchWithErrorHandling(`${PROBLEMS_API}/${id}`, { method: 'DELETE' });
+          fetchProblems();
+          populateProblemOptions();
+        } catch (error) {
+          console.error('Error deleting problem:', error);
+        }
+      }
+    }
+
+    function resetProblemForm() {
+      document.getElementById('problemForm').reset();
+      document.getElementById('problemIdField').value = '';
+      document.getElementById('problemFormTitle').textContent = 'Add New Problem';
+      document.getElementById('problemFormContainer').style.display = 'none';
+    }
+
+    document.getElementById('cancelProblemBtn').addEventListener('click', resetProblemForm);
+
+    /* ----------------- Chat Problem Solver Functions ----------------- */
+    let currentProblemId = null;
+    let planSteps = [];
+    
+    document.getElementById('chatProblemSelect').addEventListener('change', async function() {
+      const problemId = this.value;
+      const chatInterface = document.getElementById('chatInterface');
+      
+      if (!problemId) {
+        chatInterface.style.display = 'none';
+        return;
+      }
+      
+      currentProblemId = parseInt(problemId);
+      chatInterface.style.display = 'block';
+      
+      // Clear existing messages
+      document.getElementById('chatMessages').innerHTML = '';
+      
+      // Clear existing plan steps
+      document.getElementById('planSteps').innerHTML = '';
+      planSteps = [];
+      
+      // Load existing chat messages for this problem
+      try {
+        const messages = await fetchWithErrorHandling(`${CHAT_API}/problem/${problemId}`);
+        if (messages && messages.length > 0) {
+          messages.forEach(msg => {
+            addMessageToChat(msg);
+          });
+          
+          // Automatically generate plan steps from the conversation
+          generatePlanSteps(messages);
+        } else {
+          // Add a welcome message from the AI
+          const welcomeMessage = {
+            isAi: true,
+            message: "Hello! I'm your problem-solving assistant. Let's break down this problem and create a plan to solve it. What specific challenges are you facing with this problem?"
+          };
+          addMessageToChat(welcomeMessage);
+        }
+      } catch (error) {
+        console.error('Error loading chat messages:', error);
+      }
+    });
+    
+    document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+    
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      
+      if (!message || !currentProblemId) return;
+      
+      input.value = '';
+      
+      try {
+        // Send message to server
+        const userMessage = {
+          problemId: currentProblemId,
+          userId: 1, // Use the first user ID for now
+          message: message,
+          isAi: false
+        };
+        
+        // Add message to chat immediately for better UX
+        addMessageToChat(userMessage);
+        
+        // Send to server
+        const response = await fetchWithErrorHandling(CHAT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userMessage)
+        });
+        
+        // Load all messages again to get the AI response
+        const messages = await fetchWithErrorHandling(`${CHAT_API}/problem/${currentProblemId}`);
+        
+        // Add only the latest AI message that we don't already have
+        const aiMessages = messages.filter(msg => msg.isAi);
+        if (aiMessages.length > 0) {
+          const latestAiMessage = aiMessages[aiMessages.length - 1];
+          // Only add if it's new
+          const chatMessages = document.getElementById('chatMessages');
+          if (!chatMessages.querySelector(`[data-message-id="${latestAiMessage.id}"]`)) {
+            addMessageToChat(latestAiMessage);
+          }
+        }
+        
+        // Update the plan based on the conversation
+        generatePlanSteps(messages);
+        
+      } catch (error) {
+        console.error('Error sending chat message:', error);
+      }
+    }
+    
+    function addMessageToChat(message) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${message.isAi ? 'message-ai' : 'message-user'}`;
+      if (message.id) {
+        messageDiv.setAttribute('data-message-id', message.id);
+      }
+      
+      const timeStr = message.timestamp ? new Date(message.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+      messageDiv.innerHTML = `
+        <div>${message.message}</div>
+        <div class="message-meta">${message.isAi ? 'AI Assistant' : 'You'} - ${timeStr}</div>
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function generatePlanSteps(messages) {
+      // Simple algorithm to generate steps from AI messages
+      const aiMessages = messages.filter(msg => msg.isAi);
+      
+      if (aiMessages.length === 0) return;
+      
+      // Clear existing plan steps
+      planSteps = [];
+      
+      // Extract key points from AI messages and create plan steps
+      // This is a simplified version - in a real app, you'd use NLP or more sophisticated techniques
+      aiMessages.forEach(msg => {
+        const sentences = msg.message.split(/[.!?]/).filter(s => s.trim().length > 0);
+        
+        sentences.forEach(sentence => {
+          // Look for sentences that seem like they contain actionable steps
+          if (
+            sentence.includes('should') || 
+            sentence.includes('need to') || 
+            sentence.includes('recommend') ||
+            sentence.includes('suggest') ||
+            sentence.includes('approach') ||
+            sentence.includes('step') ||
+            sentence.includes('first') ||
+            sentence.includes('start by') ||
+            sentence.includes('create a')
+          ) {
+            // Don't add duplicate steps
+            const trimmedSentence = sentence.trim();
+            if (!planSteps.includes(trimmedSentence)) {
+              planSteps.push(trimmedSentence);
+            }
+          }
+        });
+      });
+      
+      // If we didn't find specific steps, add a generic step from the latest message
+      if (planSteps.length === 0 && aiMessages.length > 0) {
+        planSteps.push(aiMessages[aiMessages.length - 1].message);
+      }
+      
+      // Render the plan steps
+      renderPlanSteps();
+    }
+    
+    function renderPlanSteps() {
+      const planStepsContainer = document.getElementById('planSteps');
+      planStepsContainer.innerHTML = '';
+      
+      if (planSteps.length === 0) {
+        planStepsContainer.innerHTML = '<p>Continue the conversation to develop a plan.</p>';
+        return;
+      }
+      
+      planSteps.forEach((step, index) => {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'plan-step';
+        stepDiv.innerHTML = `
+          <div class="step-number">${index + 1}</div>
+          <div class="step-content">${step}</div>
+        `;
+        planStepsContainer.appendChild(stepDiv);
+      });
+    }
+    
+    document.getElementById('createTasksBtn').addEventListener('click', async function() {
+      if (!currentProblemId || planSteps.length === 0) {
+        alert('Please select a problem and develop a plan first.');
+        return;
+      }
+      
+      try {
+        // Get the current problem
+        const problem = await fetchWithErrorHandling(`${PROBLEMS_API}/${currentProblemId}`);
+        
+        // Get the first user (in a real app, you'd use the logged-in user)
+        const users = await fetchWithErrorHandling(USERS_API);
+        const firstUser = users.length > 0 ? users[0].username : '';
+        
+        if (!firstUser) {
+          alert('Please create a user first.');
+          return;
+        }
+        
+        // Create tasks from plan steps
+        const today = new Date();
+        const taskPromises = planSteps.map((step, index) => {
+          const deadline = new Date(today);
+          deadline.setDate(today.getDate() + (index + 1) * 3); // Space tasks 3 days apart
+          
+          const taskData = {
+            problem: problem.name,
+            title: step,
+            assignedUser: firstUser,
+            start_date: today.toISOString().split('T')[0],
+            deadline: deadline.toISOString().split('T')[0],
+            duration: 3,
+            status: 'Open'
+          };
+          
+          return fetchWithErrorHandling(TASKS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+        });
+        
+        await Promise.all(taskPromises);
+        
+        alert('Tasks created successfully! Switch to the Tasks tab to view them.');
+        fetchTasks(); // Refresh tasks in case the user switches to that tab
+        
+      } catch (error) {
+        console.error('Error creating tasks from plan:', error);
+        alert('Error creating tasks. Please try again.');
+      }
+    });
+
+    /* ----------------- Initialization ----------------- */
+    (async function init() {
+      await populateProblemOptions();
+      await populateUserOptions();
+      fetchTasks();
+      fetchUsers();
+      fetchProblems();
+    })();
+  </script>
+  </div><!-- end .container -->
+</body>
+</html>

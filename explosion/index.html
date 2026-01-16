@@ -3,24 +3,382 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Explosion / Collision Module</title>
+  <title>Continuous Tone Explosion Simulation</title>
   <style>
-    canvas {
-      display: block;
-      margin: 20px auto;
-      background-color: rgb(0, 0, 0);
-      border: 2px solid hsl(0, 0%, 13%);
-    }
     body {
       display: flex;
+      flex-direction: column;
+      align-items: center;
       background-color: rgb(33, 33, 33);
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background-color: black;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      z-index: 10;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    select {
+      padding: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
   </style>
-  
 </head>
-<body></body>
+<body>
+  <div id="controls">
+    <label for="explosionSelect">Explosion Type:</label>
+    <select id="explosionSelect" onchange="setExplosionType(this.value)">
+      <option value="field">Field Explosion</option>
+      <option value="blob">Blob Explosion</option>
+      <option value="wave">Wave Explosion</option>
+      <option value="hybrid">Hybrid Explosion</option>
+    </select>
+    <label for="soundSelect">Sound Type:</label>
+    <select id="soundSelect">
+      <option value="oscillator">Oscillator Sound</option>
+      <option value="procedural">Procedural Sound</option>
+      <option value="buffer">Custom Buffer Sound</option>
+    </select>
+  </div>
+  <canvas id="explosionCanvas"></canvas>
+  <script>
+    // --- Explosion Simulation ---
+    class ExplosionSimulation {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+        
+        // Explosion types
+        this.explosionTypes = {
+          field: this.fieldExplosion.bind(this),
+          blob: this.blobExplosion.bind(this),
+          wave: this.waveExplosion.bind(this),
+          hybrid: this.hybridExplosion.bind(this)
+        };
+        
+        this.currentExplosionType = 'field';
+        this.explosions = [];
+      }
+      
+      resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+      
+      fieldExplosion(x, y) {
+        const fieldSize = 100;
+        const intensity = 10;
+        const colors = ['rgba(255,0,0,0.5)', 'rgba(255,165,0,0.5)', 'rgba(255,255,0,0.5)'];
+        
+        for (let dx = -fieldSize; dx < fieldSize; dx += 10) {
+          for (let dy = -fieldSize; dy < fieldSize; dy += 10) {
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < fieldSize) {
+              const falloff = 1 - (distance / fieldSize);
+              this.explosions.push({
+                x: x + dx,
+                y: y + dy,
+                radius: falloff * intensity,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                life: 1,
+                type: 'field'
+              });
+            }
+          }
+        }
+      }
+      
+      blobExplosion(x, y) {
+        const blobCount = 5;
+        const maxRadius = 50;
+        for (let i = 0; i < blobCount; i++) {
+          this.explosions.push({
+            x: x + (Math.random() - 0.5) * 50,
+            y: y + (Math.random() - 0.5) * 50,
+            radius: Math.random() * maxRadius,
+            color: `rgba(0,255,0,${Math.random()})`,
+            life: 1,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            type: 'blob'
+          });
+        }
+      }
+      
+      waveExplosion(x, y) {
+        const waveCount = 3;
+        const maxRadius = 200;
+        for (let i = 0; i < waveCount; i++) {
+          this.explosions.push({
+            x: x,
+            y: y,
+            radius: 0,
+            maxRadius: maxRadius * (i + 1) / waveCount,
+            color: `rgba(0,0,255,${0.5 / (i + 1)})`,
+            life: 1,
+            growthRate: 5,
+            type: 'wave'
+          });
+        }
+      }
+      
+      hybridExplosion(x, y) {
+        this.fieldExplosion(x, y);
+        const blobCount = 3;
+        const maxRadius = 30;
+        for (let i = 0; i < blobCount; i++) {
+          this.explosions.push({
+            x: x + (Math.random() - 0.5) * 100,
+            y: y + (Math.random() - 0.5) * 100,
+            radius: Math.random() * maxRadius,
+            color: `rgba(255,255,255,${Math.random() * 0.5})`,
+            life: 1,
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
+            type: 'hybrid'
+          });
+        }
+        const waveCount = 2;
+        const maxWaveRadius = 150;
+        for (let i = 0; i < waveCount; i++) {
+          this.explosions.push({
+            x: x,
+            y: y,
+            radius: 0,
+            maxRadius: maxWaveRadius * (i + 1) / waveCount,
+            color: `rgba(255,100,0,${0.3 / (i + 1)})`,
+            life: 1,
+            growthRate: 3,
+            type: 'hybrid'
+          });
+        }
+      }
+      
+      render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.explosions = this.explosions.filter(explosion => {
+          switch(explosion.type) {
+            case 'field':
+              this.ctx.beginPath();
+              this.ctx.fillStyle = explosion.color;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+              this.ctx.fill();
+              explosion.life -= 0.02;
+              break;
+            case 'blob':
+              this.ctx.beginPath();
+              this.ctx.fillStyle = explosion.color;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+              this.ctx.fill();
+              explosion.x += explosion.vx;
+              explosion.y += explosion.vy;
+              explosion.radius *= 0.95;
+              explosion.life -= 0.03;
+              break;
+            case 'wave':
+              this.ctx.beginPath();
+              this.ctx.strokeStyle = explosion.color;
+              this.ctx.lineWidth = 5;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+              this.ctx.stroke();
+              explosion.radius += explosion.growthRate;
+              explosion.life -= 0.02;
+              break;
+            case 'hybrid':
+              if (explosion.maxRadius) {
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = explosion.color;
+                this.ctx.lineWidth = 3;
+                this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                explosion.radius += explosion.growthRate;
+                explosion.life -= 0.02;
+              } else {
+                this.ctx.beginPath();
+                this.ctx.fillStyle = explosion.color;
+                this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                explosion.x += explosion.vx;
+                explosion.y += explosion.vy;
+                explosion.radius *= 0.95;
+                explosion.life -= 0.03;
+              }
+              break;
+          }
+          return explosion.life > 0;
+        });
+        requestAnimationFrame(this.render.bind(this));
+      }
+      
+      createExplosion(x, y) {
+        this.explosionTypes[this.currentExplosionType](x, y);
+      }
+    }
+    
+    // --- Sound Generation Methods ---
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let activeSound = null; // will hold currently playing nodes
 
-  <canvas id="explosion" width="400" height="400"></canvas>
-  <script src="explosion-module.js"></script>
+    // Map vertical coordinate to frequency: top (y=0) => 880 Hz, bottom => 220 Hz.
+    function getFrequencyFromY(y) {
+      const fMax = 880, fMin = 220;
+      return fMax - (y / canvas.height) * (fMax - fMin);
+    }
+    
+    // Oscillator-Based Sound: create and return an oscillator node (with its gain).
+    function startOscillatorSound(frequency) {
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.start();
+      return { oscillator, gainNode };
+    }
+    
+    // Procedural Sound Synthesis: create layered oscillators and noise.
+    function startProceduralSound(frequency) {
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.connect(audioContext.destination);
+      
+      const osc1 = audioContext.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      osc1.connect(gainNode);
+      
+      const osc2 = audioContext.createOscillator();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(frequency * 1.5, audioContext.currentTime);
+      osc2.connect(gainNode);
+      
+      // Create noise buffer
+      const bufferSize = audioContext.sampleRate;
+      const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noiseSource = audioContext.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+      noiseSource.connect(gainNode);
+      
+      osc1.start();
+      osc2.start();
+      noiseSource.start();
+      return { osc1, osc2, noiseSource, gainNode };
+    }
+    
+    // Audio Buffer Playback: play a looped sound.
+    let audioBuffer = null;
+    function loadAudioBuffer(url) {
+      fetch(url)
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+        .then(decodedBuffer => { audioBuffer = decodedBuffer; })
+        .catch(e => console.error('Error loading audio buffer', e));
+    }
+    
+    function startBufferSound(frequency) {
+      if (audioBuffer) {
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        // Loop the sound so it continues until stopped.
+        source.loop = true;
+        // Adjust playback rate based on frequency relative to a base (440 Hz)
+        source.playbackRate.value = frequency / 440;
+        source.connect(audioContext.destination);
+        source.start();
+        return { source };
+      } else {
+        console.warn("Audio buffer not loaded yet.");
+        return null;
+      }
+    }
+    
+    // Load your custom sound file (update the path accordingly)
+    loadAudioBuffer('path/to/your/sound.mp3');
+    
+    // --- Integration ---
+    const canvas = document.getElementById('explosionCanvas');
+    const simulation = new ExplosionSimulation(canvas);
+    
+    function setExplosionType(type) {
+      simulation.currentExplosionType = type;
+    }
+    
+    // When mouse is pressed, start explosion and continuous sound.
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      simulation.createExplosion(x, y);
+      
+      const frequency = getFrequencyFromY(y);
+      const soundSelect = document.getElementById('soundSelect');
+      const soundType = soundSelect.value;
+      
+      if (soundType === 'oscillator') {
+        activeSound = startOscillatorSound(frequency);
+      } else if (soundType === 'procedural') {
+        activeSound = startProceduralSound(frequency);
+      } else if (soundType === 'buffer') {
+        activeSound = startBufferSound(frequency);
+      }
+    });
+    
+    // When the mouse is released, stop the sound.
+    canvas.addEventListener('mouseup', () => {
+      if (activeSound) {
+        // For oscillator-based sound
+        if (activeSound.oscillator) {
+          // Fade out:
+          gainNode.gain.linearRampToValueAtTime(0.0, audioContext.currentTime + 0.05);
+          activeSound.oscillator.stop(audioContext.currentTime + 0.05);
+        }
+        // For procedural sound, stop all sources
+        if (activeSound.osc1) activeSound.osc1.stop();
+        if (activeSound.osc2) activeSound.osc2.stop();
+        if (activeSound.noiseSource) activeSound.noiseSource.stop();
+        // For audio buffer sound
+        if (activeSound.source) activeSound.source.stop();
+        activeSound = null;
+      }
+    });
+    
+    // Also stop sound if mouse leaves canvas (optional)
+    canvas.addEventListener('mouseleave', () => {
+      if (activeSound) {
+        if (activeSound.oscillator) activeSound.oscillator.stop();
+        if (activeSound.osc1) activeSound.osc1.stop();
+        if (activeSound.osc2) activeSound.osc2.stop();
+        if (activeSound.noiseSource) activeSound.noiseSource.stop();
+        if (activeSound.source) activeSound.source.stop();
+        activeSound = null;
+      }
+    });
+    
+    simulation.render();
+  </script>
 </body>
 </html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reaction-Diffusion Patterns</title>
+  <meta name="description" content="Interactive Gray-Scott reaction-diffusion system showing emergent pattern formation">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      border: 1px solid #333;
+      cursor: crosshair;
+    }
+    .controls { 
+      margin: 10px auto; 
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      max-width: 1000px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-direction: column;
+      text-align: center;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+    }
+    button:hover {
+      background: #444;
+    }
+    button.active {
+      background: #555;
+      border-color: #777;
+    }
+    input[type="range"] {
+      width: 80px;
+    }
+    .preset-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .info {
+      max-width: 800px; 
+      margin: 0 auto 20px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .parameter-display {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 2px;
+    }
+    .color-scheme {
+      width: 30px;
+      height: 20px;
+      border: 1px solid #555;
+      cursor: pointer;
+      margin: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reaction-Diffusion Patterns</h1>
+  <div class="info">
+    <p>Gray-Scott reaction-diffusion system: Two chemicals (A and B) react and diffuse, creating stunning emergent patterns.</p>
+    <p><strong>Click and drag</strong> to seed new patterns | <strong>Try different presets</strong> to explore pattern space</p>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <div class="control-row">
+        <button id="pauseBtn">Pause</button>
+        <button id="clearBtn">Clear</button>
+        <button id="randomBtn">Random Seed</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Feed Rate (f)</label>
+      <div class="control-row">
+        <input type="range" id="feedRate" min="0" max="200" value="55">
+      </div>
+      <div class="parameter-display" id="feedDisplay">0.055</div>
+    </div>
+    
+    <div class="control-group">
+      <label>Kill Rate (k)</label>
+      <div class="control-row">
+        <input type="range" id="killRate" min="0" max="200" value="62">
+      </div>
+      <div class="parameter-display" id="killDisplay">0.062</div>
+    </div>
+    
+    <div class="control-group">
+      <label>Diffusion A</label>
+      <div class="control-row">
+        <input type="range" id="diffusionA" min="50" max="200" value="100">
+      </div>
+      <div class="parameter-display" id="diffusionADisplay">1.0</div>
+    </div>
+    
+    <div class="control-group">
+      <label>Diffusion B</label>
+      <div class="control-row">
+        <input type="range" id="diffusionB" min="10" max="100" value="50">
+      </div>
+      <div class="parameter-display" id="diffusionBDisplay">0.5</div>
+    </div>
+    
+    <div class="control-group">
+      <label>Speed</label>
+      <div class="control-row">
+        <input type="range" id="timeStep" min="5" max="50" value="25">
+      </div>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <label>Presets</label>
+      <div class="preset-buttons">
+        <button id="spots">Spots</button>
+        <button id="stripes">Stripes</button>
+        <button id="maze">Maze</button>
+        <button id="coral">Coral</button>
+        <button id="waves">Waves</button>
+        <button id="spirals">Spirals</button>
+        <button id="bubbles">Bubbles</button>
+        <button id="chaos">Chaos</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Color Scheme</label>
+      <div class="preset-buttons">
+        <div class="color-scheme" id="classic" style="background: linear-gradient(to right, #000, #ff0080, #ffff00);"></div>
+        <div class="color-scheme" id="plasma" style="background: linear-gradient(to right, #000033, #ff0066, #ffff99);"></div>
+        <div class="color-scheme" id="ocean" style="background: linear-gradient(to right, #001122, #0088ff, #66ffff);"></div>
+        <div class="color-scheme" id="fire" style="background: linear-gradient(to right, #000000, #ff4400, #ffff88);"></div>
+        <div class="color-scheme" id="forest" style="background: linear-gradient(to right, #001100, #00ff44, #88ff88);"></div>
+        <div class="color-scheme" id="grayscale" style="background: linear-gradient(to right, #000000, #888888, #ffffff);"></div>
+      </div>
+    </div>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 800;
+    const height = 600;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Simulation grids
+    let gridA = new Array(width * height);
+    let gridB = new Array(width * height);
+    let nextA = new Array(width * height);
+    let nextB = new Array(width * height);
+    
+    // Parameters
+    let feedRate = 0.055;
+    let killRate = 0.062;
+    let diffusionA = 1.0;
+    let diffusionB = 0.5;
+    let timeStep = 1.0;
+    
+    // Animation state
+    let isRunning = true;
+    let animationId;
+    let mouseDown = false;
+    let currentColorScheme = 'classic';
+    
+    // Controls
+    const controls = {
+      pauseBtn: document.getElementById('pauseBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      randomBtn: document.getElementById('randomBtn'),
+      feedRate: document.getElementById('feedRate'),
+      killRate: document.getElementById('killRate'),
+      diffusionA: document.getElementById('diffusionA'),
+      diffusionB: document.getElementById('diffusionB'),
+      timeStep: document.getElementById('timeStep'),
+      feedDisplay: document.getElementById('feedDisplay'),
+      killDisplay: document.getElementById('killDisplay'),
+      diffusionADisplay: document.getElementById('diffusionADisplay'),
+      diffusionBDisplay: document.getElementById('diffusionBDisplay')
+    };
+    
+    // Presets - famous parameter combinations
+    const presets = {
+      spots: { f: 0.055, k: 0.062, dA: 1.0, dB: 0.5 },
+      stripes: { f: 0.035, k: 0.065, dA: 1.0, dB: 0.5 },
+      maze: { f: 0.029, k: 0.057, dA: 1.0, dB: 0.5 },
+      coral: { f: 0.062, k: 0.061, dA: 1.0, dB: 0.5 },
+      waves: { f: 0.014, k: 0.054, dA: 1.0, dB: 0.5 },
+      spirals: { f: 0.018, k: 0.051, dA: 1.0, dB: 0.5 },
+      bubbles: { f: 0.078, k: 0.061, dA: 1.0, dB: 0.5 },
+      chaos: { f: 0.026, k: 0.051, dA: 1.0, dB: 0.5 }
+    };
+    
+    // Color schemes
+    const colorSchemes = {
+      classic: (val) => {
+        if (val < 0.5) return [0, Math.floor(val * 2 * 255), Math.floor(val * 4 * 128)];
+        else return [Math.floor((val - 0.5) * 2 * 255), 255, Math.floor(128 + (val - 0.5) * 2 * 127)];
+      },
+      plasma: (val) => {
+        const r = Math.floor(51 + val * 204);
+        const g = Math.floor(val * val * 102);
+        const b = Math.floor(153 + val * 102);
+        return [r, g, b];
+      },
+      ocean: (val) => {
+        const r = Math.floor(val * val * 34);
+        const g = Math.floor(136 + val * 119);
+        const b = Math.floor(102 + val * 153);
+        return [r, g, b];
+      },
+      fire: (val) => {
+        if (val < 0.5) return [Math.floor(val * 2 * 255), Math.floor(val * 136), 0];
+        else return [255, Math.floor(68 + (val - 0.5) * 2 * 187), Math.floor((val - 0.5) * 2 * 136)];
+      },
+      forest: (val) => {
+        const r = Math.floor(val * val * 34);
+        const g = Math.floor(68 + val * 187);
+        const b = Math.floor(val * val * 136);
+        return [r, g, b];
+      },
+      grayscale: (val) => {
+        const gray = Math.floor(val * 255);
+        return [gray, gray, gray];
+      }
+    };
+    
+    // Initialize grids
+    function initializeGrids() {
+      for (let i = 0; i < width * height; i++) {
+        gridA[i] = 1.0;
+        gridB[i] = 0.0;
+        nextA[i] = 1.0;
+        nextB[i] = 0.0;
+      }
+    }
+    
+    // Add B chemical at a point
+    function addChemicalB(x, y, radius = 10) {
+      const centerX = Math.floor(x);
+      const centerY = Math.floor(y);
+      
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const px = centerX + dx;
+          const py = centerY + dy;
+          
+          if (px >= 0 && px < width && py >= 0 && py < height) {
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= radius) {
+              const index = py * width + px;
+              const strength = 1 - (dist / radius);
+              gridB[index] = Math.min(1.0, gridB[index] + strength * 0.5);
+              gridA[index] = Math.max(0.0, gridA[index] - strength * 0.5);
+            }
+          }
+        }
+      }
+    }
+    
+    // Random seed
+    function randomSeed() {
+      for (let i = 0; i < 20; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        addChemicalB(x, y, 5 + Math.random() * 15);
+      }
+    }
+    
+    // Specific seeding patterns for presets
+    function seedPattern(type) {
+      switch(type) {
+        case 'spots':
+          // Regular grid of spots
+          for (let x = 100; x < width; x += 80) {
+            for (let y = 100; y < height; y += 80) {
+              addChemicalB(x + Math.random() * 20, y + Math.random() * 20, 8);
+            }
+          }
+          break;
+          
+        case 'stripes':
+          // Vertical stripes
+          for (let x = 50; x < width; x += 60) {
+            for (let y = 50; y < height - 50; y += 20) {
+              addChemicalB(x, y, 15);
+            }
+          }
+          break;
+          
+        case 'maze':
+          // Dense random pattern
+          for (let i = 0; i < 40; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            addChemicalB(x, y, 3 + Math.random() * 8);
+          }
+          break;
+          
+        case 'coral':
+          // Central seed points
+          for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const x = width/2 + Math.cos(angle) * 150;
+            const y = height/2 + Math.sin(angle) * 100;
+            addChemicalB(x, y, 12);
+          }
+          break;
+          
+        case 'waves':
+          // Horizontal lines
+          for (let y = 50; y < height; y += 80) {
+            for (let x = 50; x < width - 50; x += 30) {
+              addChemicalB(x, y + Math.sin(x/50) * 20, 10);
+            }
+          }
+          break;
+          
+        case 'spirals':
+          // Spiral pattern
+          for (let i = 0; i < 100; i++) {
+            const angle = i * 0.3;
+            const radius = i * 2;
+            const x = width/2 + Math.cos(angle) * radius;
+            const y = height/2 + Math.sin(angle) * radius;
+            if (x > 0 && x < width && y > 0 && y < height) {
+              addChemicalB(x, y, 6);
+            }
+          }
+          break;
+          
+        case 'bubbles':
+          // Large sparse circles
+          for (let i = 0; i < 8; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            addChemicalB(x, y, 20 + Math.random() * 15);
+          }
+          break;
+          
+        case 'chaos':
+          // Random everywhere
+          for (let i = 0; i < 100; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            addChemicalB(x, y, 2 + Math.random() * 5);
+          }
+          break;
+          
+        default:
+          randomSeed();
+      }
+    }
+    
+    // Laplacian (diffusion calculation)
+    function laplacian(grid, x, y) {
+      let sum = 0;
+      const center = grid[y * width + x];
+      
+      // 5-point stencil
+      if (x > 0) sum += grid[y * width + (x - 1)] - center;
+      if (x < width - 1) sum += grid[y * width + (x + 1)] - center;
+      if (y > 0) sum += grid[(y - 1) * width + x] - center;
+      if (y < height - 1) sum += grid[(y + 1) * width + x] - center;
+      
+      return sum;
+    }
+    
+    // Update simulation
+    function updateSimulation() {
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const index = y * width + x;
+          
+          const a = gridA[index];
+          const b = gridB[index];
+          
+          // Reaction: A + 2B -> 3B, B -> P
+          const reaction = a * b * b;
+          
+          // Diffusion
+          const lapA = laplacian(gridA, x, y);
+          const lapB = laplacian(gridB, x, y);
+          
+          // Gray-Scott equations
+          nextA[index] = a + (diffusionA * lapA - reaction + feedRate * (1 - a)) * timeStep;
+          nextB[index] = b + (diffusionB * lapB + reaction - (killRate + feedRate) * b) * timeStep;
+          
+          // Clamp values
+          nextA[index] = Math.max(0, Math.min(1, nextA[index]));
+          nextB[index] = Math.max(0, Math.min(1, nextB[index]));
+        }
+      }
+      
+      // Swap grids
+      [gridA, nextA] = [nextA, gridA];
+      [gridB, nextB] = [nextB, gridB];
+    }
+    
+    // Render
+    function render() {
+      const imageData = ctx.createImageData(width, height);
+      const data = imageData.data;
+      
+      for (let i = 0; i < width * height; i++) {
+        const a = gridA[i];
+        const b = gridB[i];
+        
+        // Use B concentration for visualization
+        const intensity = Math.min(1, b * 4); // Amplify for visibility
+        const [r, g, blue] = colorSchemes[currentColorScheme](intensity);
+        
+        data[i * 4] = r;
+        data[i * 4 + 1] = g;
+        data[i * 4 + 2] = blue;
+        data[i * 4 + 3] = 255;
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        // Multiple updates per frame for faster evolution
+        for (let i = 0; i < 2; i++) {
+          updateSimulation();
+        }
+        render();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+    
+    // Mouse interaction
+    canvas.addEventListener('mousedown', (e) => {
+      mouseDown = true;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      addChemicalB(x, y);
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      if (mouseDown) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        addChemicalB(x, y, 5);
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      mouseDown = false;
+    });
+    
+    // Touch support
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      addChemicalB(x, y);
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      addChemicalB(x, y, 5);
+    });
+    
+    // Control event listeners
+    controls.pauseBtn.addEventListener('click', () => {
+      isRunning = !isRunning;
+      controls.pauseBtn.textContent = isRunning ? 'Pause' : 'Resume';
+    });
+    
+    controls.clearBtn.addEventListener('click', () => {
+      initializeGrids();
+    });
+    
+    controls.randomBtn.addEventListener('click', () => {
+      initializeGrids();
+      randomSeed();
+    });
+    
+    // Parameter controls
+    controls.feedRate.addEventListener('input', () => {
+      feedRate = parseFloat(controls.feedRate.value) / 1000;
+      controls.feedDisplay.textContent = feedRate.toFixed(3);
+    });
+    
+    controls.killRate.addEventListener('input', () => {
+      killRate = parseFloat(controls.killRate.value) / 1000;
+      controls.killDisplay.textContent = killRate.toFixed(3);
+    });
+    
+    controls.diffusionA.addEventListener('input', () => {
+      diffusionA = parseFloat(controls.diffusionA.value) / 100;
+      controls.diffusionADisplay.textContent = diffusionA.toFixed(2);
+    });
+    
+    controls.diffusionB.addEventListener('input', () => {
+      diffusionB = parseFloat(controls.diffusionB.value) / 100;
+      controls.diffusionBDisplay.textContent = diffusionB.toFixed(2);
+    });
+    
+    controls.timeStep.addEventListener('input', () => {
+      timeStep = parseFloat(controls.timeStep.value) / 25;
+    });
+    
+    // Preset buttons
+    Object.keys(presets).forEach(presetName => {
+      document.getElementById(presetName).addEventListener('click', () => {
+        const preset = presets[presetName];
+        feedRate = preset.f;
+        killRate = preset.k;
+        diffusionA = preset.dA;
+        diffusionB = preset.dB;
+        
+        // Update UI
+        controls.feedRate.value = feedRate * 1000;
+        controls.killRate.value = killRate * 1000;
+        controls.diffusionA.value = diffusionA * 100;
+        controls.diffusionB.value = diffusionB * 100;
+        
+        controls.feedDisplay.textContent = feedRate.toFixed(3);
+        controls.killDisplay.textContent = killRate.toFixed(3);
+        controls.diffusionADisplay.textContent = diffusionA.toFixed(2);
+        controls.diffusionBDisplay.textContent = diffusionB.toFixed(2);
+        
+        // Clear and add preset-specific seed
+        initializeGrids();
+        setTimeout(() => seedPattern(presetName), 100);
+      });
+    });
+    
+    // Color scheme buttons
+    Object.keys(colorSchemes).forEach(schemeName => {
+      document.getElementById(schemeName).addEventListener('click', () => {
+        currentColorScheme = schemeName;
+        // Visual feedback
+        document.querySelectorAll('.color-scheme').forEach(el => el.style.border = '1px solid #555');
+        document.getElementById(schemeName).style.border = '2px solid #fff';
+      });
+    });
+    
+    // Initialize
+    initializeGrids();
+    randomSeed();
+    animate();
+    
+    // Update parameter displays
+    controls.feedDisplay.textContent = feedRate.toFixed(3);
+    controls.killDisplay.textContent = killRate.toFixed(3);
+    controls.diffusionADisplay.textContent = diffusionA.toFixed(2);
+    controls.diffusionBDisplay.textContent = diffusionB.toFixed(2);
+  </script>
+</body>
+</html>

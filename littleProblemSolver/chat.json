@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "problemId": 1,
+    "userId": 1,
+    "message": "I'm not sure where to start with improving our customer satisfaction scores.",
+    "timestamp": "2025-04-08T10:00:00.000Z",
+    "isAi": false
+  },
+  {
+    "id": 2,
+    "problemId": 1,
+    "userId": "ai",
+    "message": "Let's break down this problem step by step. First, we need to identify what aspects of customer service are currently causing dissatisfaction. Have you collected any feedback or survey data that could point us in the right direction?",
+    "timestamp": "2025-04-08T10:00:05.000Z",
+    "isAi": true
+  },
+  {
+    "id": 3,
+    "problemId": 2,
+    "userId": 2,
+    "message": "We keep running out of our most popular items while having too much of slower-moving inventory.",
+    "timestamp": "2025-04-08T11:15:00.000Z",
+    "isAi": false
+  },
+  {
+    "id": 4,
+    "problemId": 2,
+    "userId": "ai",
+    "message": "This is a classic inventory optimization problem. I recommend creating a visual representation of your inventory flow to better understand where the bottlenecks are occurring. Can you share your current ordering process and how you forecast demand?",
+    "timestamp": "2025-04-08T11:15:10.000Z",
+    "isAi": true
+  }
+]

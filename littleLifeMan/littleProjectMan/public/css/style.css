@@ -1,0 +1,322 @@
+/* LittleProjectMan Styles */
+
+/* Global Styles & Variables */
+:root {
+  /* Primary Colors - Project theme */
+  --primary: #3F51B5;
+  --primary-light: #C5CAE9;
+  --secondary: #FFC107;
+  --background: #F5F5F5;    /* Light Grey */
+  --text: #333333;          /* Charcoal */
+
+  /* Status Colors */
+  --status-open: #de8787;
+  --status-in-progress: #F39C12;
+  --status-completed: #aade87;
+  --status-blocked: #8E44AD;
+  --status-postponed: #7F8C8D;
+  
+  /* UI Colors */
+  --border-light: #EEEEEE;
+  --background-light: #F8F8F8;
+  --shadow: 0 2px 5px rgba(0,0,0,0.1);
+  --hover-bg: rgba(63, 81, 181, 0.1);
+  --completed-text: #888888;
+  --text-secondary: #757575;
+}
+
+/* Typography */
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 20px;
+  background-color: var(--background-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 28px;
+  color: var(--primary);
+}
+
+h2 {
+  font-size: 24px;
+  color: var(--primary);
+  display: inline-block;
+  margin-right: 10px;
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+}
+
+/* Logo and Header */
+.app-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#logo-text {
+  font-size: 18px;
+  color: var(--primary);
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  margin-left: 16px;
+}
+
+/* Tab Navigation */
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-light);
+  align-items: center;
+}
+
+.tab {
+  padding: 12px 24px;
+  margin-right: 5px;
+  background: white;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-light);
+  border-bottom: none;
+  color: var(--text);
+}
+
+.tab:hover {
+  background: var(--background);
+  color: var(--text);
+}
+
+.tab.active {
+  background: var(--status-completed);
+  color: rgb(51, 51, 51);
+  font-weight: 600; 
+}
+
+.view {
+  display: none;
+  background: white;
+  border-radius: 8px;
+}
+
+.view.active {
+  display: block;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-secondary:hover {
+  background-color: #E5F1F3;
+}
+
+/* Tasks View Styling */
+.tasks-container {
+  margin-top: 20px;
+}
+
+.project-group {
+  margin-bottom: 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.project-header-row {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: white;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.2s ease;
+}
+
+.project-header-row:hover {
+  background-color: var(--hover-bg);
+}
+
+.collapse-icon {
+  margin-right: 10px;
+  font-size: 14px;
+  color: var(--primary);
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.project-title {
+  flex-grow: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.project-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--primary-light);
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.project-tasks {
+  padding: 0;
+  max-height: 1000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.project-tasks.collapsed {
+  max-height: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.2s ease;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item:hover {
+  background-color: var(--background-light);
+}
+
+.task-checkbox {
+  margin-right: 12px;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.task-item label {
+  flex-grow: 1;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.task-due {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--background-light);
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* Completed task styling */
+.task-item.completed label {
+  text-decoration: line-through;
+  color: var(--completed-text);
+}
+
+.task-item.completed .task-due {
+  background-color: var(--status-completed);
+  color: white;
+}
+
+/* Add Task Button */
+.add-task-btn {
+  display: block;
+  margin: 20px auto;
+  border: none;
+  background-color: var(--primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.add-task-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    margin: 0;
+  }
+  
+  .container {
+    padding: 15px;
+    border-radius: 0;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab {
+    flex: 1 0 auto;
+    text-align: center;
+    padding: 10px;
+  }
+  
+  .project-header-row {
+    padding: 12px 10px;
+  }
+  
+  .task-item {
+    padding: 10px;
+  }
+  
+  .task-due {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+}

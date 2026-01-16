@@ -1,0 +1,180 @@
+{
+  "title": "🎸 Stoner/Doom Metal Evolution 🎸",
+  "root": {
+    "name": "⚡ Proto-Heavy Roots",
+    "subtitle": "1968–1985",
+    "style": "proto",
+    "children": [
+      {
+        "name": "Black Sabbath",
+        "style": "foundational",
+        "children": [
+          {
+            "name": "Sleep",
+            "style": "foundational",
+            "children": [
+              {
+                "name": "Stoner Doom Axis",
+                "style": "doom",
+                "isHub": true,
+                "children": [
+                  {"name": "Electric Wizard", "style": "doom"},
+                  {"name": "Acid King", "style": "doom"},
+                  {"name": "Bongzilla", "style": "doom"},
+                  {"name": "High on Fire", "style": "doom"},
+                  {"name": "Weedeater", "style": "doom"},
+                  {"name": "Dopelord", "style": "doom"},
+                  {"name": "Dove", "style": "doom"},
+                  {"name": "Cathedral", "style": "doom"}
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Kyuss",
+            "style": "foundational",
+            "children": [
+              {
+                "name": "Desert Scene",
+                "style": "desert",
+                "isHub": true,
+                "children": [
+                  {"name": "Fu Manchu", "style": "desert"},
+                  {"name": "Yawning Man", "style": "desert"},
+                  {"name": "Brant Bjork", "style": "desert"},
+                  {"name": "Nebula", "style": "desert"},
+                  {"name": "Unida", "style": "desert"},
+                  {"name": "Fatso Jetson", "style": "desert"},
+                  {"name": "Dozer", "style": "desert"},
+                  {"name": "Truckfighters", "style": "desert"}
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Blue Cheer",
+        "style": "foundational"
+      },
+      {
+        "name": "Hawkwind",
+        "style": "foundational",
+        "children": [
+          {
+            "name": "Colour Haze",
+            "style": "psychedelic",
+            "children": [
+              {
+                "name": "Earthless",
+                "style": "psychedelic",
+                "children": [
+                  {
+                    "name": "Elder",
+                    "style": "psychedelic",
+                    "children": [
+                      {
+                        "name": "King Buffalo",
+                        "style": "psychedelic",
+                        "children": [
+                          {
+                            "name": "Green Lung",
+                            "style": "psychedelic",
+                            "children": [
+                              {
+                                "name": "Slift",
+                                "style": "psychedelic",
+                                "children": [
+                                  {"name": "Monolord", "style": "psychedelic"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {"name": "My Sleeping Karma", "style": "psychedelic"},
+              {"name": "Comets on Fire", "style": "psychedelic"},
+              {"name": "Dead Meadow", "style": "psychedelic"}
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Saint Vitus",
+        "style": "foundational",
+        "children": [
+          {
+            "name": "Sleep",
+            "style": "foundational",
+            "reference": true
+          },
+          {
+            "name": "Melvins",
+            "style": "doom",
+            "children": [
+              {
+                "name": "Eyehategod",
+                "style": "doom",
+                "children": [
+                  {
+                    "name": "Down",
+                    "style": "doom",
+                    "children": [
+                      {
+                        "name": "Corrosion of Conformity",
+                        "style": "doom",
+                        "children": [
+                          {"name": "Clutch", "style": "doom"}
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Pentagram",
+        "style": "foundational"
+      }
+    ]
+  },
+  "legend": [
+    {
+      "name": "Proto-Heavy Roots",
+      "style": "proto",
+      "color": "#4a0e0e",
+      "border": "#ff6b35"
+    },
+    {
+      "name": "Foundational Bands",
+      "style": "foundational",
+      "color": "#1a3a2e",
+      "border": "#00ff88"
+    },
+    {
+      "name": "Desert / Fuzz",
+      "style": "desert",
+      "color": "#3a2a1a",
+      "border": "#f4a460"
+    },
+    {
+      "name": "Stoner Doom / Sludge",
+      "style": "doom",
+      "color": "#2d1b2e",
+      "border": "#9d4edd"
+    },
+    {
+      "name": "Psychedelic / Space",
+      "style": "psychedelic",
+      "color": "#1a2a3a",
+      "border": "#00d4ff"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Projects</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--primary3);
+            padding-bottom: 0.5rem;
+        }
+        ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background-color: var(--primary5);
+            border-radius: 6px;
+            padding: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        li:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: var(--primary1);
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <!-- Dark/Light toggle -->
+    <div id="themeToggleContainer">
+        <label class="switch">
+            <input type="checkbox" id="themeToggleSwitch">
+            <span class="slider"></span>
+        </label>
+    </div>
+    
+    <h1>Learning Projects</h1>
+    <ul>
+        <li><a href="align-center/">Align Center</a></li>
+        <li><a href="colors/">Colors</a></li>
+        <li><a href="d3-play/">D3 Play</a></li>
+        <li><a href="flexbox/">Flexbox</a></li>
+        <li><a href="graphql-explorer/">GraphQL Explorer</a></li>
+        <li><a href="internet-protocols/">Internet Protocols</a></li>
+        <li><a href="regex-explorer/">Regex Explorer</a></li>
+        <li><a href="two-js/">Two.js</a></li>
+        <li><a href="typescript-basics/">TypeScript Basics</a></li>
+        <li><a href="typography/">Typography</a></li>
+        <li><a href="webassembly/">WebAssembly</a></li>
+    </ul>
+
+    <script src="common.js"></script>
+</body>
+</html>

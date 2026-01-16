@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathematics Visualizations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 40px 20px;
+      border-bottom: 2px solid #333;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg,
+        hsl(0, 100%, 70%),
+        hsl(60, 100%, 70%),
+        hsl(120, 100%, 70%),
+        hsl(180, 100%, 70%),
+        hsl(240, 100%, 70%),
+        hsl(300, 100%, 70%),
+        hsl(360, 100%, 70%)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: hueRotate 10s linear infinite;
+      background-size: 200% 100%;
+    }
+
+    @keyframes hueRotate {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      color: hsl(180, 100%, 70%);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px 0;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+        hsla(200, 100%, 50%, 0.1),
+        hsla(280, 100%, 50%, 0.1),
+        hsla(340, 100%, 50%, 0.1)
+      );
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: hsl(180, 100%, 70%);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px hsla(180, 100%, 70%, 0.3);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .card p {
+      color: #aaa;
+      font-size: 0.95em;
+      margin-bottom: 15px;
+    }
+
+    .card .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .tag {
+      background: #222;
+      border: 1px solid hsla(280, 100%, 70%, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: hsl(280, 100%, 80%);
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .category {
+      margin: 40px 0;
+    }
+
+    .category h2 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #fff;
+      border-left: 4px solid hsl(280, 100%, 70%);
+      padding-left: 15px;
+    }
+
+    .category:nth-child(2) h2 { border-left-color: hsl(0, 100%, 70%); }
+    .category:nth-child(3) h2 { border-left-color: hsl(60, 100%, 70%); }
+    .category:nth-child(4) h2 { border-left-color: hsl(120, 100%, 70%); }
+    .category:nth-child(5) h2 { border-left-color: hsl(180, 100%, 70%); }
+    .category:nth-child(6) h2 { border-left-color: hsl(240, 100%, 70%); }
+    .category:nth-child(7) h2 { border-left-color: hsl(300, 100%, 70%); }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Mathematics Visualizations</h1>
+      <p class="subtitle">Interactive explorations of mathematical concepts</p>
+    </header>
+
+    <div class="category">
+      <h2>Fractals & Complex Numbers</h2>
+      <div class="grid">
+        <a href="mandelbrot/index.html">
+          <div class="card">
+            <h2>Mandelbrot Set</h2>
+            <p>Explore the iconic Mandelbrot fractal with multiple color palettes. Iteratively compute z<sub>n+1</sub> = z<sub>n</sub><sup>2</sup> + c to visualize the boundary between bounded and unbounded sequences.</p>
+            <div class="tags">
+              <span class="tag">Complex Numbers</span>
+              <span class="tag">Fractals</span>
+              <span class="tag">Iteration</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="eulers-identity/index.html">
+          <div class="card">
+            <h2>Euler's Identity</h2>
+            <p>Animated visualization of z(θ) = e<sup>iθ</sup> + e<sup>iπθ</sup> demonstrating Euler's formula and complex exponentials with dynamic trail effects.</p>
+            <div class="tags">
+              <span class="tag">Complex Numbers</span>
+              <span class="tag">Euler's Formula</span>
+              <span class="tag">Animation</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Chaos & Dynamical Systems</h2>
+      <div class="grid">
+        <a href="lorenz-attractor/index.html">
+          <div class="card">
+            <h2>Lorenz Attractor</h2>
+            <p>Visualize the famous strange attractor from the Lorenz differential equations. Watch chaotic behavior emerge from deterministic rules using Euler's method integration.</p>
+            <div class="tags">
+              <span class="tag">Chaos Theory</span>
+              <span class="tag">Differential Equations</span>
+              <span class="tag">3D Projection</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="double-pendulum/index.html">
+          <div class="card">
+            <h2>Double Pendulum</h2>
+            <p>Experience chaotic dynamics through a double pendulum simulation. Demonstrates sensitive dependence on initial conditions with coupled differential equations.</p>
+            <div class="tags">
+              <span class="tag">Chaos Theory</span>
+              <span class="tag">Mechanics</span>
+              <span class="tag">Physics</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Harmonic Analysis & Waves</h2>
+      <div class="grid">
+        <a href="fourier-transform/index.html">
+          <div class="card">
+            <h2>Fourier Series</h2>
+            <p>Watch epicycles (rotating vectors) decompose waveforms using Fourier series. See how sine and cosine harmonics sum to approximate square, sawtooth, and triangle waves.</p>
+            <div class="tags">
+              <span class="tag">Fourier Analysis</span>
+              <span class="tag">Signal Processing</span>
+              <span class="tag">Harmonics</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="lissajous/index.html">
+          <div class="card">
+            <h2>Lissajous Curves</h2>
+            <p>Parametric curves formed by sinusoidal functions: x(t) = A·sin(at+δ), y(t) = B·sin(bt). Explore beautiful patterns created by different frequency ratios.</p>
+            <div class="tags">
+              <span class="tag">Parametric Curves</span>
+              <span class="tag">Oscillation</span>
+              <span class="tag">Patterns</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="wave-interference/index.html">
+          <div class="card">
+            <h2>Wave Interference</h2>
+            <p>Simulate interference patterns from multiple wave sources. Visualize constructive and destructive interference through wave superposition.</p>
+            <div class="tags">
+              <span class="tag">Wave Physics</span>
+              <span class="tag">Interference</span>
+              <span class="tag">Superposition</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="pendulum-wave/index.html">
+          <div class="card">
+            <h2>Pendulum Wave</h2>
+            <p>Multiple pendulums with varying lengths create mesmerizing interference patterns. Uses simple harmonic motion: T = 2π√(L/g).</p>
+            <div class="tags">
+              <span class="tag">Harmonics</span>
+              <span class="tag">Oscillation</span>
+              <span class="tag">Phase</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="waves/index.html">
+          <div class="card">
+            <h2>Wave Visualizations</h2>
+            <p>Explore various waveforms including sine, square, sawtooth, and triangle waves. Demonstrates different periodic functions and their characteristics.</p>
+            <div class="tags">
+              <span class="tag">Waveforms</span>
+              <span class="tag">Periodic Functions</span>
+              <span class="tag">Oscillation</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Particle Systems & Flocking</h2>
+      <div class="grid">
+        <a href="boids/index.html">
+          <div class="card">
+            <h2>Boids Flocking</h2>
+            <p>Emergent flocking behavior using three simple rules: separation, alignment, and cohesion. Features vector math and dynamic color blending based on neighbors.</p>
+            <div class="tags">
+              <span class="tag">Flocking Algorithm</span>
+              <span class="tag">Vector Math</span>
+              <span class="tag">Emergence</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="explosion/index.html">
+          <div class="card">
+            <h2>Particle Explosion</h2>
+            <p>Particle physics simulation with polar coordinates for angle and speed distribution. Features velocity, acceleration, and opacity decay calculations.</p>
+            <div class="tags">
+              <span class="tag">Particle Physics</span>
+              <span class="tag">Kinematics</span>
+              <span class="tag">Animation</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Geometric Visualizations</h2>
+      <div class="grid">
+        <a href="cube/index.html">
+          <div class="card">
+            <h2>3D Cube Rotation</h2>
+            <p>Interactive 3D cube with mouse-controlled rotation using Three.js. Demonstrates geometric transformations and perspective projection.</p>
+            <div class="tags">
+              <span class="tag">3D Graphics</span>
+              <span class="tag">Transformations</span>
+              <span class="tag">WebGL</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="spirograph/index.html">
+          <div class="card">
+            <h2>Spirograph</h2>
+            <p>Generate hypotrochoid curves using parametric equations. Create complex geometric patterns through rolling circle motion with customizable parameters.</p>
+            <div class="tags">
+              <span class="tag">Parametric Curves</span>
+              <span class="tag">Geometry</span>
+              <span class="tag">Patterns</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="graph-math/index.html">
+          <div class="card">
+            <h2>Graph Visualizer</h2>
+            <p>Random edge graph with spring-damper physics simulation. Implements force-directed layout algorithm with repulsive and attractive forces.</p>
+            <div class="tags">
+              <span class="tag">Graph Theory</span>
+              <span class="tag">Physics Simulation</span>
+              <span class="tag">Force-Directed</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Algorithms</h2>
+      <div class="grid">
+        <a href="pathfinding/index.html">
+          <div class="card">
+            <h2>Pathfinding</h2>
+            <p>Visualize pathfinding algorithms navigating through obstacles. Demonstrates search algorithms and optimal path calculation.</p>
+            <div class="tags">
+              <span class="tag">Algorithms</span>
+              <span class="tag">Search</span>
+              <span class="tag">Optimization</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+[
+  {
+    "username": "Sean",
+    "role": "admin",
+    "id": 1
+  },
+  {
+    "username": "dog",
+    "role": "user",
+    "id": 2
+  },
+  {
+    "username": "cat",
+    "role": "user",
+    "id": 3
+  },
+  {
+    "username": "Bird",
+    "role": "user",
+    "id": 4
+  }
+]
