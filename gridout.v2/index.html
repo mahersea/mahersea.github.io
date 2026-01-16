@@ -21,19 +21,19 @@
     const ctx = canvas.getContext('2d');
 
     // ----------- Constants -----------
-    const BLOCK_SIZE = 30; // size for each block
-    const FALLING_OBJECT_MIN_SIZE = 3;
-    const FALLING_OBJECT_MAX_SIZE = 3;
+    const BLOCK_SIZE = 20; // size for each block
+    const FALLING_OBJECT_MIN_SIZE = 4;
+    const FALLING_OBJECT_MAX_SIZE = 4;
     const INITIAL_ROTATION_SPEED = 90; // degrees per second
     const INITIAL_FALL_SPEED = 200; // pixels per second
     const TORPEDO_SPEED = 300; // pixels per second
     const TORPEDO_WIDTH = 15;
     const TORPEDO_HEIGHT = 5;
-    const EXPLOSION_DURATION = 500; // milliseconds
+    const EXPLOSION_DURATION = 700; // milliseconds
     const SPACESHIP_WIDTH = 80;
     const SPACESHIP_HEIGHT = 40;
-    const SPACESHIP_SPEED = 200; // pixels per second
-    const BALL_DROP_DELAY = 5000; // delay in ms
+    const SPACESHIP_SPEED = 400; // pixels per second
+    const BALL_DROP_DELAY = 30000; // delay in ms
 
     // ----------- Global Variables -----------
     let fallingObjects = [];
@@ -59,7 +59,7 @@
     let ballDropTime = performance.now() + BALL_DROP_DELAY;
     let keys = {};
     let lastTime = performance.now();
-    let spawnInterval = 1000; // ms between falling objects
+    let spawnInterval = 500; // ms between falling objects
     let lastSpawnTime = performance.now();
     let level = 1;
     let score = 0;
@@ -384,15 +384,19 @@
             ball.active = true;
             // Compute the current speed magnitude (default vx, vy are both 150)
             let speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-            // Choose one angle from 45°, 90°, or 135° (in radians)
-            let angles = [Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4];
-            let randomAngle = angles[Math.floor(Math.random() * angles.length)];
+            const angleDegrees = [15, 30, 45, 60, 75, 105, 120, 135, 150, 165];
+            // Convert to radians on-the-fly:
+            const randomDeg = angleDegrees[Math.floor(Math.random() * angleDegrees.length)];
+            const randomAngle = (randomDeg * Math.PI) / 180;
             ball.vx = speed * Math.cos(randomAngle);
             ball.vy = speed * Math.sin(randomAngle);
+            
         } else {
             return;
         }
       }
+      // console print the current row the ball is on
+      console.log("Ball at row: " + ball.y );
       ball.x += ball.vx * (deltaTime / 1000);
       ball.y += ball.vy * (deltaTime / 1000);
       // Bounce off left/right walls.
@@ -628,6 +632,57 @@
       ctx.fillText("Click to Restart", canvas.width / 2, canvas.height / 2 + 60);
     }
 
+    function drawContinuousColumns(minHeight = 5) {
+        const grid = buildLandedGrid();
+        const rows = grid.length;
+        const cols = grid[0].length;
+
+        // For each column, count consecutive filled cells from the bottom
+        for (let c = 0; c < cols; c++) {
+            let height = 0;
+            for (let r = rows - 1; r >= 0; r--) {
+            if (grid[r][c]) {
+                height++;
+            } else {
+                // As soon as you hit an empty cell, stop counting
+                break;
+            }
+            }
+            // If the continuous stack from bottom >= 5, highlight it
+            if (height >= minHeight) {
+            let x = c * BLOCK_SIZE;
+            let y = (rows - height) * BLOCK_SIZE;
+            ctx.fillStyle = "blue";
+            ctx.fillRect(x, y, BLOCK_SIZE, height * BLOCK_SIZE);
+            }
+        }
+    }
+
+    function buildLandedGrid() {
+        const cols = Math.floor(canvas.width / BLOCK_SIZE);
+        const rows = Math.floor(canvas.height / BLOCK_SIZE);
+        let grid = Array.from({ length: rows }, () => Array(cols).fill(false));
+
+        for (let obj of landedObjects) {
+            for (let row = 0; row < obj.gridSize; row++) {
+            for (let col = 0; col < obj.gridSize; col++) {
+                if (obj.grid[row][col]) {
+                let gridX = Math.floor((obj.x + col * BLOCK_SIZE) / BLOCK_SIZE);
+                let gridY = Math.floor((obj.y + row * BLOCK_SIZE) / BLOCK_SIZE);
+                if (
+                    gridX >= 0 && gridX < cols &&
+                    gridY >= 0 && gridY < rows
+                ) {
+                    grid[gridY][gridX] = true;
+                }
+                }
+            }
+            }
+        }
+        return grid;
+    }
+
+
     function draw() {
       drawBackground();
       drawLandedObjects();
@@ -637,6 +692,8 @@
       drawSpaceship();
       drawBall();
       drawHUD();
+      buildLandedGrid();
+      drawContinuousColumns(5);
       if (gameState === "gameOver") {
         drawGameOver();
       }
@@ -653,48 +710,59 @@
     // If the top is reached, it then checks for a continuous (fully filled) column.
     // If such a column exists, the player wins; otherwise, they lose.
     function checkStackAtTop() {
-    // Use Math.floor to ensure integer grid dimensions.
-    const cols = Math.floor(canvas.width / BLOCK_SIZE);
-    const rows = Math.floor(canvas.height / BLOCK_SIZE);
-    let grid = Array.from({ length: rows }, () => Array(cols).fill(false));
+        // Use Math.floor to ensure integer grid dimensions.
+        const cols = Math.floor(canvas.width / BLOCK_SIZE);
+        const rows = Math.floor(canvas.height / BLOCK_SIZE);
+        let grid = Array.from({ length: rows }, () => Array(cols).fill(false));
 
-    // Fill the grid based on landed objects.
-    for (let obj of landedObjects) {
-        for (let row = 0; row < obj.gridSize; row++) {
-        for (let col = 0; col < obj.gridSize; col++) {
-            if (obj.grid[row][col]) {
-            let gridX = Math.floor((obj.x + col * BLOCK_SIZE) / BLOCK_SIZE);
-            let gridY = Math.floor((obj.y + row * BLOCK_SIZE) / BLOCK_SIZE);
-            if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
-                grid[gridY][gridX] = true;
+        // Fill the grid based on landed objects.
+        for (let obj of landedObjects) {
+            for (let row = 0; row < obj.gridSize; row++) {
+            for (let col = 0; col < obj.gridSize; col++) {
+                if (obj.grid[row][col]) {
+                let gridX = Math.floor((obj.x + col * BLOCK_SIZE) / BLOCK_SIZE);
+                let gridY = Math.floor((obj.y + row * BLOCK_SIZE) / BLOCK_SIZE);
+                if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
+                    grid[gridY][gridX] = true;
+                }
+                }
             }
             }
         }
+
+        // Change the color of a single block if there is a block directly below it or the bottom of the screen
+        for (let c = 0; c < cols; c++) {
+            for (let r = rows - 1; r >= 0; r--) {
+                if (grid[r][c] && (r === rows - 1 || grid[r + 1][c])) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Highlight color
+                    ctx.fillRect(c * BLOCK_SIZE, r * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    break; // Only highlight the first block from the bottom up
+                }
+            }
         }
-    }
 
-    // Check if any cell in the top row is filled.
-    let topReached = grid[0].some(cell => cell === true);
-    if (!topReached) return; // Stack hasn't reached the top yet.
+        // Check if any cell in the top row is filled.
+        let topReached = grid[0].some(cell => cell === true);
+        if (!topReached) return; // Stack hasn't reached the top yet.
 
-    // Now determine if any column is completely filled.
-    let win = false;
-    for (let c = 0; c < cols; c++) {
-        let full = true;
-        for (let r = 0; r < rows; r++) {
-        if (!grid[r][c]) {
-            full = false;
+        // Now determine if any column is completely filled.
+        let win = false;
+        for (let c = 0; c < cols; c++) {
+            let full = true;
+            for (let r = 0; r < rows; r++) {
+            if (!grid[r][c]) {
+                full = false;
+                break;
+            }
+            }
+            if (full) {
+            win = true;
             break;
+            }
         }
-        }
-        if (full) {
-        win = true;
-        break;
-        }
-    }
 
-    // End the game based on the outcome.
-    gameOver(win);
+        // End the game based on the outcome.
+        gameOver(win);
     }
 
     // Modified gameOver function that accepts a win parameter.

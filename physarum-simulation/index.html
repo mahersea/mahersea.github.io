@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Physarum Slime Mold Simulation</title>
+  <meta name="description" content="Interactive Physarum polycephalum simulation showing emergent network formation and pathfinding behavior">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      height: 100vh;
+    }
+    .simulation-view {
+      position: relative;
+      background: #000000;
+    }
+    .controls-panel {
+      background: #1a1a1a;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #333;
+    }
+    canvas {
+      display: block;
+      outline: none;
+      position: relative;
+    }
+    .cursor-indicator {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #00ff88;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      transition: all 0.1s ease;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .control-group h3 {
+      margin: 0 0 10px 0;
+      color: #00ff88;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 80px;
+      color: #ccc;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #00ff88;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #00ff88;
+      min-width: 50px;
+      text-align: right;
+      font-weight: bold;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #444;
+      border-color: #666;
+    }
+    button.active {
+      background: #00aa44;
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .stats {
+      background: #0a0a0a;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #333;
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 2px 0;
+    }
+    .metric-value {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    .scenario-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .mode-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .info-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 300px;
+      font-size: 12px;
+      border: 1px solid #333;
+    }
+    .trail-strength {
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(to right, #000000, #004400, #008800, #00ff44, #88ff88);
+      border-radius: 3px;
+      margin: 5px 0;
+    }
+    kbd {
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="simulation-view">
+      <canvas id="canvas" tabindex="0"></canvas>
+      <div class="cursor-indicator" id="cursorIndicator"></div>
+      <div class="info-panel">
+        <h3>🦠 Physarum polycephalum</h3>
+        <p><strong>Keyboard Controls:</strong></p>
+        <p><kbd>F</kbd>: Add food source | <kbd>O</kbd>: Add obstacle</p>
+        <p><kbd>A</kbd>: Add agents | <kbd>Space</kbd>: Add agents at center</p>
+        <p><kbd>C</kbd>: Clear trails | <kbd>R</kbd>: Reset simulation</p>
+        <p><kbd>P</kbd>: Pause/Resume | <kbd>↑↓←→</kbd>: Move cursor</p>
+        <p><strong>Try pressing Space to start!</strong></p>
+        <br>
+        <div style="font-size: 11px; color: #aaa;">
+          Trail Strength:
+          <div class="trail-strength"></div>
+          Weak → Strong
+        </div>
+        <div style="font-size: 11px; color: #ff6b35; margin-top: 5px;">
+          Cursor: <span id="cursorPos">400, 300</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🧬 Physarum Simulation</h2>
+      
+      <div class="stats">
+        <div class="metric">
+          <span>Agents:</span>
+          <span class="metric-value" id="agentCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Food Sources:</span>
+          <span class="metric-value" id="foodCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Obstacles:</span>
+          <span class="metric-value" id="obstacleCount">0</span>
+        </div>
+        <div class="metric">
+          <span>Trail Density:</span>
+          <span class="metric-value" id="trailDensity">0%</span>
+        </div>
+        <div class="metric">
+          <span>Network Length:</span>
+          <span class="metric-value" id="networkLength">0</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Scenarios</h3>
+        <div class="scenario-buttons">
+          <button id="scenario-foraging">Foraging</button>
+          <button id="scenario-maze">Maze Solver</button>
+          <button id="scenario-network">Network</button>
+          <button id="scenario-tsp">TSP Solver</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Agent Behavior</h3>
+        <div class="slider-group">
+          <label>Population:</label>
+          <input type="range" id="population" min="100" max="5000" value="1000">
+          <span class="value-display" id="populationValue">1000</span>
+        </div>
+        <div class="slider-group">
+          <label>Speed:</label>
+          <input type="range" id="speed" min="1" max="10" value="3">
+          <span class="value-display" id="speedValue">3</span>
+        </div>
+        <div class="slider-group">
+          <label>Sensor Angle:</label>
+          <input type="range" id="sensorAngle" min="10" max="120" value="45">
+          <span class="value-display" id="sensorAngleValue">45°</span>
+        </div>
+        <div class="slider-group">
+          <label>Sensor Distance:</label>
+          <input type="range" id="sensorDistance" min="5" max="50" value="15">
+          <span class="value-display" id="sensorDistanceValue">15</span>
+        </div>
+        <div class="slider-group">
+          <label>Turn Angle:</label>
+          <input type="range" id="turnAngle" min="5" max="90" value="30">
+          <span class="value-display" id="turnAngleValue">30°</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Trail System</h3>
+        <div class="slider-group">
+          <label>Deposition:</label>
+          <input type="range" id="deposition" min="1" max="20" value="5">
+          <span class="value-display" id="depositionValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Decay Rate:</label>
+          <input type="range" id="decay" min="1" max="10" value="3">
+          <span class="value-display" id="decayValue">0.03</span>
+        </div>
+        <div class="slider-group">
+          <label>Diffusion:</label>
+          <input type="range" id="diffusion" min="0" max="10" value="3">
+          <span class="value-display" id="diffusionValue">3</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Environment</h3>
+        <div class="slider-group">
+          <label>Food Strength:</label>
+          <input type="range" id="foodStrength" min="1" max="20" value="10">
+          <span class="value-display" id="foodStrengthValue">10</span>
+        </div>
+        <div class="slider-group">
+          <label>Randomness:</label>
+          <input type="range" id="randomness" min="0" max="100" value="20">
+          <span class="value-display" id="randomnessValue">20%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Visualization</h3>
+        <div class="mode-buttons">
+          <button id="mode-trails" class="active">Trails</button>
+          <button id="mode-agents">Agents</button>
+          <button id="mode-both">Both</button>
+        </div>
+        <div class="slider-group">
+          <label>Trail Brightness:</label>
+          <input type="range" id="brightness" min="1" max="10" value="5">
+          <span class="value-display" id="brightnessValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Blur Amount:</label>
+          <input type="range" id="blur" min="0" max="5" value="1">
+          <span class="value-display" id="blurValue">1</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Controls</h3>
+        <button id="pauseBtn">Pause</button>
+        <button id="clearTrails">Clear Trails</button>
+        <button id="resetBtn">Reset All</button>
+        <button id="exportBtn">Export Image</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Simulation state
+    let agents = [];
+    let foodSources = [];
+    let obstacles = [];
+    let trailMap = null;
+    let tempTrailMap = null;
+    let isRunning = true;
+    let visualMode = 'trails';
+    
+    // Initialize trail map
+    function initializeTrailMap() {
+      const width = canvas.width;
+      const height = canvas.height;
+      trailMap = new Float32Array(width * height);
+      tempTrailMap = new Float32Array(width * height);
+    }
+    
+    function resizeCanvas() {
+      const container = document.querySelector('.simulation-view');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      
+      // Recreate trail map after resize
+      initializeTrailMap();
+    }
+    
+    // Initial setup
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Parameters
+    let populationSize = 1000;
+    let agentSpeed = 3;
+    let sensorAngle = 45 * Math.PI / 180;
+    let sensorDistance = 15;
+    let turnAngle = 30 * Math.PI / 180;
+    let trailDeposition = 5;
+    let trailDecay = 0.03;
+    let trailDiffusion = 3;
+    let foodStrength = 10;
+    let randomnessFactor = 0.2;
+    let trailBrightness = 5;
+    let blurAmount = 1;
+    
+    // Agent class
+    class Agent {
+      constructor(x, y, angle) {
+        this.x = x || Math.random() * canvas.width;
+        this.y = y || Math.random() * canvas.height;
+        this.angle = angle || Math.random() * Math.PI * 2;
+        this.species = Math.random() < 0.5 ? 'A' : 'B'; // Two species for interaction
+      }
+      
+      update() {
+        // Sensor positions
+        const leftSensor = {
+          x: this.x + Math.cos(this.angle - sensorAngle) * sensorDistance,
+          y: this.y + Math.sin(this.angle - sensorAngle) * sensorDistance
+        };
+        
+        const centerSensor = {
+          x: this.x + Math.cos(this.angle) * sensorDistance,
+          y: this.y + Math.sin(this.angle) * sensorDistance
+        };
+        
+        const rightSensor = {
+          x: this.x + Math.cos(this.angle + sensorAngle) * sensorDistance,
+          y: this.y + Math.sin(this.angle + sensorAngle) * sensorDistance
+        };
+        
+        // Sample trail concentrations
+        const leftValue = sampleTrail(leftSensor.x, leftSensor.y) + sampleFood(leftSensor.x, leftSensor.y);
+        const centerValue = sampleTrail(centerSensor.x, centerSensor.y) + sampleFood(centerSensor.x, centerSensor.y);
+        const rightValue = sampleTrail(rightSensor.x, rightSensor.y) + sampleFood(rightSensor.x, rightSensor.y);
+        
+        // Decision making
+        if (centerValue > leftValue && centerValue > rightValue) {
+          // Continue straight
+        } else if (leftValue > rightValue) {
+          this.angle -= turnAngle * (Math.random() * 0.5 + 0.5);
+        } else if (rightValue > leftValue) {
+          this.angle += turnAngle * (Math.random() * 0.5 + 0.5);
+        } else {
+          // Random walk when no gradient
+          this.angle += (Math.random() - 0.5) * turnAngle * randomnessFactor;
+        }
+        
+        // Move agent
+        this.x += Math.cos(this.angle) * agentSpeed;
+        this.y += Math.sin(this.angle) * agentSpeed;
+        
+        // Boundary conditions - bounce off walls
+        if (this.x < 0 || this.x >= canvas.width) {
+          this.angle = Math.PI - this.angle;
+          this.x = Math.max(0, Math.min(canvas.width - 1, this.x));
+        }
+        if (this.y < 0 || this.y >= canvas.height) {
+          this.angle = -this.angle;
+          this.y = Math.max(0, Math.min(canvas.height - 1, this.y));
+        }
+        
+        // Check for obstacles
+        if (isInObstacle(this.x, this.y)) {
+          this.angle += Math.PI + (Math.random() - 0.5) * Math.PI;
+          this.x -= Math.cos(this.angle) * agentSpeed * 2;
+          this.y -= Math.sin(this.angle) * agentSpeed * 2;
+        }
+        
+        // Deposit trail
+        depositTrail(this.x, this.y, trailDeposition);
+      }
+      
+      draw() {
+        ctx.fillStyle = this.species === 'A' ? '#00ff88' : '#88ff00';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    
+    // Sample trail concentration at position
+    function sampleTrail(x, y) {
+      const ix = Math.floor(x);
+      const iy = Math.floor(y);
+      if (ix < 0 || ix >= canvas.width || iy < 0 || iy >= canvas.height) return 0;
+      return trailMap[iy * canvas.width + ix] || 0;
+    }
+    
+    // Sample food concentration at position
+    function sampleFood(x, y) {
+      let totalFood = 0;
+      for (const food of foodSources) {
+        const dx = x - food.x;
+        const dy = y - food.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < food.radius) {
+          totalFood += foodStrength * (1 - dist / food.radius);
+        }
+      }
+      return totalFood;
+    }
+    
+    // Check if position is in obstacle
+    function isInObstacle(x, y) {
+      for (const obstacle of obstacles) {
+        const dx = x - obstacle.x;
+        const dy = y - obstacle.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < obstacle.radius) return true;
+      }
+      return false;
+    }
+    
+    // Deposit trail at position
+    function depositTrail(x, y, amount) {
+      const ix = Math.floor(x);
+      const iy = Math.floor(y);
+      if (ix < 0 || ix >= canvas.width || iy < 0 || iy >= canvas.height) return;
+      
+      const index = iy * canvas.width + ix;
+      trailMap[index] = Math.min(255, trailMap[index] + amount);
+    }
+    
+    // Update trail map (decay and diffusion)
+    function updateTrails() {
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      // Decay and diffusion
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const index = y * width + x;
+          const current = trailMap[index];
+          
+          // Decay
+          let newValue = current * (1 - trailDecay);
+          
+          // Diffusion (blur)
+          if (trailDiffusion > 0) {
+            const neighbors = 
+              trailMap[(y-1) * width + x] +     // up
+              trailMap[(y+1) * width + x] +     // down
+              trailMap[y * width + (x-1)] +     // left
+              trailMap[y * width + (x+1)] +     // right
+              trailMap[(y-1) * width + (x-1)] + // up-left
+              trailMap[(y-1) * width + (x+1)] + // up-right
+              trailMap[(y+1) * width + (x-1)] + // down-left
+              trailMap[(y+1) * width + (x+1)];  // down-right
+            
+            const diffused = neighbors / 8;
+            newValue = newValue * (1 - trailDiffusion * 0.01) + diffused * (trailDiffusion * 0.01);
+          }
+          
+          tempTrailMap[index] = Math.max(0, newValue);
+        }
+      }
+      
+      // Swap buffers
+      [trailMap, tempTrailMap] = [tempTrailMap, trailMap];
+    }
+    
+    // Draw trail map
+    function drawTrails() {
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      for (let i = 0; i < trailMap.length; i++) {
+        const intensity = Math.min(255, trailMap[i] * trailBrightness);
+        const alpha = intensity / 255;
+        
+        // Green gradient for trails
+        data[i * 4] = 0;                           // Red
+        data[i * 4 + 1] = intensity;               // Green
+        data[i * 4 + 2] = Math.floor(intensity * 0.3); // Blue
+        data[i * 4 + 3] = intensity;               // Alpha
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      
+      // Apply blur if enabled
+      if (blurAmount > 0) {
+        ctx.filter = `blur(${blurAmount}px)`;
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
+      }
+    }
+    
+    // Draw food sources
+    function drawFood() {
+      foodSources.forEach((food, index) => {
+        const gradient = ctx.createRadialGradient(
+          food.x, food.y, 0,
+          food.x, food.y, food.radius
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 0, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 255, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, food.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`F${index + 1}`, food.x, food.y - food.radius - 5);
+      });
+    }
+    
+    // Draw obstacles
+    function drawObstacles() {
+      obstacles.forEach(obstacle => {
+        ctx.fillStyle = '#444444';
+        ctx.beginPath();
+        ctx.arc(obstacle.x, obstacle.y, obstacle.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#666666';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+    
+    // Update statistics
+    function updateStats() {
+      document.getElementById('agentCount').textContent = agents.length;
+      document.getElementById('foodCount').textContent = foodSources.length;
+      document.getElementById('obstacleCount').textContent = obstacles.length;
+      
+      // Calculate trail density
+      const totalTrail = trailMap.reduce((sum, value) => sum + value, 0);
+      const density = (totalTrail / (canvas.width * canvas.height * 255)) * 100;
+      document.getElementById('trailDensity').textContent = density.toFixed(1) + '%';
+      
+      // Estimate network length (simplified)
+      const networkLength = Math.floor(totalTrail / 100);
+      document.getElementById('networkLength').textContent = networkLength;
+    }
+    
+    // Input handling
+    let cursorX = 400;
+    let cursorY = 300;
+    let keys = {};
+    let cursorSpeed = 10;
+    
+    // Initialize cursor position
+    function initializeCursor() {
+      cursorX = canvas.width / 2;
+      cursorY = canvas.height / 2;
+      updateCursorDisplay();
+    }
+    
+    // Update cursor indicator
+    function updateCursorDisplay() {
+      const indicator = document.getElementById('cursorIndicator');
+      const rect = canvas.getBoundingClientRect();
+      indicator.style.left = (rect.left + cursorX) + 'px';
+      indicator.style.top = (rect.top + cursorY) + 'px';
+      
+      document.getElementById('cursorPos').textContent = 
+        `${Math.round(cursorX)}, ${Math.round(cursorY)}`;
+    }
+    
+    // Handle keyboard input
+    function handleKeyboardInput() {
+      let moved = false;
+      
+      // Cursor movement
+      if (keys['arrowup'] || keys['w']) {
+        cursorY = Math.max(0, cursorY - cursorSpeed);
+        moved = true;
+      }
+      if (keys['arrowdown'] || keys['s']) {
+        cursorY = Math.min(canvas.height, cursorY + cursorSpeed);
+        moved = true;
+      }
+      if (keys['arrowleft']) {
+        cursorX = Math.max(0, cursorX - cursorSpeed);
+        moved = true;
+      }
+      if (keys['arrowright']) {
+        cursorX = Math.min(canvas.width, cursorX + cursorSpeed);
+        moved = true;
+      }
+      
+      // Faster movement with shift
+      if (keys['shift']) {
+        cursorSpeed = 20;
+      } else {
+        cursorSpeed = 10;
+      }
+      
+      if (moved) {
+        updateCursorDisplay();
+      }
+    }
+    
+    // Ensure canvas gets focus on page load
+    function ensureFocus() {
+      document.body.focus();
+      canvas.focus();
+    }
+    
+    // Start with some default content
+    function initializeWithDefaults() {
+      // Add some initial food sources automatically
+      foodSources.push({ x: 200, y: 150, radius: 35 });
+      foodSources.push({ x: 600, y: 300, radius: 35 });
+      foodSources.push({ x: 400, y: 450, radius: 35 });
+      
+      // Add initial agents
+      for (let i = 0; i < 200; i++) {
+        agents.push(new Agent(
+          canvas.width/2 + (Math.random() - 0.5) * 100,
+          canvas.height/2 + (Math.random() - 0.5) * 100
+        ));
+      }
+    }
+    
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      keys[key] = true;
+      
+      // Prevent default for all our control keys
+      if ([' ', 'f', 'o', 'a', 'c', 'r', 'p', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        e.preventDefault();
+      }
+      
+      if (key === ' ') {
+        // Add agents at center when space is pressed
+        for (let i = 0; i < 50; i++) {
+          agents.push(new Agent(
+            canvas.width/2 + (Math.random() - 0.5) * 100,
+            canvas.height/2 + (Math.random() - 0.5) * 100
+          ));
+        }
+      } else if (key === 'f') {
+        // Add food source at cursor
+        foodSources.push({
+          x: cursorX,
+          y: cursorY,
+          radius: 30 + Math.random() * 20
+        });
+      } else if (key === 'o') {
+        // Add obstacle at cursor
+        obstacles.push({
+          x: cursorX,
+          y: cursorY,
+          radius: 20 + Math.random() * 30
+        });
+      } else if (key === 'a') {
+        // Add agents at cursor
+        for (let i = 0; i < 50; i++) {
+          agents.push(new Agent(
+            cursorX + (Math.random() - 0.5) * 50,
+            cursorY + (Math.random() - 0.5) * 50
+          ));
+        }
+      } else if (key === 'c') {
+        clearTrails();
+      } else if (key === 'r') {
+        resetSimulation();
+      } else if (key === 'p') {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Mouse support (optional)
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      cursorX = e.clientX - rect.left;
+      cursorY = e.clientY - rect.top;
+      updateCursorDisplay();
+    });
+    
+    canvas.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (e.button === 0) { // Left click - add food
+        foodSources.push({
+          x: cursorX,
+          y: cursorY,
+          radius: 30 + Math.random() * 20
+        });
+      }
+    });
+    
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      // Right click - add obstacle
+      obstacles.push({
+        x: cursorX,
+        y: cursorY,
+        radius: 20 + Math.random() * 30
+      });
+    });
+    
+    // Scenario setup
+    function setupScenario(type) {
+      agents = [];
+      foodSources = [];
+      obstacles = [];
+      clearTrails();
+      
+      switch(type) {
+        case 'foraging':
+          // Scattered food sources
+          for (let i = 0; i < 5; i++) {
+            foodSources.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              radius: 25 + Math.random() * 15
+            });
+          }
+          // Central agent cluster
+          for (let i = 0; i < populationSize; i++) {
+            agents.push(new Agent(
+              canvas.width/2 + (Math.random() - 0.5) * 100,
+              canvas.height/2 + (Math.random() - 0.5) * 100
+            ));
+          }
+          break;
+          
+        case 'maze':
+          // Create maze walls
+          const wallThickness = 20;
+          // Horizontal walls
+          for (let i = 0; i < 3; i++) {
+            const y = canvas.height * (0.25 + i * 0.25);
+            for (let x = 100; x < canvas.width - 100; x += 25) {
+              if (Math.random() > 0.3) { // Gaps in walls
+                obstacles.push({ x: x, y: y, radius: wallThickness/2 });
+              }
+            }
+          }
+          // Food at opposite corners
+          foodSources.push({ x: 50, y: 50, radius: 30 });
+          foodSources.push({ x: canvas.width - 50, y: canvas.height - 50, radius: 30 });
+          // Agents at start
+          for (let i = 0; i < populationSize/2; i++) {
+            agents.push(new Agent(50, 50));
+          }
+          break;
+          
+        case 'network':
+          // Grid of food sources
+          for (let x = 0; x < 4; x++) {
+            for (let y = 0; y < 3; y++) {
+              foodSources.push({
+                x: (x + 1) * canvas.width / 5,
+                y: (y + 1) * canvas.height / 4,
+                radius: 25
+              });
+            }
+          }
+          // Agents distributed randomly
+          for (let i = 0; i < populationSize; i++) {
+            agents.push(new Agent());
+          }
+          break;
+          
+        case 'tsp':
+          // Traveling salesman problem setup
+          const cities = 8;
+          for (let i = 0; i < cities; i++) {
+            const angle = (i / cities) * Math.PI * 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.3;
+            foodSources.push({
+              x: canvas.width/2 + Math.cos(angle) * radius,
+              y: canvas.height/2 + Math.sin(angle) * radius,
+              radius: 20
+            });
+          }
+          // Start agents at center
+          for (let i = 0; i < populationSize; i++) {
+            agents.push(new Agent(
+              canvas.width/2 + (Math.random() - 0.5) * 50,
+              canvas.height/2 + (Math.random() - 0.5) * 50
+            ));
+          }
+          break;
+      }
+    }
+    
+    function clearTrails() {
+      if (trailMap) {
+        trailMap.fill(0);
+      }
+    }
+    
+    function resetSimulation() {
+      agents = [];
+      foodSources = [];
+      obstacles = [];
+      clearTrails();
+    }
+    
+    // Controls setup
+    function setupControls() {
+      // Scenario buttons
+      document.querySelectorAll('[id^="scenario-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const scenario = btn.id.replace('scenario-', '');
+          setupScenario(scenario);
+        });
+      });
+      
+      // Mode buttons
+      document.querySelectorAll('[id^="mode-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="mode-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          visualMode = btn.id.replace('mode-', '');
+        });
+      });
+      
+      // Sliders
+      const sliders = [
+        { id: 'population', prop: 'populationSize', display: 'populationValue', format: v => v },
+        { id: 'speed', prop: 'agentSpeed', display: 'speedValue', format: v => v },
+        { id: 'sensorAngle', prop: 'sensorAngle', display: 'sensorAngleValue', format: v => v + '°', convert: v => v * Math.PI / 180 },
+        { id: 'sensorDistance', prop: 'sensorDistance', display: 'sensorDistanceValue', format: v => v },
+        { id: 'turnAngle', prop: 'turnAngle', display: 'turnAngleValue', format: v => v + '°', convert: v => v * Math.PI / 180 },
+        { id: 'deposition', prop: 'trailDeposition', display: 'depositionValue', format: v => v },
+        { id: 'decay', prop: 'trailDecay', display: 'decayValue', format: v => (v/100).toFixed(2), convert: v => v/100 },
+        { id: 'diffusion', prop: 'trailDiffusion', display: 'diffusionValue', format: v => v },
+        { id: 'foodStrength', prop: 'foodStrength', display: 'foodStrengthValue', format: v => v },
+        { id: 'randomness', prop: 'randomnessFactor', display: 'randomnessValue', format: v => v + '%', convert: v => v/100 },
+        { id: 'brightness', prop: 'trailBrightness', display: 'brightnessValue', format: v => v },
+        { id: 'blur', prop: 'blurAmount', display: 'blurValue', format: v => v }
+      ];
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        element.addEventListener('input', () => {
+          const value = parseFloat(element.value);
+          window[slider.prop] = slider.convert ? slider.convert(value) : value;
+          display.textContent = slider.format(value);
+          
+          // Recreate agents if population changed
+          if (slider.prop === 'populationSize') {
+            const diff = populationSize - agents.length;
+            if (diff > 0) {
+              for (let i = 0; i < diff; i++) {
+                agents.push(new Agent());
+              }
+            } else if (diff < 0) {
+              agents.splice(diff);
+            }
+          }
+        });
+        
+        // Initialize display
+        display.textContent = slider.format(element.value);
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      });
+      
+      document.getElementById('clearTrails').addEventListener('click', clearTrails);
+      document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+      
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'physarum-simulation.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        // Handle keyboard input
+        handleKeyboardInput();
+        
+        // Update agents
+        agents.forEach(agent => agent.update());
+        
+        // Update trail system
+        updateTrails();
+        
+        // Update statistics
+        updateStats();
+      }
+      
+      // Clear canvas
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw based on mode
+      if (visualMode === 'trails' || visualMode === 'both') {
+        drawTrails();
+      }
+      
+      // Draw environment
+      drawFood();
+      drawObstacles();
+      
+      if (visualMode === 'agents' || visualMode === 'both') {
+        agents.forEach(agent => agent.draw());
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    setupControls();
+    initializeCursor();
+    
+    // Start with immediate content instead of scenario
+    initializeWithDefaults();
+    
+    // Ensure focus for keyboard input
+    setTimeout(ensureFocus, 100);
+    
+    animate();
+  </script>
+</body>
+</html>

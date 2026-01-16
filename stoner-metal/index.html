@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metal Evolution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0f 50%, #0f0a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #ff6b35;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin: 20px 0 30px 0;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.5),
+                         0 0 40px rgba(255, 107, 53, 0.3);
+            font-size: 2.5em;
+            text-align: center;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 107, 53, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(255, 107, 53, 0.8), 0 0 60px rgba(255, 107, 53, 0.4); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 2000px;
+            background: rgba(20, 10, 25, 0.8);
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.3),
+                        inset 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+
+        #mermaid-diagram {
+            background: transparent;
+            overflow-x: auto;
+            overflow-y: visible;
+            width: 100%;
+        }
+
+        #mermaid-diagram svg {
+            max-width: none !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 400px;
+        }
+
+        #mermaid-diagram pre {
+            margin: 0;
+        }
+
+        /* Force node text to be visible and not cut off */
+        #mermaid-diagram .node rect,
+        #mermaid-diagram .node circle,
+        #mermaid-diagram .node ellipse,
+        #mermaid-diagram .node polygon {
+            rx: 5px;
+            ry: 5px;
+        }
+
+        #mermaid-diagram .nodeLabel {
+            color: #fff !important;
+            padding: 8px 42px !important;
+            white-space: nowrap !important;
+        }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .legend h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .legend-item {
+            display: inline-block;
+            margin: 5px 15px;
+            padding-left: 4x0px;
+            padding-right: 40px;
+            color: #ddd;
+        }
+
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border-radius: 3px;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎸 Stoner/Doom Metal Evolution 🎸</h1>
+    
+    <div class="container">
+        <div id="mermaid-diagram">
+            <pre class="mermaid">
+%%{init: {'theme':'dark', 'themeVariables': { 'primaryColor':'#2d1b2e','primaryTextColor':'#fff','primaryBorderColor':'#ff6b35','lineColor':'#ff6b35','secondaryColor':'#1a3a2e','tertiaryColor':'#2e1a3a','fontSize':'16px','fontFamily':'Arial, sans-serif'}, 'flowchart': {'htmlLabels': true, 'curve': 'basis'}}}%%
+flowchart TD
+    subgraph subGraph0["🏜️ Desert / Fuzz Groove"]
+        I[Desert Scene]
+        K[Fu Manchu]
+        L[Yawning Man]
+        M[Brant Bjork]
+        N[Nebula]
+        O[Unida]
+        P[Fatso Jetson]
+        Q[Dozer]
+        R[Truckfighters]
+    end
+    
+    subgraph subGraph1["💀 Stoner Doom / Sludge"]
+        J[Stoner Doom Axis]
+        S[Electric Wizard]
+        T[Acid King]
+        U[Bongzilla]
+        V[High on Fire]
+        W[Weedeater]
+        X[Dopelord]
+        Y[Dove]
+        Z[Cathedral]
+        AA[Melvins]
+        AB[Eyehategod]
+        AC[Down]
+        AD[Corrosion of Conformity]
+        AE[Clutch]
+    end
+    
+    subgraph subGraph2["🌀 Psychedelic / Space Stoner"]
+        AF[Colour Haze]
+        AG[Earthless]
+        AH[My Sleeping Karma]
+        AI[Comets on Fire]
+        AJ[Dead Meadow]
+        AK[Elder]
+        AL[King Buffalo]
+        AM[Green Lung]
+        AN[Slift]
+        AO[Monolord]
+    end
+    
+    A[⚡ Proto-Heavy Roots<br/>1968–1985] --> B[Black Sabbath]
+    A --> C[Blue Cheer]
+    A --> D[Hawkwind]
+    A --> E[Saint Vitus]
+    A --> F[Pentagram]
+    
+    B --> G[Sleep]
+    B --> H[Kyuss]
+    E --> G
+    E --> AA
+    
+    H --> I
+    G --> J
+    
+    I --> K
+    I --> L
+    I --> M
+    I --> N
+    I --> O
+    I --> P
+    I --> Q
+    I --> R
+    
+    J --> S
+    J --> T
+    J --> U
+    J --> V
+    J --> W
+    J --> X
+    J --> Y
+    J --> Z
+    
+    AA --> AB
+    AB --> AC
+    AC --> AD
+    AD --> AE
+    
+    D --> AF
+    AF --> AG
+    AF --> AH
+    AF --> AI
+    AF --> AJ
+    AG --> AK
+    AK --> AL
+    AL --> AM
+    AM --> AN
+    AN --> AO
+    
+    classDef protoStyle fill:#4a0e0e,stroke:#ff6b35,stroke-width:4px,color:#fff
+    classDef legendStyle fill:#1a3a2e,stroke:#00ff88,stroke-width:3px,color:#fff
+    classDef doomStyle fill:#2d1b2e,stroke:#9d4edd,stroke-width:3px,color:#fff
+    classDef desertStyle fill:#3a2a1a,stroke:#f4a460,stroke-width:3px,color:#fff
+    classDef psychStyle fill:#1a2a3a,stroke:#00d4ff,stroke-width:3px,color:#fff
+    
+    class A protoStyle
+    class B,C,D,E,F legendStyle
+    class G,H legendStyle
+    class I,K,L,M,N,O,P,Q,R desertStyle
+    class J,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD,AE doomStyle
+    class AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO psychStyle
+            </pre>
+        </div>
+        
+        <div class="legend">
+            <h3>Genre Guide</h3>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #4a0e0e; border-color: #ff6b35;"></span>
+                <span>Proto-Heavy Roots</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #1a3a2e; border-color: #00ff88;"></span>
+                <span>Foundational Bands</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #3a2a1a; border-color: #f4a460;"></span>
+                <span>Desert / Fuzz</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #2d1b2e; border-color: #9d4edd;"></span>
+                <span>Stoner Doom / Sludge</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #1a2a3a; border-color: #00d4ff;"></span>
+                <span>Psychedelic / Space</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20,
+                
+                nodeSpacing: 120,
+                rankSpacing: 120,
+                useMaxWidth: true,
+                wrappingWidth: 400
+            },
+            themeVariables: {
+                fontSize: '16px'
+            }
+        });
+        
+        // Force recalculation after render to fix text cutoff
+        setTimeout(() => {
+            const nodes = document.querySelectorAll('.node rect, .node polygon');
+            nodes.forEach(node => {
+                const label = node.parentElement.querySelector('.nodeLabel');
+                if (label) {
+                    const bbox = label.getBBox();
+                    const currentWidth = parseFloat(node.getAttribute('width') || node.getBBox().width);
+                    const currentHeight = parseFloat(node.getAttribute('height') || node.getBBox().height);
+                    const newWidth = Math.max(currentWidth, bbox.width + 30);
+                    const newHeight = Math.max(currentHeight, bbox.height + 20);
+                    
+                    if (node.tagName === 'rect') {
+                        node.setAttribute('width', newWidth);
+                        node.setAttribute('height', newHeight);
+                        node.setAttribute('x', parseFloat(node.getAttribute('x')) - (newWidth - currentWidth) / 2);
+                        node.setAttribute('y', parseFloat(node.getAttribute('y')) - (newHeight - currentHeight) / 2);
+                    }
+                }
+            });
+        }, 500);
+    </script>
+</body>
+</html>

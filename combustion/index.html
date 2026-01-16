@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Combustion Simulation</title>
+  <meta name="description" content="Interactive combustion simulation showing fuel-air mixing, ignition, and flame propagation">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000000; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000000; 
+      border: 1px solid #333;
+    }
+    .controls { 
+      margin: 10px auto; 
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+    button.danger {
+      background: #aa2222;
+    }
+    button.danger:hover {
+      background: #cc3333;
+    }
+    input[type="range"] {
+      background: #333;
+    }
+    .info {
+      max-width: 600px; 
+      margin: 0 auto 20px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Combustion Simulation</h1>
+  <div class="info">
+    <p>This simulation models combustion physics including fuel-air mixing, ignition, flame propagation, and heat transfer.</p>
+    <p><strong>Blue particles:</strong> Oxygen | <strong>Green particles:</strong> Fuel | <strong>Red/Orange:</strong> Combustion products</p>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <button id="pauseBtn">Pause</button>
+      <button id="resetBtn">Reset</button>
+      <button id="igniteBtn" class="danger">Ignite!</button>
+    </div>
+    <div class="control-group">
+      <label for="fuelRate">Fuel Rate: </label>
+      <input type="range" id="fuelRate" min="0" max="100" value="30">
+    </div>
+    <div class="control-group">
+      <label for="oxygenRate">Oxygen Rate: </label>
+      <input type="range" id="oxygenRate" min="0" max="100" value="50">
+    </div>
+    <div class="control-group">
+      <label for="windSpeed">Wind Speed: </label>
+      <input type="range" id="windSpeed" min="0" max="100" value="20">
+    </div>
+    <div class="control-group">
+      <label for="temperature">Temperature: </label>
+      <input type="range" id="temperature" min="0" max="100" value="25">
+    </div>
+    <div class="control-group">
+      <label for="showTrails">Show Trails: </label>
+      <input type="checkbox" id="showTrails" checked>
+    </div>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    // Get the canvas and context
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas dimensions
+    canvas.width = 900;
+    canvas.height = 600;
+
+    // Animation variables
+    let animationId;
+    let isAnimating = true;
+    let time = 0;
+    let particles = [];
+    let ignitionSources = [];
+    let showTrails = true;
+    
+    // Physics constants
+    const gravity = 0.0005;
+    const airResistance = 0.98;
+    const diffusionRate = 0.02;
+    const combustionTemp = 0.7;
+    const heatTransferRate = 0.05;
+    const maxParticles = 1000;
+    
+    // Simulation parameters
+    let fuelInjectionRate = 0.3;
+    let oxygenInjectionRate = 0.5;
+    let windVelocity = 0.02;
+    let ambientTemperature = 0.25;
+    
+    // Particle types
+    const PARTICLE_TYPES = {
+      OXYGEN: 'oxygen',
+      FUEL: 'fuel', 
+      COMBUSTED: 'combusted',
+      HOT_PRODUCT: 'hot_product'
+    };
+
+    // Controls
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const igniteBtn = document.getElementById('igniteBtn');
+    const fuelRateSlider = document.getElementById('fuelRate');
+    const oxygenRateSlider = document.getElementById('oxygenRate');
+    const windSpeedSlider = document.getElementById('windSpeed');
+    const temperatureSlider = document.getElementById('temperature');
+    const showTrailsCheck = document.getElementById('showTrails');
+
+    // Particle class
+    class Particle {
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 0.1;
+        this.vy = (Math.random() - 0.5) * 0.1;
+        this.type = type;
+        this.temperature = ambientTemperature;
+        this.mass = this.getMass();
+        this.size = this.getSize();
+        this.color = this.getColor();
+        this.age = 0;
+        this.maxAge = this.getMaxAge();
+        this.trail = [];
+        this.energy = Math.random() * 0.1;
+      }
+      
+      getMass() {
+        switch(this.type) {
+          case PARTICLE_TYPES.OXYGEN: return 0.8;
+          case PARTICLE_TYPES.FUEL: return 1.2;
+          case PARTICLE_TYPES.COMBUSTED: return 0.6;
+          case PARTICLE_TYPES.HOT_PRODUCT: return 0.4;
+          default: return 1.0;
+        }
+      }
+      
+      getSize() {
+        switch(this.type) {
+          case PARTICLE_TYPES.OXYGEN: return 2 + Math.random();
+          case PARTICLE_TYPES.FUEL: return 3 + Math.random() * 2;
+          case PARTICLE_TYPES.COMBUSTED: return 4 + Math.random() * 2;
+          case PARTICLE_TYPES.HOT_PRODUCT: return 5 + Math.random() * 3;
+          default: return 2;
+        }
+      }
+      
+      getColor() {
+        switch(this.type) {
+          case PARTICLE_TYPES.OXYGEN: 
+            return `hsl(200, 80%, ${60 + Math.random() * 20}%)`;
+          case PARTICLE_TYPES.FUEL: 
+            return `hsl(120, 70%, ${40 + Math.random() * 30}%)`;
+          case PARTICLE_TYPES.COMBUSTED: 
+            const heat = Math.min(this.temperature * 100, 100);
+            return `hsl(${30 - heat * 0.3}, 100%, ${50 + heat * 0.3}%)`;
+          case PARTICLE_TYPES.HOT_PRODUCT:
+            const intensity = Math.min(this.temperature * 150, 100);
+            return `hsl(${Math.max(0, 60 - intensity)}, 100%, ${70 + intensity * 0.3}%)`;
+          default: 
+            return '#ffffff';
+        }
+      }
+      
+      getMaxAge() {
+        switch(this.type) {
+          case PARTICLE_TYPES.OXYGEN: return 1000 + Math.random() * 500;
+          case PARTICLE_TYPES.FUEL: return 800 + Math.random() * 400;
+          case PARTICLE_TYPES.COMBUSTED: return 300 + Math.random() * 200;
+          case PARTICLE_TYPES.HOT_PRODUCT: return 150 + Math.random() * 100;
+          default: return 500;
+        }
+      }
+      
+      update(deltaTime) {
+        const dt = deltaTime / 16;
+        
+        // Age the particle
+        this.age += dt;
+        
+        // Update trail
+        if (showTrails && Math.random() < 0.3) {
+          this.trail.push({x: this.x, y: this.y, alpha: 1.0});
+          if (this.trail.length > 15) {
+            this.trail.shift();
+          }
+        }
+        
+        // Fade trail
+        this.trail.forEach(point => {
+          point.alpha *= 0.95;
+        });
+        
+        // Apply gravity (hot particles rise)
+        if (this.temperature > ambientTemperature) {
+          this.vy -= gravity * (this.temperature - ambientTemperature) * dt;
+        } else {
+          this.vy += gravity * 0.3 * dt; // Cold particles fall slowly
+        }
+        
+        // Apply wind
+        this.vx += windVelocity * dt;
+        
+        // Apply air resistance
+        this.vx *= Math.pow(airResistance, dt);
+        this.vy *= Math.pow(airResistance, dt);
+        
+        // Random brownian motion
+        this.vx += (Math.random() - 0.5) * diffusionRate * dt;
+        this.vy += (Math.random() - 0.5) * diffusionRate * dt;
+        
+        // Update position
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        
+        // Boundary conditions
+        if (this.x < 0 || this.x > canvas.width) {
+          this.vx *= -0.8;
+          this.x = Math.max(0, Math.min(canvas.width, this.x));
+        }
+        if (this.y < 0 || this.y > canvas.height) {
+          this.vy *= -0.8;
+          this.y = Math.max(0, Math.min(canvas.height, this.y));
+        }
+        
+        // Cool down over time
+        if (this.temperature > ambientTemperature) {
+          this.temperature -= 0.001 * dt;
+          this.temperature = Math.max(ambientTemperature, this.temperature);
+        }
+        
+        // Update color based on temperature
+        this.color = this.getColor();
+        
+        return this.age < this.maxAge;
+      }
+      
+      draw() {
+        // Draw trail
+        if (showTrails && this.trail.length > 1) {
+          ctx.strokeStyle = this.color.replace('hsl', 'hsla').replace(')', ', 0.2)');
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(this.trail[0].x, this.trail[0].y);
+          
+          for (let i = 1; i < this.trail.length; i++) {
+            const alpha = this.trail[i].alpha * 0.3;
+            ctx.globalAlpha = alpha;
+            ctx.lineTo(this.trail[i].x, this.trail[i].y);
+          }
+          
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+        
+        // Draw particle with glow for hot particles
+        if (this.temperature > ambientTemperature + 0.2) {
+          const glowSize = this.size * (2 + this.temperature * 3);
+          const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, glowSize
+          );
+          glow.addColorStop(0, this.color);
+          glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Draw particle core
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Initialize particles
+    function initParticles() {
+      particles = [];
+      ignitionSources = [];
+      
+      // Add some initial oxygen particles
+      for (let i = 0; i < 50; i++) {
+        particles.push(new Particle(
+          Math.random() * canvas.width,
+          Math.random() * canvas.height,
+          PARTICLE_TYPES.OXYGEN
+        ));
+      }
+    }
+
+    // Add fuel injection
+    function injectFuel() {
+      if (particles.length < maxParticles && Math.random() < fuelInjectionRate) {
+        // Inject from bottom left
+        particles.push(new Particle(
+          50 + Math.random() * 100,
+          canvas.height - 50 - Math.random() * 50,
+          PARTICLE_TYPES.FUEL
+        ));
+      }
+    }
+
+    // Add oxygen injection
+    function injectOxygen() {
+      if (particles.length < maxParticles && Math.random() < oxygenInjectionRate) {
+        // Inject from multiple points
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * 100 + 50; // From top
+        particles.push(new Particle(x, y, PARTICLE_TYPES.OXYGEN));
+      }
+    }
+
+    // Check for combustion reactions
+    function processCombustion() {
+      for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        
+        if (particle.type === PARTICLE_TYPES.FUEL || particle.type === PARTICLE_TYPES.OXYGEN) {
+          // Check for nearby ignition sources or hot particles
+          let canIgnite = particle.temperature > combustionTemp;
+          
+          if (!canIgnite) {
+            // Check ignition sources
+            for (const source of ignitionSources) {
+              const dx = particle.x - source.x;
+              const dy = particle.y - source.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < source.radius) {
+                canIgnite = true;
+                break;
+              }
+            }
+          }
+          
+          if (!canIgnite) {
+            // Check for nearby hot particles
+            for (let j = 0; j < particles.length; j++) {
+              if (i === j) continue;
+              const other = particles[j];
+              
+              if (other.temperature > combustionTemp) {
+                const dx = particle.x - other.x;
+                const dy = particle.y - other.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 20) {
+                  canIgnite = true;
+                  break;
+                }
+              }
+            }
+          }
+          
+          if (canIgnite) {
+            // Look for fuel-oxygen pairs nearby
+            for (let j = 0; j < particles.length; j++) {
+              if (i === j) continue;
+              const other = particles[j];
+              
+              if ((particle.type === PARTICLE_TYPES.FUEL && other.type === PARTICLE_TYPES.OXYGEN) ||
+                  (particle.type === PARTICLE_TYPES.OXYGEN && other.type === PARTICLE_TYPES.FUEL)) {
+                
+                const dx = particle.x - other.x;
+                const dy = particle.y - other.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 15) {
+                  // Combustion reaction!
+                  particle.type = PARTICLE_TYPES.HOT_PRODUCT;
+                  particle.temperature = 1.0 + Math.random() * 0.5;
+                  particle.size = particle.getSize();
+                  particle.maxAge = particle.getMaxAge();
+                  particle.age = 0;
+                  
+                  // Add some explosive velocity
+                  const angle = Math.random() * Math.PI * 2;
+                  const force = 0.5 + Math.random() * 0.5;
+                  particle.vx += Math.cos(angle) * force;
+                  particle.vy += Math.sin(angle) * force;
+                  
+                  // Remove the other particle or convert it
+                  other.type = PARTICLE_TYPES.COMBUSTED;
+                  other.temperature = 0.8 + Math.random() * 0.3;
+                  other.size = other.getSize();
+                  other.maxAge = other.getMaxAge();
+                  other.age = 0;
+                  
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Heat transfer between particles
+    function processHeatTransfer() {
+      for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        
+        for (let j = i + 1; j < particles.length; j++) {
+          const other = particles[j];
+          
+          const dx = particle.x - other.x;
+          const dy = particle.y - other.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 25) {
+            // Heat transfer
+            const tempDiff = particle.temperature - other.temperature;
+            const transfer = tempDiff * heatTransferRate * (25 - dist) / 25;
+            
+            particle.temperature -= transfer * 0.5;
+            other.temperature += transfer * 0.5;
+          }
+        }
+      }
+    }
+
+    // Event listeners
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationId);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      initParticles();
+    });
+
+    igniteBtn.addEventListener('click', () => {
+      // Add ignition source at random location
+      ignitionSources.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: 30 + Math.random() * 20,
+        duration: 60,
+        age: 0
+      });
+    });
+
+    fuelRateSlider.addEventListener('input', () => {
+      fuelInjectionRate = fuelRateSlider.value / 100;
+    });
+
+    oxygenRateSlider.addEventListener('input', () => {
+      oxygenInjectionRate = oxygenRateSlider.value / 100;
+    });
+
+    windSpeedSlider.addEventListener('input', () => {
+      windVelocity = windSpeedSlider.value / 2500;
+    });
+
+    temperatureSlider.addEventListener('input', () => {
+      ambientTemperature = temperatureSlider.value / 100;
+    });
+
+    showTrailsCheck.addEventListener('input', () => {
+      showTrails = showTrailsCheck.checked;
+    });
+
+    // Animation loop
+    function animate(timestamp) {
+      const deltaTime = 16; // Fixed timestep for stability
+      time += deltaTime;
+      
+      // Clear canvas
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Inject new particles
+      injectFuel();
+      injectOxygen();
+      
+      // Process physics
+      processCombustion();
+      processHeatTransfer();
+      
+      // Update and draw particles
+      particles = particles.filter(particle => {
+        const alive = particle.update(deltaTime);
+        if (alive) {
+          particle.draw();
+        }
+        return alive;
+      });
+      
+      // Update and draw ignition sources
+      ignitionSources = ignitionSources.filter(source => {
+        source.age += deltaTime / 16;
+        
+        // Draw ignition source
+        const alpha = Math.max(0, 1 - source.age / source.duration);
+        const gradient = ctx.createRadialGradient(
+          source.x, source.y, 0,
+          source.x, source.y, source.radius
+        );
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+        gradient.addColorStop(1, `rgba(255, 100, 0, 0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(source.x, source.y, source.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        return source.age < source.duration;
+      });
+      
+      // Draw UI info
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(10, 10, 200, 80);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Particles: ${particles.length}`, 20, 30);
+      ctx.fillText(`Ignition Sources: ${ignitionSources.length}`, 20, 50);
+      ctx.fillText(`Fuel Rate: ${Math.round(fuelInjectionRate * 100)}%`, 20, 70);
+      
+      // Continue animation
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Initialize and start
+    initParticles();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

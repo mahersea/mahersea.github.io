@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>littleProjectMan</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header with Logo -->
+    <header class="app-title">
+      <img src="images/logo.svg" width="40" height="40" alt="Logo"/>
+      <span id="logo-text">littleProjectMan</span>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div class="tab active" data-view="mainView">Dashboard</div>
+      <div class="tab" data-view="tasksView">Tasks</div>
+      <div class="tab" data-view="projectsView">Projects</div>
+      <div class="tab" data-view="settingsView">Settings</div>
+    </div>
+    
+    <!-- Main View / Dashboard -->
+    <div id="mainView" class="view active">
+      <h2>Dashboard</h2>
+      <p>Welcome to littleProjectMan - your project and task management tool.</p>
+    </div>
+
+    <!-- Tasks View -->
+    <div id="tasksView" class="view">
+      <h2>Tasks</h2>
+      <div class="tasks-container">
+        <!-- Project 1 with Tasks -->
+        <div class="project-group">
+          <div class="project-header-row">
+            <div class="collapse-icon">▼</div>
+            <h3 class="project-title">Website Redesign</h3>
+            <div class="project-meta">5 tasks</div>
+          </div>
+          <div class="project-tasks">
+            <div class="task-item">
+              <input type="checkbox" id="task1" class="task-checkbox">
+              <label for="task1">Create wireframes for homepage</label>
+              <span class="task-due">Due May 15</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task2" class="task-checkbox">
+              <label for="task2">Design new color scheme</label>
+              <span class="task-due">Due May 18</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task3" class="task-checkbox" checked>
+              <label for="task3">Research competitor websites</label>
+              <span class="task-due">Completed</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task4" class="task-checkbox">
+              <label for="task4">Create responsive layouts</label>
+              <span class="task-due">Due May 20</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task5" class="task-checkbox">
+              <label for="task5">Implement new navigation menu</label>
+              <span class="task-due">Due May 25</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2 with Tasks -->
+        <div class="project-group">
+          <div class="project-header-row">
+            <div class="collapse-icon">▼</div>
+            <h3 class="project-title">Mobile App Development</h3>
+            <div class="project-meta">3 tasks</div>
+          </div>
+          <div class="project-tasks">
+            <div class="task-item">
+              <input type="checkbox" id="task6" class="task-checkbox">
+              <label for="task6">Design app icons</label>
+              <span class="task-due">Due June 2</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task7" class="task-checkbox">
+              <label for="task7">Create user flow diagrams</label>
+              <span class="task-due">Due June 5</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task8" class="task-checkbox">
+              <label for="task8">Prototype main screens</label>
+              <span class="task-due">Due June 10</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3 with Tasks -->
+        <div class="project-group">
+          <div class="project-header-row">
+            <div class="collapse-icon">▼</div>
+            <h3 class="project-title">Content Marketing</h3>
+            <div class="project-meta">4 tasks</div>
+          </div>
+          <div class="project-tasks">
+            <div class="task-item">
+              <input type="checkbox" id="task9" class="task-checkbox">
+              <label for="task9">Create content calendar</label>
+              <span class="task-due">Due May 28</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task10" class="task-checkbox" checked>
+              <label for="task10">Research keywords</label>
+              <span class="task-due">Completed</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task11" class="task-checkbox">
+              <label for="task11">Write blog post drafts</label>
+              <span class="task-due">Due June 3</span>
+            </div>
+            <div class="task-item">
+              <input type="checkbox" id="task12" class="task-checkbox">
+              <label for="task12">Schedule social media posts</label>
+              <span class="task-due">Due June 7</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Task Button -->
+        <button class="btn-primary add-task-btn">+ Add New Task</button>
+      </div>
+    </div>
+
+    <!-- Projects View -->
+    <div id="projectsView" class="view">
+      <h2>Projects</h2>
+      <p>Manage your projects here.</p>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settingsView" class="view">
+      <h2>Settings</h2>
+      <p>Configure application settings.</p>
+    </div>
+  
+    <!-- JavaScript for App Functionality -->
+    <script>
+      // Tab Navigation
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.view).classList.add('active');
+        });
+      });
+
+      // Collapsible Project Groups
+      document.querySelectorAll('.project-header-row').forEach(header => {
+        header.addEventListener('click', () => {
+          const projectGroup = header.closest('.project-group');
+          const tasksContainer = projectGroup.querySelector('.project-tasks');
+          const collapseIcon = header.querySelector('.collapse-icon');
+          
+          // Toggle visibility of tasks
+          tasksContainer.classList.toggle('collapsed');
+          
+          // Toggle collapse icon
+          if (tasksContainer.classList.contains('collapsed')) {
+            collapseIcon.textContent = '►';
+          } else {
+            collapseIcon.textContent = '▼';
+          }
+        });
+      });
+
+      // Task Checkbox Functionality
+      document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+          const taskItem = checkbox.closest('.task-item');
+          const taskDue = taskItem.querySelector('.task-due');
+          
+          if (checkbox.checked) {
+            taskItem.classList.add('completed');
+            taskDue.textContent = 'Completed';
+          } else {
+            taskItem.classList.remove('completed');
+            // Reset the due date (this would normally come from data)
+            // This is just a placeholder implementation
+            if (taskDue.textContent === 'Completed') {
+              const randomDays = Math.floor(Math.random() * 14) + 1;
+              const dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + randomDays);
+              const month = dueDate.toLocaleString('default', { month: 'short' });
+              const day = dueDate.getDate();
+              taskDue.textContent = `Due ${month} ${day}`;
+            }
+          }
+        });
+      });
+    </script>
+  </div>
+</body>
+</html>

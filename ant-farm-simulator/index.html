@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ant Farm Simulator</title>
+  <meta name="description" content="Interactive ant colony simulation with tunnel digging, foraging, and complex social behaviors">
+  <style>
+    body { 
+      margin: 0; 
+      background: #1a0f0a; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      height: 100vh;
+    }
+    .farm-view {
+      position: relative;
+      background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 20%, #8B4513 20%, #654321 100%);
+    }
+    .controls-panel {
+      background: #2a1f1a;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #444;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #3a2f2a;
+      border-radius: 8px;
+      border: 1px solid #555;
+    }
+    .control-group h3 {
+      margin: 0 0 10px 0;
+      color: #ff9944;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 80px;
+      color: #ccc;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #ff9944;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #ff9944;
+      min-width: 50px;
+      text-align: right;
+      font-weight: bold;
+    }
+    button {
+      background: #444;
+      color: #fff;
+      border: 1px solid #666;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #555;
+      border-color: #777;
+    }
+    button.active {
+      background: #cc6600;
+      border-color: #ff9944;
+      box-shadow: 0 0 10px rgba(255, 153, 68, 0.3);
+    }
+    .colony-stats {
+      background: #1a0f0a;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #444;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 2px 0;
+    }
+    .stat-value {
+      color: #ff9944;
+      font-weight: bold;
+    }
+    .scenario-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .caste-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .info-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 300px;
+      font-size: 12px;
+      border: 1px solid #555;
+    }
+    .ground-level {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #8B4513;
+      z-index: 10;
+    }
+    kbd {
+      background: #444;
+      border: 1px solid #666;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 10px;
+    }
+    .pheromone-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      font-size: 11px;
+    }
+    .pheromone-sample {
+      width: 20px;
+      height: 10px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="farm-view">
+      <canvas id="canvas"></canvas>
+      <div class="ground-level"></div>
+      <div class="info-panel">
+        <h3>🐜 Ant Farm Simulator</h3>
+        <p><strong>Keyboard Controls:</strong></p>
+        <p><kbd>F</kbd>: Add food | <kbd>O</kbd>: Add obstacle</p>
+        <p><kbd>Q</kbd>: Add queen | <kbd>W</kbd>: Add workers</p>
+        <p><kbd>D</kbd>: Dig mode | <kbd>C</kbd>: Clear tunnels</p>
+        <p><kbd>P</kbd>: Pause | <kbd>R</kbd>: Reset colony</p>
+        <p><kbd>↑↓←→</kbd>: Move cursor</p>
+        <br>
+        <div class="pheromone-legend">
+          <span>Trails:</span>
+          <div class="pheromone-sample" style="background: #00ff88;"></div>
+          <span>Food</span>
+          <div class="pheromone-sample" style="background: #ff4444;"></div>
+          <span>Alarm</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🏠 Ant Colony</h2>
+      
+      <div class="colony-stats">
+        <div class="stat">
+          <span>Queen:</span>
+          <span class="stat-value" id="queenCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Workers:</span>
+          <span class="stat-value" id="workerCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Soldiers:</span>
+          <span class="stat-value" id="soldierCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Larvae:</span>
+          <span class="stat-value" id="larvaeCount">0</span>
+        </div>
+        <div class="stat">
+          <span>Food Stored:</span>
+          <span class="stat-value" id="foodStored">0</span>
+        </div>
+        <div class="stat">
+          <span>Tunnel Length:</span>
+          <span class="stat-value" id="tunnelLength">0m</span>
+        </div>
+        <div class="stat">
+          <span>Colony Age:</span>
+          <span class="stat-value" id="colonyAge">0 days</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Colony Setup</h3>
+        <div class="scenario-buttons">
+          <button id="scenario-founding">New Colony</button>
+          <button id="scenario-mature">Mature Colony</button>
+          <button id="scenario-foraging">Foraging Trail</button>
+          <button id="scenario-nuptial">Nuptial Flight</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Ant Behavior</h3>
+        <div class="slider-group">
+          <label>Speed:</label>
+          <input type="range" id="antSpeed" min="1" max="10" value="5">
+          <span class="value-display" id="antSpeedValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Dig Rate:</label>
+          <input type="range" id="digRate" min="1" max="20" value="10">
+          <span class="value-display" id="digRateValue">10</span>
+        </div>
+        <div class="slider-group">
+          <label>Carry Capacity:</label>
+          <input type="range" id="carryCapacity" min="1" max="5" value="2">
+          <span class="value-display" id="carryCapacityValue">2</span>
+        </div>
+        <div class="slider-group">
+          <label>Work Ethic:</label>
+          <input type="range" id="workEthic" min="1" max="10" value="7">
+          <span class="value-display" id="workEthicValue">7</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Pheromone System</h3>
+        <div class="slider-group">
+          <label>Trail Strength:</label>
+          <input type="range" id="trailStrength" min="1" max="20" value="10">
+          <span class="value-display" id="trailStrengthValue">10</span>
+        </div>
+        <div class="slider-group">
+          <label>Decay Rate:</label>
+          <input type="range" id="decayRate" min="1" max="10" value="3">
+          <span class="value-display" id="decayRateValue">3</span>
+        </div>
+        <div class="slider-group">
+          <label>Follow Strength:</label>
+          <input type="range" id="followStrength" min="1" max="10" value="6">
+          <span class="value-display" id="followStrengthValue">6</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Environment</h3>
+        <div class="slider-group">
+          <label>Soil Hardness:</label>
+          <input type="range" id="soilHardness" min="1" max="10" value="5">
+          <span class="value-display" id="soilHardnessValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Food Richness:</label>
+          <input type="range" id="foodRichness" min="1" max="10" value="5">
+          <span class="value-display" id="foodRichnessValue">5</span>
+        </div>
+        <div class="slider-group">
+          <label>Weather:</label>
+          <input type="range" id="weather" min="1" max="10" value="7">
+          <span class="value-display" id="weatherValue">Sunny</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Visualization</h3>
+        <div class="caste-buttons">
+          <button id="view-workers" class="active">Workers</button>
+          <button id="view-soldiers">Soldiers</button>
+          <button id="view-queen">Queen</button>
+          <button id="view-trails">Trails</button>
+        </div>
+        <div class="slider-group">
+          <label>Zoom:</label>
+          <input type="range" id="zoom" min="50" max="200" value="100">
+          <span class="value-display" id="zoomValue">100%</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Simulation</h3>
+        <button id="pauseBtn">Pause</button>
+        <button id="speedUpBtn">Speed Up</button>
+        <button id="resetBtn">Reset Colony</button>
+        <div class="slider-group">
+          <label>Time Scale:</label>
+          <input type="range" id="timeScale" min="1" max="10" value="5">
+          <span class="value-display" id="timeScaleValue">5x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Simulation state
+    let ants = [];
+    let foodSources = [];
+    let obstacles = [];
+    let tunnels = [];
+    let chambers = [];
+    let pheromoneTrails = [];
+    let larvae = [];
+    let isRunning = true;
+    let groundLevel = 0;
+    let cursorX = 400;
+    let cursorY = 300;
+    let keys = {};
+    let time = 0;
+    
+    // Parameters
+    let antSpeed = 5;
+    let digRate = 10;
+    let carryCapacity = 2;
+    let workEthic = 7;
+    let trailStrength = 10;
+    let decayRate = 3;
+    let followStrength = 6;
+    let soilHardness = 5;
+    let foodRichness = 5;
+    let weather = 7;
+    let timeScale = 5;
+    let zoomLevel = 1;
+    
+    // Visualization settings
+    let showWorkers = true;
+    let showSoldiers = true;
+    let showQueen = true;
+    let showTrails = true;
+    
+    function resizeCanvas() {
+      const container = document.querySelector('.farm-view');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      groundLevel = canvas.height * 0.2; // 20% from top is ground level
+      
+      // Initialize cursor
+      cursorX = canvas.width / 2;
+      cursorY = canvas.height / 2;
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Ant class
+    class Ant {
+      constructor(x, y, caste = 'worker') {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.caste = caste;
+        this.age = 0;
+        this.energy = 100;
+        this.carryingFood = 0;
+        this.task = 'exploring';
+        this.target = null;
+        this.lastTrailTime = 0;
+        this.path = [];
+        this.homeLocation = { x, y };
+        this.size = this.getSize();
+        this.color = this.getColor();
+        this.speed = this.getSpeed();
+      }
+      
+      getSize() {
+        switch(this.caste) {
+          case 'queen': return 8;
+          case 'soldier': return 6;
+          case 'worker': return 4;
+          default: return 4;
+        }
+      }
+      
+      getColor() {
+        switch(this.caste) {
+          case 'queen': return '#ff9944';
+          case 'soldier': return '#cc4444';
+          case 'worker': return '#8B4513';
+          default: return '#8B4513';
+        }
+      }
+      
+      getSpeed() {
+        const baseSpeed = antSpeed * 0.5;
+        switch(this.caste) {
+          case 'queen': return baseSpeed * 0.3;
+          case 'soldier': return baseSpeed * 0.8;
+          case 'worker': return baseSpeed;
+          default: return baseSpeed;
+        }
+      }
+      
+      update() {
+        this.age += timeScale;
+        
+        // Update task based on caste and situation
+        this.updateTask();
+        
+        // Execute current task
+        this.executeTask();
+        
+        // Move ant
+        this.move();
+        
+        // Leave pheromone trail
+        this.leavePheromoneTrail();
+        
+        // Update energy
+        this.updateEnergy();
+      }
+      
+      updateTask() {
+        if (this.caste === 'queen') {
+          this.task = 'laying_eggs';
+          return;
+        }
+        
+        if (this.carryingFood > 0) {
+          this.task = 'returning_food';
+          return;
+        }
+        
+        // Find food if hungry or no food in colony
+        const nearbyFood = this.findNearbyFood();
+        if (nearbyFood && this.carryingFood < carryCapacity) {
+          this.task = 'foraging';
+          this.target = nearbyFood;
+          return;
+        }
+        
+        // Follow pheromone trails
+        const trail = this.findStrongestTrail();
+        if (trail && Math.random() < followStrength * 0.1) {
+          this.task = 'following_trail';
+          this.target = trail;
+          return;
+        }
+        
+        // Default exploration
+        if (Math.random() < 0.1) {
+          this.task = 'exploring';
+          this.target = this.generateRandomTarget();
+        }
+      }
+      
+      executeTask() {
+        switch(this.task) {
+          case 'foraging':
+            this.moveTowardsTarget();
+            this.tryToCollectFood();
+            break;
+            
+          case 'returning_food':
+            this.returnToColony();
+            break;
+            
+          case 'following_trail':
+            this.followPheromoneTrail();
+            break;
+            
+          case 'digging':
+            this.digTunnel();
+            break;
+            
+          case 'exploring':
+            this.explore();
+            break;
+            
+          case 'laying_eggs':
+            if (this.caste === 'queen') {
+              this.layEggs();
+            }
+            break;
+        }
+      }
+      
+      moveTowardsTarget() {
+        if (!this.target) return;
+        
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 5) {
+          this.vx = (dx / dist) * this.speed;
+          this.vy = (dy / dist) * this.speed;
+        }
+      }
+      
+      tryToCollectFood() {
+        if (!this.target || this.carryingFood >= carryCapacity) return;
+        
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 10 && this.target.amount > 0) {
+          const collected = Math.min(1, this.target.amount);
+          this.carryingFood += collected;
+          this.target.amount -= collected;
+          
+          if (this.target.amount <= 0) {
+            foodSources = foodSources.filter(food => food !== this.target);
+          }
+        }
+      }
+      
+      returnToColony() {
+        // Find nearest chamber or tunnel entrance
+        const home = this.findNearestChamber() || this.homeLocation;
+        
+        const dx = home.x - this.x;
+        const dy = home.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 5) {
+          this.vx = (dx / dist) * this.speed;
+          this.vy = (dy / dist) * this.speed;
+        } else if (this.carryingFood > 0) {
+          // Drop food at colony
+          this.carryingFood = 0;
+          // Add to colony food storage
+          const stats = document.getElementById('foodStored');
+          const current = parseInt(stats.textContent) || 0;
+          stats.textContent = current + 1;
+        }
+      }
+      
+      explore() {
+        if (!this.target || this.reachedTarget()) {
+          this.target = this.generateRandomTarget();
+        }
+        this.moveTowardsTarget();
+        
+        // If underground, prefer to move through existing tunnels
+        if (this.y > groundLevel) {
+          this.preferTunnelMovement();
+        }
+      }
+      
+      preferTunnelMovement() {
+        // Look for nearby tunnels to follow
+        const nearbyTunnels = tunnels.filter(tunnel => {
+          const dx = tunnel.x - this.x;
+          const dy = tunnel.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          return dist < 30;
+        });
+        
+        if (nearbyTunnels.length > 0) {
+          // Bias movement towards tunnel direction
+          const closestTunnel = nearbyTunnels[0];
+          const dx = closestTunnel.x - this.x;
+          const dy = closestTunnel.y - this.y;
+          
+          this.vx += dx * 0.01;
+          this.vy += dy * 0.01;
+        }
+      }
+      
+      followPheromoneTrail() {
+        if (!this.target) return;
+        
+        // Move towards the pheromone trail
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 5) {
+          this.vx = (dx / dist) * this.speed;
+          this.vy = (dy / dist) * this.speed;
+        }
+        
+        // Look for stronger trails nearby
+        const strongerTrail = this.findStrongestTrail();
+        if (strongerTrail && strongerTrail.intensity > this.target.intensity) {
+          this.target = strongerTrail;
+        }
+      }
+      
+      digTunnel() {
+        if (this.y > groundLevel && Math.random() < digRate * 0.01) {
+          // Create tunnel segment
+          tunnels.push({
+            x: this.x,
+            y: this.y,
+            width: 8,
+            creator: this.caste
+          });
+        }
+      }
+      
+      layEggs() {
+        if (this.caste === 'queen' && Math.random() < 0.001) {
+          larvae.push({
+            x: this.x + (Math.random() - 0.5) * 20,
+            y: this.y + (Math.random() - 0.5) * 20,
+            age: 0,
+            stage: 'egg'
+          });
+        }
+      }
+      
+      findNearbyFood() {
+        let closest = null;
+        let closestDist = Infinity;
+        
+        for (const food of foodSources) {
+          const dx = food.x - this.x;
+          const dy = food.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < closestDist && dist < 100) {
+            closest = food;
+            closestDist = dist;
+          }
+        }
+        
+        return closest;
+      }
+      
+      findStrongestTrail() {
+        let strongest = null;
+        let strongestIntensity = 0;
+        
+        for (const trail of pheromoneTrails) {
+          const dx = trail.x - this.x;
+          const dy = trail.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 20 && trail.intensity > strongestIntensity) {
+            strongest = trail;
+            strongestIntensity = trail.intensity;
+          }
+        }
+        
+        return strongest;
+      }
+      
+      findNearestChamber() {
+        let closest = null;
+        let closestDist = Infinity;
+        
+        for (const chamber of chambers) {
+          const dx = chamber.x - this.x;
+          const dy = chamber.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < closestDist) {
+            closest = chamber;
+            closestDist = dist;
+          }
+        }
+        
+        return closest;
+      }
+      
+      generateRandomTarget() {
+        return {
+          x: this.x + (Math.random() - 0.5) * 200,
+          y: Math.max(groundLevel, this.y + (Math.random() - 0.5) * 200)
+        };
+      }
+      
+      reachedTarget() {
+        if (!this.target) return true;
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        return Math.sqrt(dx * dx + dy * dy) < 10;
+      }
+      
+      move() {
+        // Apply random wandering
+        this.vx += (Math.random() - 0.5) * 0.2;
+        this.vy += (Math.random() - 0.5) * 0.2;
+        
+        // Limit velocity
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (speed > this.speed) {
+          this.vx = (this.vx / speed) * this.speed;
+          this.vy = (this.vy / speed) * this.speed;
+        }
+        
+        // Check if moving into solid earth and dig if necessary
+        const newX = this.x + this.vx;
+        const newY = this.y + this.vy;
+        
+        if (newY > groundLevel && !this.isInTunnel(newX, newY)) {
+          // Moving into solid earth - dig automatically
+          this.digAtPosition(newX, newY);
+        }
+        
+        // Update position
+        this.x = newX;
+        this.y = newY;
+        
+        // Boundary conditions
+        this.x = Math.max(5, Math.min(canvas.width - 5, this.x));
+        this.y = Math.max(5, Math.min(canvas.height - 5, this.y));
+        
+        // Apply friction
+        this.vx *= 0.9;
+        this.vy *= 0.9;
+      }
+      
+      isInTunnel(x, y) {
+        // Check if position is within any existing tunnel
+        for (const tunnel of tunnels) {
+          const dx = x - tunnel.x;
+          const dy = y - tunnel.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < tunnel.width) {
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      digAtPosition(x, y) {
+        // Only workers and soldiers can dig effectively
+        if (this.caste === 'queen') return;
+        
+        // Digging is slower in harder soil
+        const digChance = (digRate * 0.02) / Math.max(1, soilHardness * 0.2);
+        
+        if (Math.random() < digChance) {
+          const tunnelSize = this.caste === 'soldier' ? 10 : 8;
+          
+          tunnels.push({
+            x: x,
+            y: y,
+            width: tunnelSize,
+            creator: this.caste,
+            age: 0
+          });
+          
+          // Create dirt particles effect
+          this.createDirtParticles(x, y);
+        }
+      }
+      
+      createDirtParticles(x, y) {
+        // Visual feedback for digging (could be expanded)
+        for (let i = 0; i < 3; i++) {
+          // Could add particle system here for dirt flying
+        }
+      }
+      
+      leavePheromoneTrail() {
+        if (time - this.lastTrailTime > 5) {
+          let trailType = 'exploration';
+          
+          if (this.carryingFood > 0) {
+            trailType = 'food';
+          }
+          
+          pheromoneTrails.push({
+            x: this.x,
+            y: this.y,
+            intensity: trailStrength,
+            type: trailType,
+            age: 0,
+            creator: this.caste
+          });
+          
+          this.lastTrailTime = time;
+        }
+      }
+      
+      updateEnergy() {
+        this.energy -= 0.1 * timeScale;
+        if (this.energy < 0) this.energy = 0;
+        
+        // Rest if tired
+        if (this.energy < 20) {
+          this.vx *= 0.5;
+          this.vy *= 0.5;
+        }
+      }
+      
+      draw() {
+        // Draw ant body
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.size, this.size * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw head
+        ctx.beginPath();
+        ctx.arc(this.x + this.size * 0.7, this.y, this.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw legs (simplified)
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 1;
+        for (let i = -1; i <= 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(this.x - this.size * 0.5, this.y + i * this.size * 0.3);
+          ctx.lineTo(this.x - this.size * 1.2, this.y + i * this.size * 0.5);
+          ctx.stroke();
+          
+          ctx.beginPath();
+          ctx.moveTo(this.x + this.size * 0.5, this.y + i * this.size * 0.3);
+          ctx.lineTo(this.x + this.size * 1.2, this.y + i * this.size * 0.5);
+          ctx.stroke();
+        }
+        
+        // Show carrying food
+        if (this.carryingFood > 0) {
+          ctx.fillStyle = '#ffff00';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y - this.size, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Show task indicator
+        if (this.task === 'digging') {
+          ctx.fillStyle = 'rgba(139, 69, 19, 0.5)';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    
+    // Update pheromone trails
+    function updatePheromoneTrails() {
+      pheromoneTrails = pheromoneTrails.filter(trail => {
+        trail.age += timeScale;
+        trail.intensity -= decayRate * 0.1 * timeScale;
+        return trail.intensity > 0;
+      });
+    }
+    
+    // Draw pheromone trails
+    function drawPheromoneTrails() {
+      if (!showTrails) return;
+      
+      pheromoneTrails.forEach(trail => {
+        const alpha = trail.intensity / trailStrength;
+        let color;
+        
+        switch(trail.type) {
+          case 'food':
+            color = `rgba(0, 255, 136, ${alpha})`;
+            break;
+          case 'alarm':
+            color = `rgba(255, 68, 68, ${alpha})`;
+            break;
+          default:
+            color = `rgba(136, 136, 255, ${alpha})`;
+        }
+        
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(trail.x, trail.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    // Draw food sources
+    function drawFood() {
+      foodSources.forEach(food => {
+        const size = Math.sqrt(food.amount) * 3;
+        
+        ctx.fillStyle = '#ffff00';
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Food amount text
+        ctx.fillStyle = '#000000';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(Math.round(food.amount), food.x, food.y + 3);
+      });
+    }
+    
+    // Draw obstacles
+    function drawObstacles() {
+      obstacles.forEach(obstacle => {
+        ctx.fillStyle = '#666666';
+        ctx.beginPath();
+        ctx.arc(obstacle.x, obstacle.y, obstacle.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#888888';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+    
+    // Draw tunnels
+    function drawTunnels() {
+      tunnels.forEach(tunnel => {
+        ctx.fillStyle = '#2a1a0f';
+        ctx.beginPath();
+        ctx.arc(tunnel.x, tunnel.y, tunnel.width, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#4a3a2f';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    }
+    
+    // Draw chambers
+    function drawChambers() {
+      chambers.forEach(chamber => {
+        ctx.fillStyle = '#3a2a1f';
+        ctx.beginPath();
+        ctx.arc(chamber.x, chamber.y, chamber.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#5a4a3f';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Chamber label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(chamber.type, chamber.x, chamber.y);
+      });
+    }
+    
+    // Draw larvae
+    function drawLarvae() {
+      larvae.forEach(larva => {
+        ctx.fillStyle = '#fff8dc';
+        ctx.beginPath();
+        ctx.arc(larva.x, larva.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    // Draw cursor
+    function drawCursor() {
+      ctx.strokeStyle = '#ff9944';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cursorX, cursorY, 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Crosshair
+      ctx.beginPath();
+      ctx.moveTo(cursorX - 15, cursorY);
+      ctx.lineTo(cursorX + 15, cursorY);
+      ctx.moveTo(cursorX, cursorY - 15);
+      ctx.lineTo(cursorX, cursorY + 15);
+      ctx.stroke();
+    }
+    
+    // Draw environment
+    function drawEnvironment() {
+      // Sky
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, groundLevel);
+      skyGradient.addColorStop(0, '#87CEEB');
+      skyGradient.addColorStop(1, '#98D8E8');
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, canvas.width, groundLevel);
+      
+      // Ground
+      const groundGradient = ctx.createLinearGradient(0, groundLevel, 0, canvas.height);
+      groundGradient.addColorStop(0, '#8B4513');
+      groundGradient.addColorStop(0.3, '#654321');
+      groundGradient.addColorStop(1, '#4a2c17');
+      ctx.fillStyle = groundGradient;
+      ctx.fillRect(0, groundLevel, canvas.width, canvas.height - groundLevel);
+      
+      // Ground line
+      ctx.strokeStyle = '#5a3a2a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundLevel);
+      ctx.lineTo(canvas.width, groundLevel);
+      ctx.stroke();
+    }
+    
+    // Update statistics
+    function updateStats() {
+      const queens = ants.filter(ant => ant.caste === 'queen').length;
+      const workers = ants.filter(ant => ant.caste === 'worker').length;
+      const soldiers = ants.filter(ant => ant.caste === 'soldier').length;
+      
+      document.getElementById('queenCount').textContent = queens;
+      document.getElementById('workerCount').textContent = workers;
+      document.getElementById('soldierCount').textContent = soldiers;
+      document.getElementById('larvaeCount').textContent = larvae.length;
+      document.getElementById('tunnelLength').textContent = Math.round(tunnels.length * 0.5) + 'm';
+      document.getElementById('colonyAge').textContent = Math.round(time / 1000) + ' days';
+    }
+    
+    // Keyboard input
+    function handleKeyboard() {
+      let moved = false;
+      const speed = keys['shift'] ? 20 : 10;
+      
+      if (keys['arrowup']) {
+        cursorY = Math.max(0, cursorY - speed);
+        moved = true;
+      }
+      if (keys['arrowdown']) {
+        cursorY = Math.min(canvas.height, cursorY + speed);
+        moved = true;
+      }
+      if (keys['arrowleft']) {
+        cursorX = Math.max(0, cursorX - speed);
+        moved = true;
+      }
+      if (keys['arrowright']) {
+        cursorX = Math.min(canvas.width, cursorX + speed);
+        moved = true;
+      }
+    }
+    
+    // Event handlers
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      keys[key] = true;
+      
+      if (['f', 'o', 'q', 'w', 'd', 'c', 'p', 'r', ' '].includes(key)) {
+        e.preventDefault();
+      }
+      
+      if (key === 'f') {
+        foodSources.push({
+          x: cursorX,
+          y: cursorY,
+          amount: 10 + Math.random() * 20
+        });
+      } else if (key === 'o') {
+        obstacles.push({
+          x: cursorX,
+          y: cursorY,
+          radius: 15 + Math.random() * 25
+        });
+      } else if (key === 'q') {
+        ants.push(new Ant(cursorX, cursorY, 'queen'));
+        chambers.push({
+          x: cursorX,
+          y: cursorY,
+          radius: 20,
+          type: 'royal'
+        });
+      } else if (key === 'w') {
+        for (let i = 0; i < 10; i++) {
+          ants.push(new Ant(
+            cursorX + (Math.random() - 0.5) * 40,
+            cursorY + (Math.random() - 0.5) * 40,
+            'worker'
+          ));
+        }
+      } else if (key === 'd') {
+        const nearbyAnts = ants.filter(ant => {
+          const dx = ant.x - cursorX;
+          const dy = ant.y - cursorY;
+          return Math.sqrt(dx * dx + dy * dy) < 50;
+        });
+        nearbyAnts.forEach(ant => ant.task = 'digging');
+      } else if (key === 'c') {
+        tunnels = [];
+        pheromoneTrails = [];
+      } else if (key === 'p') {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      } else if (key === 'r') {
+        ants = [];
+        foodSources = [];
+        obstacles = [];
+        tunnels = [];
+        chambers = [];
+        pheromoneTrails = [];
+        larvae = [];
+        time = 0;
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Setup scenarios
+    function setupScenario(type) {
+      ants = [];
+      foodSources = [];
+      obstacles = [];
+      tunnels = [];
+      chambers = [];
+      pheromoneTrails = [];
+      larvae = [];
+      
+      switch(type) {
+        case 'founding':
+          // New queen starts colony
+          ants.push(new Ant(canvas.width/2, groundLevel + 50, 'queen'));
+          chambers.push({
+            x: canvas.width/2,
+            y: groundLevel + 50,
+            radius: 15,
+            type: 'royal'
+          });
+          break;
+          
+        case 'mature':
+          // Established colony
+          const centerX = canvas.width/2;
+          const centerY = groundLevel + 100;
+          
+          // Queen in deep chamber
+          ants.push(new Ant(centerX, centerY + 50, 'queen'));
+          chambers.push({ x: centerX, y: centerY + 50, radius: 20, type: 'royal' });
+          
+          // Workers
+          for (let i = 0; i < 30; i++) {
+            ants.push(new Ant(
+              centerX + (Math.random() - 0.5) * 200,
+              centerY + Math.random() * 100,
+              'worker'
+            ));
+          }
+          
+          // Soldiers
+          for (let i = 0; i < 5; i++) {
+            ants.push(new Ant(
+              centerX + (Math.random() - 0.5) * 100,
+              centerY - 20,
+              'soldier'
+            ));
+          }
+          
+          // Tunnel network
+          for (let i = 0; i < 50; i++) {
+            tunnels.push({
+              x: centerX + (Math.random() - 0.5) * 150,
+              y: centerY + Math.random() * 80,
+              width: 8,
+              creator: 'worker'
+            });
+          }
+          
+          // Chambers
+          chambers.push({ x: centerX - 60, y: centerY, radius: 15, type: 'nursery' });
+          chambers.push({ x: centerX + 60, y: centerY, radius: 15, type: 'storage' });
+          break;
+          
+        case 'foraging':
+          // Colony with foraging setup
+          const colonyX = canvas.width * 0.3;
+          const colonyY = groundLevel + 80;
+          
+          ants.push(new Ant(colonyX, colonyY, 'queen'));
+          chambers.push({ x: colonyX, y: colonyY, radius: 18, type: 'royal' });
+          
+          for (let i = 0; i < 20; i++) {
+            ants.push(new Ant(
+              colonyX + (Math.random() - 0.5) * 60,
+              colonyY + (Math.random() - 0.5) * 60,
+              'worker'
+            ));
+          }
+          
+          // Food sources at distance
+          foodSources.push({ x: canvas.width * 0.8, y: groundLevel - 30, amount: 50 });
+          foodSources.push({ x: canvas.width * 0.7, y: groundLevel + 20, amount: 30 });
+          break;
+      }
+    }
+    
+    // Controls setup
+    function setupControls() {
+      // Scenario buttons
+      document.querySelectorAll('[id^="scenario-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const scenario = btn.id.replace('scenario-', '');
+          setupScenario(scenario);
+        });
+      });
+      
+      // View buttons
+      document.querySelectorAll('[id^="view-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="view-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          const view = btn.id.replace('view-', '');
+          showWorkers = view === 'workers' || view === 'all';
+          showSoldiers = view === 'soldiers' || view === 'all';
+          showQueen = view === 'queen' || view === 'all';
+          showTrails = view === 'trails';
+        });
+      });
+      
+      // Sliders
+      const sliders = [
+        { id: 'antSpeed', prop: 'antSpeed', display: 'antSpeedValue' },
+        { id: 'digRate', prop: 'digRate', display: 'digRateValue' },
+        { id: 'carryCapacity', prop: 'carryCapacity', display: 'carryCapacityValue' },
+        { id: 'workEthic', prop: 'workEthic', display: 'workEthicValue' },
+        { id: 'trailStrength', prop: 'trailStrength', display: 'trailStrengthValue' },
+        { id: 'decayRate', prop: 'decayRate', display: 'decayRateValue' },
+        { id: 'followStrength', prop: 'followStrength', display: 'followStrengthValue' },
+        { id: 'soilHardness', prop: 'soilHardness', display: 'soilHardnessValue' },
+        { id: 'foodRichness', prop: 'foodRichness', display: 'foodRichnessValue' },
+        { id: 'timeScale', prop: 'timeScale', display: 'timeScaleValue', format: v => v + 'x' },
+        { id: 'zoom', prop: 'zoomLevel', display: 'zoomValue', format: v => v + '%', convert: v => v/100 }
+      ];
+      
+      // Weather slider special handling
+      document.getElementById('weather').addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        const conditions = ['Storm', 'Rain', 'Cloudy', 'Overcast', 'Fair', 'Sunny', 'Hot', 'Scorching'];
+        const index = Math.min(conditions.length - 1, Math.floor((value - 1) * conditions.length / 9));
+        document.getElementById('weatherValue').textContent = conditions[index];
+        weather = value;
+      });
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        if (element && display) {
+          element.addEventListener('input', () => {
+            const value = parseFloat(element.value);
+            window[slider.prop] = slider.convert ? slider.convert(value) : value;
+            display.textContent = slider.format ? slider.format(value) : value;
+          });
+          
+          // Initialize display
+          const value = parseFloat(element.value);
+          display.textContent = slider.format ? slider.format(value) : value;
+        }
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      });
+      
+      document.getElementById('speedUpBtn').addEventListener('click', () => {
+        timeScale = timeScale === 10 ? 1 : 10;
+        document.getElementById('timeScaleValue').textContent = timeScale + 'x';
+        document.getElementById('timeScale').value = timeScale;
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        ants = [];
+        foodSources = [];
+        obstacles = [];
+        tunnels = [];
+        chambers = [];
+        pheromoneTrails = [];
+        larvae = [];
+        time = 0;
+      });
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        time += timeScale;
+        
+        handleKeyboard();
+        
+        // Update ants
+        ants.forEach(ant => ant.update());
+        
+        // Update larvae
+        larvae.forEach(larva => {
+          larva.age += timeScale;
+          if (larva.age > 500 && Math.random() < 0.01) {
+            // Larvae becomes worker
+            ants.push(new Ant(larva.x, larva.y, 'worker'));
+            larvae.splice(larvae.indexOf(larva), 1);
+          }
+        });
+        
+        updatePheromoneTrails();
+        updateStats();
+      }
+      
+      // Clear and draw
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawEnvironment();
+      drawTunnels();
+      drawChambers();
+      drawPheromoneTrails();
+      drawFood();
+      drawObstacles();
+      drawLarvae();
+      
+      // Draw ants based on visibility settings
+      ants.forEach(ant => {
+        if ((ant.caste === 'worker' && showWorkers) ||
+            (ant.caste === 'soldier' && showSoldiers) ||
+            (ant.caste === 'queen' && showQueen)) {
+          ant.draw();
+        }
+      });
+      
+      drawCursor();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    setupControls();
+    setupScenario('founding');
+    animate();
+  </script>
+</body>
+</html>

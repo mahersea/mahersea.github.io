@@ -1,0 +1,55 @@
+[
+  {
+    "project": "Pam's Cat Paradise",
+    "title": "Cat Sanctuary",
+    "assignedUser": "dog",
+    "deadline": "2025-04-18",
+    "status": "In Progress",
+    "id": 1,
+    "start_date": "2025-04-11",
+    "duration": 7
+  },
+  {
+    "project": "Pam's Cat Paradise",
+    "title": "Open Wooden Blinds",
+    "assignedUser": "Sean",
+    "deadline": "2025-04-19",
+    "status": "In Progress",
+    "id": 2,
+    "start_date": "2025-04-12",
+    "duration": 1
+  },
+  {
+    "project": "Build a Damn Cat Cage.",
+    "title": "Draw a concept",
+    "assignedUser": "Sean",
+    "start_date": "2025-04-15",
+    "deadline": "2025-04-22",
+    "duration": 7,
+    "status": "Open",
+    "id": 3,
+    "dependencies": []
+  },
+  {
+    "project": "Build a Damn Cat Cage.",
+    "title": "Draw a picture of those things in a cage. Not me in a cage.",
+    "assignedUser": "Bird",
+    "start_date": "2025-04-16",
+    "deadline": "2025-04-19",
+    "duration": 3,
+    "status": "Open",
+    "id": 4,
+    "dependencies": []
+  },
+  {
+    "project": "Pam's Cat Paradise",
+    "title": "Clear Patio",
+    "assignedUser": "Sean",
+    "start_date": "2025-04-11",
+    "deadline": "2025-04-26",
+    "duration": 4,
+    "status": "In Progress",
+    "id": 5,
+    "dependencies": []
+  }
+]

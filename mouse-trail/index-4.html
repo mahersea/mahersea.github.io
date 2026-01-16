@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Canvas Mouse Jelly Trail</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    #info {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <div><strong>Canvas Mouse Jelly Tool</strong></div>
+    <div>Mode: <span id="modeLabel">Pixel (calibration)</span></div>
+    <div>Press <kbd>T</kbd> to toggle: Pixel / Trail</div>
+    <div>Move mouse over canvas (or run your OS script)</div>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const modeLabel = document.getElementById('modeLabel');
+
+    let trailMode = false; // false = calibration, true = trail
+    const dpr = window.devicePixelRatio || 1;
+
+    // Trail history (first-iteration style)
+    const MAX_POINTS = 25;       // trail length / fade
+    const MAX_RADIUS = 10;       // newest dot radius
+    const MIN_RADIUS = 3;        // oldest dot radius
+    const points = [];           // { x, y }
+
+    // Jelly / wobble config
+    const WOBBLE_BASE_AMP = 4;   // max wobble in px for newest point
+    const WOBBLE_SPEED = 0.005;  // wobble speed (higher = faster)
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+      clearCanvas();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawDot(x, y, radius, color) {
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    // Mouse input: update trail history
+    canvas.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      // Add newest point at the front
+      points.unshift({ x, y });
+
+      // Trim old points
+      if (points.length > MAX_POINTS) {
+        points.pop();
+      }
+    });
+
+    // Toggle between calibration and trail modes
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 't' || event.key === 'T') {
+        trailMode = !trailMode;
+        modeLabel.textContent = trailMode
+          ? 'Trail (jelly wobble)'
+          : 'Pixel (calibration)';
+        clearCanvas();
+      }
+    });
+
+    // Main render loop with wobble
+    function render(timestamp) {
+      clearCanvas();
+
+      if (points.length > 0) {
+        if (!trailMode) {
+          // Calibration mode: single bright orange 20px dot at latest point
+          const p = points[0];
+          drawDot(p.x, p.y, 10, 'rgb(255,160,0)');
+        } else {
+          // Trail mode: jelly-like wobble based on time & index in trail
+          const n = points.length;
+          for (let i = 0; i < n; i++) {
+            const p = points[i];
+
+            // tIndex: 0 = newest, 1 = oldest
+            const tIndex = n === 1 ? 0 : i / (n - 1);
+
+            // Size decay (same as first iteration)
+            const radius = MAX_RADIUS - tIndex * (MAX_RADIUS - MIN_RADIUS);
+
+            // Color ramp: bright orange -> red
+            const r = 255;
+            const g = Math.round(160 * (1 - tIndex)); // 160 -> 0
+            const b = 0;
+            const color = `rgb(${r},${g},${b})`;
+
+            // Jelly wobble:
+            // - Newer points wobble more
+            // - Older points wobble less
+            // - Timestamp and index control phase
+            const amp = WOBBLE_BASE_AMP * (1 - tIndex); // fade wobble with age
+            const phase = timestamp * WOBBLE_SPEED + i * 0.4;
+
+            const dx = Math.sin(phase) * amp;
+            const dy = Math.cos(phase * 1.3) * amp;
+
+            drawDot(p.x + dx, p.y + dy, radius, color);
+          }
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>

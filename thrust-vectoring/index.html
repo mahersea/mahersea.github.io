@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thrust Vectoring Simulator</title>
+  <meta name="description" content="Interactive rocket thrust vectoring simulation with realistic physics and particle exhaust">
+  <style>
+    body { 
+      margin: 0; 
+      background: #001122; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    canvas { 
+      display: block; 
+      outline: none;
+    }
+    .ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      max-width: 300px;
+    }
+    .controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+    button.active {
+      background: #006600;
+      border-color: #008800;
+    }
+    input[type="range"] {
+      width: 120px;
+    }
+    .telemetry {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .instructions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      max-width: 280px;
+    }
+    .fuel-bar {
+      width: 200px;
+      height: 20px;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .fuel-level {
+      height: 100%;
+      background: linear-gradient(to right, #ff4444, #ffaa00, #00ff44);
+      transition: width 0.1s;
+    }
+    .crosshair {
+      position: absolute;
+      width: 2px;
+      height: 20px;
+      background: #fff;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .crosshair.horizontal {
+      width: 20px;
+      height: 2px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  
+  <div class="ui">
+    <h3>🚀 Thrust Vectoring Simulator</h3>
+    <p><strong>Mission:</strong> Land the rocket safely using thrust vectoring!</p>
+    <div class="fuel-bar">
+      <div class="fuel-level" id="fuelLevel"></div>
+    </div>
+    <p style="margin: 5px 0; font-size: 12px;">Fuel Remaining</p>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <button id="resetBtn">Reset</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="autoStabilize" class="active">Auto-Stabilize</button>
+    </div>
+    
+    <div class="control-group">
+      <label>Thrust Power:</label>
+      <input type="range" id="thrustPower" min="0" max="100" value="50">
+    </div>
+    
+    <div class="control-group">
+      <label>Gravity:</label>
+      <input type="range" id="gravity" min="1" max="50" value="20">
+    </div>
+    
+    <div class="control-group">
+      <label>Wind:</label>
+      <input type="range" id="wind" min="0" max="50" value="10">
+    </div>
+    
+    <div class="control-group">
+      <button id="scenarioLanding">Landing Challenge</button>
+      <button id="scenarioHover">Hover Test</button>
+    </div>
+  </div>
+  
+  <div class="telemetry">
+    <div>Altitude: <span id="altitude">0</span>m</div>
+    <div>Velocity: <span id="velocity">0.0</span>m/s</div>
+    <div>Angle: <span id="angle">0</span>°</div>
+    <div>Thrust: <span id="thrust">0</span>%</div>
+    <div>Status: <span id="status">Flying</span></div>
+  </div>
+  
+  <div class="instructions">
+    <strong>Keyboard Controls:</strong><br>
+    • <kbd>W</kbd>: Main thrust (forward)<br>
+    • <kbd>A</kbd>: Left thruster<br>
+    • <kbd>D</kbd>: Right thruster<br>
+    • <kbd>S</kbd>: Reverse thrust<br>
+    • <kbd>Q</kbd>: Rotate left<br>
+    • <kbd>E</kbd>: Rotate right<br>
+    • <kbd>Space</kbd>: Emergency thrust<br>
+    <br>
+    <strong>Landing Tips:</strong><br>
+    • Kill horizontal velocity first<br>
+    • Gentle vertical descent < 30m/s<br>
+    • Land upright (< 17° tilt)<br>
+    • Save fuel for final approach
+  </div>
+  
+  
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Rocket physics
+    class Rocket {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.angle = 0; // Rocket body angle
+        this.angularVelocity = 0;
+        this.thrustAngle = 0; // Thrust vector angle
+        this.thrustMagnitude = 0;
+        this.fuel = 100;
+        this.mass = 10;
+        this.length = 40;
+        this.width = 8;
+        this.landed = false;
+        this.crashed = false;
+        this.thrustVectorRange = Math.PI / 3; // 60 degree range
+      }
+      
+      update(deltaTime) {
+        if (this.landed || this.crashed) return;
+        
+        const dt = deltaTime / 1000;
+        
+        // Apply gravity
+        this.vy += gravity * dt;
+        
+        // Apply wind
+        this.vx += windForce * dt * 0.1;
+        
+        // Apply thrust if fuel available
+        if (this.thrustMagnitude > 0 && this.fuel > 0) {
+          const thrustForce = this.thrustMagnitude * maxThrustPower;
+          const thrustX = Math.sin(this.thrustAngle) * thrustForce;
+          const thrustY = -Math.cos(this.thrustAngle) * thrustForce;
+          
+          this.vx += thrustX * dt / this.mass;
+          this.vy += thrustY * dt / this.mass;
+          
+          // Apply torque for thrust vectoring
+          const leverArm = this.length * 0.4;
+          const torque = Math.sin(this.thrustAngle - this.angle) * thrustForce * leverArm;
+          this.angularVelocity += torque * dt / (this.mass * this.length * this.length);
+          
+          // Consume fuel
+          this.fuel -= this.thrustMagnitude * fuelConsumptionRate * dt;
+          this.fuel = Math.max(0, this.fuel);
+        }
+        
+        // Auto-stabilization
+        if (autoStabilizeEnabled && this.fuel > 5) {
+          const stabilizeTorque = -this.angularVelocity * 50 - this.angle * 20;
+          this.angularVelocity += stabilizeTorque * dt;
+        }
+        
+        // Apply angular drag
+        this.angularVelocity *= 0.95;
+        
+        // Update rotation
+        this.angle += this.angularVelocity * dt;
+        
+        // Apply atmospheric drag
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        const dragForce = 0.5 * airDensity * speed * speed * 0.01;
+        if (speed > 0) {
+          this.vx -= (this.vx / speed) * dragForce * dt / this.mass;
+          this.vy -= (this.vy / speed) * dragForce * dt / this.mass;
+        }
+        
+        // Update position
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        
+        // Ground collision
+        const groundY = canvas.height - 50;
+        if (this.y + this.length/2 >= groundY) {
+          this.y = groundY - this.length/2;
+          
+          const landingSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          const landingAngle = Math.abs(this.angle);
+          
+          if (landingSpeed < 30 && landingAngle < 0.3) {
+            this.landed = true;
+            this.vx = 0;
+            this.vy = 0;
+            this.angularVelocity = 0;
+          } else {
+            this.crashed = true;
+          }
+        }
+        
+        // Boundary wrapping
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        
+        // Update exhaust particles
+        if (this.thrustMagnitude > 0 && this.fuel > 0) {
+          this.generateExhaust();
+        }
+      }
+      
+      generateExhaust() {
+        const exhaustCount = Math.floor(this.thrustMagnitude * 20);
+        
+        for (let i = 0; i < exhaustCount; i++) {
+          // Exhaust origin (rocket nozzle)
+          const nozzleX = this.x - Math.sin(this.angle) * this.length * 0.4;
+          const nozzleY = this.y + Math.cos(this.angle) * this.length * 0.4;
+          
+          // Exhaust velocity (opposite to thrust direction + rocket velocity)
+          const exhaustSpeed = 200 + Math.random() * 100;
+          const spreadAngle = (Math.random() - 0.5) * 0.5;
+          const exhaustAngle = this.thrustAngle + Math.PI + spreadAngle;
+          
+          const exhaustVx = Math.sin(exhaustAngle) * exhaustSpeed + this.vx;
+          const exhaustVy = -Math.cos(exhaustAngle) * exhaustSpeed + this.vy;
+          
+          exhaustParticles.push({
+            x: nozzleX + (Math.random() - 0.5) * 5,
+            y: nozzleY + (Math.random() - 0.5) * 5,
+            vx: exhaustVx,
+            vy: exhaustVy,
+            life: 1.0,
+            maxLife: 0.8 + Math.random() * 0.4,
+            temperature: 1.0 + Math.random() * 0.5,
+            size: 2 + Math.random() * 4
+          });
+        }
+      }
+      
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        
+        // Rocket body
+        const gradient = ctx.createLinearGradient(-this.width/2, -this.length/2, this.width/2, this.length/2);
+        gradient.addColorStop(0, '#cccccc');
+        gradient.addColorStop(0.5, '#ffffff');
+        gradient.addColorStop(1, '#888888');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-this.width/2, -this.length/2, this.width, this.length);
+        
+        // Rocket nose
+        ctx.fillStyle = '#ff4444';
+        ctx.beginPath();
+        ctx.moveTo(0, -this.length/2);
+        ctx.lineTo(-this.width/2, -this.length/2 + 10);
+        ctx.lineTo(this.width/2, -this.length/2 + 10);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Engine nozzles
+        ctx.fillStyle = '#444444';
+        ctx.fillRect(-this.width/3, this.length/2 - 5, this.width/3, 8);
+        ctx.fillRect(0, this.length/2 - 5, this.width/3, 8);
+        
+        // Thrust vector indicator
+        if (this.thrustMagnitude > 0) {
+          ctx.strokeStyle = '#ffff00';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, this.length/2);
+          
+          const indicatorLength = 30 * this.thrustMagnitude;
+          const relativeAngle = this.thrustAngle - this.angle;
+          const endX = Math.sin(relativeAngle) * indicatorLength;
+          const endY = Math.cos(relativeAngle) * indicatorLength;
+          
+          ctx.lineTo(endX, this.length/2 + endY);
+          ctx.stroke();
+          
+          // Thrust vector arrow
+          ctx.fillStyle = '#ffff00';
+          ctx.beginPath();
+          ctx.arc(endX, this.length/2 + endY, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.restore();
+        
+        // Status indicator
+        if (this.landed) {
+          ctx.fillStyle = '#00ff00';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('LANDED!', this.x, this.y - 50);
+        } else if (this.crashed) {
+          ctx.fillStyle = '#ff0000';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('CRASHED!', this.x, this.y - 50);
+        }
+      }
+    }
+    
+    // Particle system for exhaust
+    let exhaustParticles = [];
+    
+    function updateExhaustParticles(deltaTime) {
+      const dt = deltaTime / 1000;
+      
+      exhaustParticles = exhaustParticles.filter(particle => {
+        particle.life -= dt / particle.maxLife;
+        
+        if (particle.life <= 0) return false;
+        
+        // Physics
+        particle.vy += gravity * dt * 0.1; // Exhaust affected by gravity
+        particle.vx += (Math.random() - 0.5) * 50 * dt; // Turbulence
+        particle.vy += (Math.random() - 0.5) * 50 * dt;
+        
+        // Air resistance
+        particle.vx *= 0.98;
+        particle.vy *= 0.98;
+        
+        // Update position
+        particle.x += particle.vx * dt;
+        particle.y += particle.vy * dt;
+        
+        // Cool down
+        particle.temperature *= 0.99;
+        
+        return true;
+      });
+    }
+    
+    function drawExhaustParticles() {
+      exhaustParticles.forEach(particle => {
+        const alpha = particle.life;
+        const temp = particle.temperature;
+        
+        // Color based on temperature
+        let r, g, b;
+        if (temp > 1.2) {
+          // White hot
+          r = 255; g = 255; b = 255;
+        } else if (temp > 0.8) {
+          // Yellow
+          r = 255; g = 255; b = Math.floor((1.2 - temp) * 637);
+        } else if (temp > 0.4) {
+          // Orange
+          r = 255; g = Math.floor(127 + temp * 318); b = 0;
+        } else {
+          // Red
+          r = 255; g = Math.floor(temp * 318); b = 0;
+        }
+        
+        // Glow effect
+        const glowSize = particle.size * (1 + temp);
+        const glow = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, glowSize
+        );
+        glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+        glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, glowSize, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Core particle
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    // Simulation variables
+    let rocket;
+    let isRunning = true;
+    let mouseX = 0;
+    let mouseY = 0;
+    let leftMouseDown = false;
+    let keys = {};
+    
+    // Physics parameters
+    let gravity = 200;
+    let windForce = 10;
+    let maxThrustPower = 300;
+    let fuelConsumptionRate = 20;
+    let airDensity = 1.0;
+    let autoStabilizeEnabled = true;
+    
+    // Controls
+    const controls = {
+      resetBtn: document.getElementById('resetBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      autoStabilize: document.getElementById('autoStabilize'),
+      thrustPower: document.getElementById('thrustPower'),
+      gravity: document.getElementById('gravity'),
+      wind: document.getElementById('wind'),
+      scenarioLanding: document.getElementById('scenarioLanding'),
+      scenarioHover: document.getElementById('scenarioHover'),
+      fuelLevel: document.getElementById('fuelLevel')
+    };
+    
+    // Telemetry elements
+    const telemetry = {
+      altitude: document.getElementById('altitude'),
+      velocity: document.getElementById('velocity'),
+      angle: document.getElementById('angle'),
+      thrust: document.getElementById('thrust'),
+      status: document.getElementById('status')
+    };
+    
+    // Initialize rocket
+    function initRocket() {
+      rocket = new Rocket(canvas.width / 2, 100);
+      exhaustParticles = [];
+    }
+    
+    // Input handling - Focus canvas for keyboard input
+    canvas.tabIndex = 0;
+    canvas.focus();
+    
+    window.addEventListener('keydown', (e) => {
+      keys[e.key.toLowerCase()] = true;
+      e.preventDefault(); // Prevent default browser behavior
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+      e.preventDefault();
+    });
+    
+    // Control event listeners
+    controls.resetBtn.addEventListener('click', () => {
+      initRocket();
+    });
+    
+    controls.pauseBtn.addEventListener('click', () => {
+      isRunning = !isRunning;
+      controls.pauseBtn.textContent = isRunning ? 'Pause' : 'Resume';
+    });
+    
+    controls.autoStabilize.addEventListener('click', () => {
+      autoStabilizeEnabled = !autoStabilizeEnabled;
+      controls.autoStabilize.textContent = autoStabilizeEnabled ? 'Auto-Stabilize' : 'Manual';
+      controls.autoStabilize.classList.toggle('active', autoStabilizeEnabled);
+    });
+    
+    controls.thrustPower.addEventListener('input', () => {
+      maxThrustPower = parseFloat(controls.thrustPower.value) * 5;
+    });
+    
+    controls.gravity.addEventListener('input', () => {
+      gravity = parseFloat(controls.gravity.value) * 10;
+    });
+    
+    controls.wind.addEventListener('input', () => {
+      windForce = parseFloat(controls.wind.value) - 25;
+    });
+    
+    controls.scenarioLanding.addEventListener('click', () => {
+      rocket = new Rocket(canvas.width / 2, 50);
+      rocket.vx = (Math.random() - 0.5) * 100;
+      rocket.vy = 50;
+      rocket.angle = (Math.random() - 0.5) * 0.5;
+      exhaustParticles = [];
+    });
+    
+    controls.scenarioHover.addEventListener('click', () => {
+      rocket = new Rocket(canvas.width / 2, canvas.height / 2);
+      rocket.vx = 0;
+      rocket.vy = 0;
+      exhaustParticles = [];
+    });
+    
+    // Update thrust based on input
+    function updateThrust() {
+      if (!rocket || rocket.landed || rocket.crashed) return;
+      
+      let thrustActive = false;
+      let targetAngle = rocket.angle;
+      
+      // Keyboard thrust control
+      if (keys['w'] || keys['arrowup']) {
+        thrustActive = true;
+        targetAngle = rocket.angle; // Main thrust forward
+      }
+      if (keys['a'] || keys['arrowleft']) {
+        thrustActive = true;
+        targetAngle = rocket.angle - 0.4; // Left thruster
+      }
+      if (keys['d'] || keys['arrowright']) {
+        thrustActive = true;
+        targetAngle = rocket.angle + 0.4; // Right thruster
+      }
+      if (keys['s'] || keys['arrowdown']) {
+        thrustActive = true;
+        targetAngle = rocket.angle + Math.PI; // Reverse thrust
+      }
+      if (keys[' '] || keys['spacebar']) {
+        thrustActive = true;
+        targetAngle = rocket.angle; // Emergency thrust
+      }
+      
+      // Manual rotation controls
+      if (keys['q']) {
+        rocket.angularVelocity -= 0.05; // Rotate left
+      }
+      if (keys['e']) {
+        rocket.angularVelocity += 0.05; // Rotate right
+      }
+      
+      // Apply thrust
+      if (thrustActive && rocket.fuel > 0) {
+        // Limit thrust vector angle relative to rocket body
+        let relativeAngle = targetAngle - rocket.angle;
+        relativeAngle = Math.max(-rocket.thrustVectorRange, Math.min(rocket.thrustVectorRange, relativeAngle));
+        rocket.thrustAngle = rocket.angle + relativeAngle;
+        rocket.thrustMagnitude = 1.0;
+      } else {
+        rocket.thrustMagnitude = 0;
+      }
+    }
+    
+    // Update telemetry
+    function updateTelemetry() {
+      if (!rocket) return;
+      
+      const altitude = Math.max(0, canvas.height - 50 - rocket.y - rocket.length/2);
+      const velocity = Math.sqrt(rocket.vx * rocket.vx + rocket.vy * rocket.vy);
+      const angle = rocket.angle * 180 / Math.PI;
+      const thrust = rocket.thrustMagnitude * 100;
+      
+      telemetry.altitude.textContent = Math.round(altitude);
+      telemetry.velocity.textContent = velocity.toFixed(1);
+      telemetry.angle.textContent = Math.round(angle);
+      telemetry.thrust.textContent = Math.round(thrust);
+      
+      if (rocket.landed) {
+        telemetry.status.textContent = 'LANDED';
+        telemetry.status.style.color = '#00ff00';
+      } else if (rocket.crashed) {
+        telemetry.status.textContent = 'CRASHED';
+        telemetry.status.style.color = '#ff0000';
+      } else if (rocket.fuel <= 0) {
+        telemetry.status.textContent = 'NO FUEL';
+        telemetry.status.style.color = '#ffaa00';
+      } else {
+        telemetry.status.textContent = 'FLYING';
+        telemetry.status.style.color = '#ffffff';
+      }
+      
+      // Update fuel bar
+      controls.fuelLevel.style.width = rocket.fuel + '%';
+    }
+    
+    // Draw ground
+    function drawGround() {
+      const groundY = canvas.height - 50;
+      
+      // Ground
+      ctx.fillStyle = '#444444';
+      ctx.fillRect(0, groundY, canvas.width, 50);
+      
+      // Landing pad
+      const padWidth = 100;
+      const padX = canvas.width / 2 - padWidth / 2;
+      ctx.fillStyle = '#666666';
+      ctx.fillRect(padX, groundY, padWidth, 10);
+      
+      // Landing markers
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const x = padX + (i * padWidth / 4);
+        ctx.beginPath();
+        ctx.moveTo(x, groundY);
+        ctx.lineTo(x, groundY + 10);
+        ctx.stroke();
+      }
+    }
+    
+    // Draw background
+    function drawBackground() {
+      // Sky gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#001122');
+      gradient.addColorStop(1, '#003366');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Stars
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 100; i++) {
+        const x = (i * 1234) % canvas.width;
+        const y = (i * 5678) % (canvas.height * 0.7);
+        const size = ((i * 91) % 3) + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Main animation loop
+    function animate(timestamp) {
+      const deltaTime = 16; // Fixed timestep
+      
+      if (isRunning) {
+        updateThrust();
+        if (rocket) rocket.update(deltaTime);
+        updateExhaustParticles(deltaTime);
+        updateTelemetry();
+      }
+      
+      // Render
+      drawBackground();
+      drawGround();
+      drawExhaustParticles();
+      if (rocket) rocket.draw();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize and start
+    initRocket();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

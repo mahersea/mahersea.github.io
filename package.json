@@ -1,11 +1,19 @@
 {
+  "name": "mahersea-portfolio",
+  "version": "1.0.0",
+  "description": "Interactive web portfolio with automated project management",
   "scripts": {
-    "start": "node server"
+    "start": "node server",
+    "scan": "node portfolio-manager.js",
+    "setup-readme": "node setup-readme.js",
+    "generate-thumbnails": "node generate-thumbnails.js",
+    "build": "npm run scan && npm run generate-thumbnails"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
     "express": "^4.21.2",
     "random-words": "^2.0.1",
+    "satellite.js": "^6.0.0",
     "tailwind": "^4.0.0",
     "tailwindcss": "^4.0.13"
   },

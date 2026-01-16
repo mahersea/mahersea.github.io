@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Combustion Chamber Simulator</title>
+  <meta name="description" content="Interactive combustion chamber simulation with flame front propagation and thermodynamic cycle visualization">
+  <style>
+    body { 
+      margin: 0; 
+      background: #0a0a0a; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      overflow: hidden;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      height: 100vh;
+    }
+    .main-view {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+    }
+    .chamber-view {
+      flex: 1;
+      position: relative;
+    }
+    .pv-diagram {
+      height: 200px;
+      border-top: 2px solid #333;
+      position: relative;
+    }
+    .controls-panel {
+      background: #1a1a1a;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #333;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .control-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .control-group h3 {
+      margin: 0 0 10px 0;
+      color: #ff6b35;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .slider-group label {
+      font-size: 12px;
+      min-width: 80px;
+      color: #ccc;
+    }
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      accent-color: #ff6b35;
+    }
+    .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #ff6b35;
+      min-width: 60px;
+      text-align: right;
+      font-weight: bold;
+    }
+    button {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #444;
+      border-color: #666;
+    }
+    button.active {
+      background: #ff6b35;
+      border-color: #ff8b55;
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    .engine-data {
+      background: #0a0a0a;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #333;
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 2px 0;
+    }
+    .metric-value {
+      color: #ff6b35;
+      font-weight: bold;
+    }
+    .cycle-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .fuel-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .phase-indicator {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid #ff6b35;
+    }
+    .temperature-bar {
+      width: 100%;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 5px 0;
+    }
+    .temperature-level {
+      height: 100%;
+      background: linear-gradient(to right, #0066ff, #00ff66, #ffff00, #ff6600, #ff0000);
+      transition: width 0.1s;
+    }
+    .pressure-bar {
+      width: 100%;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 5px 0;
+    }
+    .pressure-level {
+      height: 100%;
+      background: linear-gradient(to right, #333333, #666666, #999999, #cccccc, #ffffff);
+      transition: width 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-view">
+      <div class="chamber-view">
+        <canvas id="chamberCanvas"></canvas>
+        <div class="phase-indicator" id="phaseIndicator">Intake</div>
+      </div>
+      <div class="pv-diagram">
+        <canvas id="pvCanvas"></canvas>
+      </div>
+    </div>
+    
+    <div class="controls-panel">
+      <h2>🔥 Combustion Chamber</h2>
+      
+      <div class="engine-data">
+        <div class="metric">
+          <span>Crank Angle:</span>
+          <span class="metric-value" id="crankAngle">0°</span>
+        </div>
+        <div class="metric">
+          <span>Pressure:</span>
+          <span class="metric-value" id="pressure">1.0 bar</span>
+        </div>
+        <div class="metric">
+          <span>Temperature:</span>
+          <span class="metric-value" id="temperature">300 K</span>
+        </div>
+        <div class="metric">
+          <span>Volume:</span>
+          <span class="metric-value" id="volume">500 cc</span>
+        </div>
+        <div class="metric">
+          <span>Burn Rate:</span>
+          <span class="metric-value" id="burnRate">0%</span>
+        </div>
+        
+        <div style="margin-top: 10px;">
+          <div style="font-size: 10px; color: #ccc;">Temperature</div>
+          <div class="temperature-bar">
+            <div class="temperature-level" id="tempBar"></div>
+          </div>
+          <div style="font-size: 10px; color: #ccc;">Pressure</div>
+          <div class="pressure-bar">
+            <div class="pressure-level" id="pressureBar"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Engine Cycle</h3>
+        <div class="cycle-buttons">
+          <button id="cycle-otto" class="active">Otto</button>
+          <button id="cycle-diesel">Diesel</button>
+          <button id="cycle-atkinson">Atkinson</button>
+          <button id="cycle-miller">Miller</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Engine Parameters</h3>
+        <div class="slider-group">
+          <label>Compression:</label>
+          <input type="range" id="compression" min="60" max="180" value="95">
+          <span class="value-display" id="compressionValue">9.5:1</span>
+        </div>
+        <div class="slider-group">
+          <label>Displacement:</label>
+          <input type="range" id="displacement" min="250" max="1000" value="500">
+          <span class="value-display" id="displacementValue">500cc</span>
+        </div>
+        <div class="slider-group">
+          <label>RPM:</label>
+          <input type="range" id="rpm" min="500" max="6000" value="2000">
+          <span class="value-display" id="rpmValue">2000</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Ignition System</h3>
+        <div class="slider-group">
+          <label>Timing:</label>
+          <input type="range" id="timing" min="-20" max="40" value="10">
+          <span class="value-display" id="timingValue">10° BTDC</span>
+        </div>
+        <div class="slider-group">
+          <label>Dwell:</label>
+          <input type="range" id="dwell" min="1" max="10" value="4">
+          <span class="value-display" id="dwellValue">4ms</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Fuel System</h3>
+        <div class="fuel-buttons">
+          <button id="fuel-gasoline" class="active">Gasoline</button>
+          <button id="fuel-e85">E85</button>
+          <button id="fuel-diesel">Diesel</button>
+          <button id="fuel-racing">Racing</button>
+        </div>
+        <div class="slider-group">
+          <label>Air/Fuel:</label>
+          <input type="range" id="airfuel" min="100" max="200" value="147">
+          <span class="value-display" id="airfuelValue">14.7:1</span>
+        </div>
+        <div class="slider-group">
+          <label>Injection:</label>
+          <input type="range" id="injection" min="-180" max="60" value="-60">
+          <span class="value-display" id="injectionValue">60° BTDC</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Valve Timing</h3>
+        <div class="slider-group">
+          <label>Intake Open:</label>
+          <input type="range" id="intakeOpen" min="-30" max="30" value="10">
+          <span class="value-display" id="intakeOpenValue">10° BTDC</span>
+        </div>
+        <div class="slider-group">
+          <label>Intake Close:</label>
+          <input type="range" id="intakeClose" min="180" max="240" value="220">
+          <span class="value-display" id="intakeCloseValue">40° ABDC</span>
+        </div>
+        <div class="slider-group">
+          <label>Exhaust Open:</label>
+          <input type="range" id="exhaustOpen" min="480" max="540" value="520">
+          <span class="value-display" id="exhaustOpenValue">40° BBDC</span>
+        </div>
+        <div class="slider-group">
+          <label>Exhaust Close:</label>
+          <input type="range" id="exhaustClose" min="690" max="750" value="730">
+          <span class="value-display" id="exhaustCloseValue">10° ATDC</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Simulation</h3>
+        <button id="pauseBtn">Pause</button>
+        <button id="stepBtn">Single Cycle</button>
+        <button id="resetBtn">Reset</button>
+        <div class="slider-group">
+          <label>Speed:</label>
+          <input type="range" id="simSpeed" min="1" max="10" value="5">
+          <span class="value-display" id="simSpeedValue">5x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas setup
+    const chamberCanvas = document.getElementById('chamberCanvas');
+    const chamberCtx = chamberCanvas.getContext('2d');
+    const pvCanvas = document.getElementById('pvCanvas');
+    const pvCtx = pvCanvas.getContext('2d');
+    
+    function resizeCanvases() {
+      const chamberView = document.querySelector('.chamber-view');
+      const pvView = document.querySelector('.pv-diagram');
+      
+      chamberCanvas.width = chamberView.clientWidth;
+      chamberCanvas.height = chamberView.clientHeight;
+      pvCanvas.width = pvView.clientWidth;
+      pvCanvas.height = pvView.clientHeight;
+    }
+    resizeCanvases();
+    window.addEventListener('resize', resizeCanvases);
+    
+    // Engine simulation state
+    let crankAngle = 0;
+    let cyclePhase = 'intake';
+    let isRunning = true;
+    let simSpeed = 5;
+    
+    // Engine parameters
+    let engineCycle = 'otto';
+    let compressionRatio = 9.5;
+    let displacement = 500; // cc
+    let rpm = 2000;
+    let sparkTiming = 10; // degrees BTDC
+    let dwellTime = 4; // ms
+    let airFuelRatio = 14.7;
+    let injectionTiming = -60; // degrees BTDC
+    let fuelType = 'gasoline';
+    
+    // Valve timing (degrees)
+    let intakeOpen = -10; // BTDC
+    let intakeClose = 220; // ABDC
+    let exhaustOpen = 520; // BBDC
+    let exhaustClose = 730; // ATDC
+    
+    // Combustion state
+    let combustionStarted = false;
+    let burnProgress = 0;
+    let flameKernels = [];
+    let maxFlameKernels = 50;
+    
+    // Thermodynamic state
+    let pressure = 1.0; // bar
+    let temperature = 300; // K
+    let volume = displacement; // cc
+    let mass = 0.5; // grams of mixture
+    
+    // P-V diagram data
+    let pvData = [];
+    let maxPVPoints = 360;
+    
+    // Fuel properties
+    const fuels = {
+      gasoline: { 
+        octane: 87, 
+        energyDensity: 44, // MJ/kg
+        flameSpeed: 0.4, // m/s
+        stoichAFR: 14.7,
+        color: '#ff6b35'
+      },
+      e85: { 
+        octane: 105, 
+        energyDensity: 29,
+        flameSpeed: 0.6,
+        stoichAFR: 9.8,
+        color: '#35ff6b'
+      },
+      diesel: { 
+        octane: 25, 
+        energyDensity: 43,
+        flameSpeed: 0.2,
+        stoichAFR: 14.5,
+        color: '#6b35ff'
+      },
+      racing: { 
+        octane: 110, 
+        energyDensity: 46,
+        flameSpeed: 0.5,
+        stoichAFR: 12.5,
+        color: '#ff3535'
+      }
+    };
+    
+    // Calculate current phase
+    function updatePhase() {
+      const angle = crankAngle % 720;
+      
+      if (angle < 180) {
+        cyclePhase = 'intake';
+      } else if (angle < 360) {
+        cyclePhase = 'compression';
+      } else if (angle < 540) {
+        cyclePhase = 'combustion';
+      } else {
+        cyclePhase = 'exhaust';
+      }
+      
+      document.getElementById('phaseIndicator').textContent = 
+        cyclePhase.charAt(0).toUpperCase() + cyclePhase.slice(1);
+    }
+    
+    // Calculate piston position
+    function getPistonPosition() {
+      const stroke = 100; // mm
+      const rodLength = 150; // mm
+      const angleRad = (crankAngle % 360) * Math.PI / 180;
+      
+      const crankY = Math.sin(angleRad) * (stroke / 2);
+      const rodAngle = Math.asin(crankY / rodLength);
+      const pistonY = crankY + rodLength * Math.cos(rodAngle);
+      
+      return pistonY + stroke / 2; // Offset to positive position
+    }
+    
+    // Calculate compression ratio and volume
+    function updateThermodynamics() {
+      const pistonPos = getPistonPosition();
+      const maxStroke = 100;
+      const clearanceVolume = displacement / compressionRatio;
+      
+      // Volume calculation
+      volume = clearanceVolume + (displacement * pistonPos / maxStroke);
+      
+      // Pressure calculation using ideal gas law with heating
+      const baseTemp = 300; // K
+      let targetTemp = baseTemp;
+      let targetPressure = 1.0; // bar
+      
+      const angle = crankAngle % 720;
+      
+      if (cyclePhase === 'compression') {
+        // Adiabatic compression
+        const compressionRatio = (displacement + clearanceVolume) / volume;
+        targetPressure = Math.pow(compressionRatio, 1.4); // gamma = 1.4 for air
+        targetTemp = baseTemp * Math.pow(compressionRatio, 0.4);
+      } else if (cyclePhase === 'combustion' && combustionStarted) {
+        // Combustion heating
+        const heatRelease = burnProgress * fuels[fuelType].energyDensity * 0.001; // Simplified
+        targetTemp = baseTemp + heatRelease * 50;
+        targetPressure = (targetTemp * volume) / (300 * displacement) * 10; // Simplified
+      } else if (cyclePhase === 'exhaust') {
+        targetTemp = baseTemp + burnProgress * 200;
+        targetPressure = 1.0 + burnProgress * 0.5;
+      }
+      
+      // Smooth transitions
+      temperature += (targetTemp - temperature) * 0.1;
+      pressure += (targetPressure - pressure) * 0.1;
+      
+      // Store P-V data
+      pvData.push({ pressure: pressure, volume: volume });
+      if (pvData.length > maxPVPoints) {
+        pvData.shift();
+      }
+    }
+    
+    // Handle ignition timing
+    function updateCombustion() {
+      const angle = crankAngle % 720;
+      const sparkAngle = 360 - sparkTiming; // Convert BTDC to absolute angle
+      
+      // Start combustion at spark timing
+      if (!combustionStarted && Math.abs(angle - sparkAngle) < 2) {
+        combustionStarted = true;
+        burnProgress = 0;
+        flameKernels = [];
+        
+        // Create initial flame kernel at spark plug
+        flameKernels.push({
+          x: 0.5, // Normalized position (0-1)
+          y: 0.1,
+          radius: 0.02,
+          intensity: 1.0
+        });
+      }
+      
+      // Propagate flame during combustion phase
+      if (combustionStarted && cyclePhase === 'combustion') {
+        // Update existing kernels
+        flameKernels.forEach(kernel => {
+          kernel.radius += fuels[fuelType].flameSpeed * 0.001;
+          kernel.intensity *= 0.995;
+        });
+        
+        // Add new kernels randomly
+        if (flameKernels.length < maxFlameKernels && Math.random() < 0.3) {
+          // Find existing kernel to propagate from
+          const sourceKernel = flameKernels[Math.floor(Math.random() * flameKernels.length)];
+          if (sourceKernel && sourceKernel.radius < 0.4) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 0.02 + Math.random() * 0.02;
+            
+            flameKernels.push({
+              x: Math.max(0, Math.min(1, sourceKernel.x + Math.cos(angle) * distance)),
+              y: Math.max(0, Math.min(1, sourceKernel.y + Math.sin(angle) * distance)),
+              radius: 0.01,
+              intensity: 0.8
+            });
+          }
+        }
+        
+        // Calculate burn progress
+        const totalArea = flameKernels.reduce((sum, kernel) => 
+          sum + Math.PI * kernel.radius * kernel.radius, 0);
+        burnProgress = Math.min(1.0, totalArea * 2);
+        
+        // Remove spent kernels
+        flameKernels = flameKernels.filter(kernel => 
+          kernel.intensity > 0.1 && kernel.radius < 0.5);
+      }
+      
+      // Reset at end of cycle
+      if (angle < 10 && combustionStarted) {
+        combustionStarted = false;
+        burnProgress = 0;
+        flameKernels = [];
+      }
+    }
+    
+    // Draw combustion chamber
+    function drawChamber() {
+      const width = chamberCanvas.width;
+      const height = chamberCanvas.height;
+      
+      // Clear canvas
+      chamberCtx.fillStyle = '#0a0a0a';
+      chamberCtx.fillRect(0, 0, width, height);
+      
+      // Chamber dimensions
+      const chamberCenterX = width * 0.3;
+      const chamberCenterY = height * 0.5;
+      const chamberWidth = width * 0.4;
+      const chamberHeight = height * 0.6;
+      
+      // Piston position
+      const pistonPos = getPistonPosition();
+      const pistonY = chamberCenterY + chamberHeight/2 - (pistonPos / 100) * chamberHeight * 0.8;
+      
+      // Draw cylinder walls
+      chamberCtx.strokeStyle = '#666666';
+      chamberCtx.lineWidth = 4;
+      chamberCtx.beginPath();
+      chamberCtx.moveTo(chamberCenterX - chamberWidth/2, chamberCenterY - chamberHeight/2);
+      chamberCtx.lineTo(chamberCenterX - chamberWidth/2, pistonY);
+      chamberCtx.moveTo(chamberCenterX + chamberWidth/2, chamberCenterY - chamberHeight/2);
+      chamberCtx.lineTo(chamberCenterX + chamberWidth/2, pistonY);
+      chamberCtx.stroke();
+      
+      // Draw cylinder head
+      chamberCtx.fillStyle = '#888888';
+      chamberCtx.fillRect(
+        chamberCenterX - chamberWidth/2 - 10,
+        chamberCenterY - chamberHeight/2 - 20,
+        chamberWidth + 20,
+        20
+      );
+      
+      // Draw combustion chamber area
+      if (flameKernels.length > 0) {
+        // Draw flame kernels
+        flameKernels.forEach(kernel => {
+          const x = chamberCenterX - chamberWidth/2 + kernel.x * chamberWidth;
+          const y = chamberCenterY - chamberHeight/2 + kernel.y * (pistonY - chamberCenterY + chamberHeight/2);
+          const radius = kernel.radius * chamberWidth * 0.5;
+          
+          // Flame glow
+          const gradient = chamberCtx.createRadialGradient(x, y, 0, x, y, radius);
+          gradient.addColorStop(0, `${fuels[fuelType].color}ff`);
+          gradient.addColorStop(0.6, `${fuels[fuelType].color}88`);
+          gradient.addColorStop(1, `${fuels[fuelType].color}00`);
+          
+          chamberCtx.fillStyle = gradient;
+          chamberCtx.beginPath();
+          chamberCtx.arc(x, y, radius, 0, Math.PI * 2);
+          chamberCtx.fill();
+        });
+      }
+      
+      // Draw unburned mixture
+      if (cyclePhase === 'compression' || cyclePhase === 'combustion') {
+        const mixtureDensity = pressure / 10; // Simplified visualization
+        chamberCtx.fillStyle = `rgba(100, 150, 255, ${Math.min(0.3, mixtureDensity * 0.1)})`;
+        chamberCtx.fillRect(
+          chamberCenterX - chamberWidth/2,
+          chamberCenterY - chamberHeight/2,
+          chamberWidth,
+          pistonY - chamberCenterY + chamberHeight/2
+        );
+      }
+      
+      // Draw piston
+      const pistonGradient = chamberCtx.createLinearGradient(
+        chamberCenterX - chamberWidth/2, pistonY,
+        chamberCenterX + chamberWidth/2, pistonY
+      );
+      pistonGradient.addColorStop(0, '#999999');
+      pistonGradient.addColorStop(0.5, '#cccccc');
+      pistonGradient.addColorStop(1, '#999999');
+      
+      chamberCtx.fillStyle = pistonGradient;
+      chamberCtx.fillRect(
+        chamberCenterX - chamberWidth/2,
+        pistonY,
+        chamberWidth,
+        30
+      );
+      
+      // Draw connecting rod
+      chamberCtx.strokeStyle = '#aaaaaa';
+      chamberCtx.lineWidth = 8;
+      chamberCtx.beginPath();
+      chamberCtx.moveTo(chamberCenterX, pistonY + 15);
+      chamberCtx.lineTo(chamberCenterX, pistonY + 100);
+      chamberCtx.stroke();
+      
+      // Draw spark plug
+      chamberCtx.fillStyle = '#ffaa00';
+      chamberCtx.fillRect(chamberCenterX - 5, chamberCenterY - chamberHeight/2 - 20, 10, 25);
+      
+      // Spark
+      if (combustionStarted && flameKernels.length < 5) {
+        chamberCtx.strokeStyle = '#ffffff';
+        chamberCtx.lineWidth = 2;
+        chamberCtx.beginPath();
+        chamberCtx.moveTo(chamberCenterX - 3, chamberCenterY - chamberHeight/2 + 5);
+        chamberCtx.lineTo(chamberCenterX + 3, chamberCenterY - chamberHeight/2 - 2);
+        chamberCtx.stroke();
+      }
+      
+      // Draw valves
+      drawValves(chamberCenterX, chamberCenterY, chamberWidth, chamberHeight);
+      
+      // Draw engine block details
+      drawEngineBlock(width, height);
+    }
+    
+    function drawValves(centerX, centerY, chamberWidth, chamberHeight) {
+      const angle = crankAngle % 720;
+      
+      // Intake valve
+      const intakeOpen = angle >= -10 && angle <= 220;
+      const intakeValveY = centerY - chamberHeight/2 - (intakeOpen ? 15 : 5);
+      
+      chamberCtx.fillStyle = intakeOpen ? '#4444ff' : '#666666';
+      chamberCtx.fillRect(centerX - chamberWidth/3 - 8, intakeValveY, 16, 20);
+      
+      // Exhaust valve
+      const exhaustOpen = angle >= 520 || angle <= 10;
+      const exhaustValveY = centerY - chamberHeight/2 - (exhaustOpen ? 15 : 5);
+      
+      chamberCtx.fillStyle = exhaustOpen ? '#ff4444' : '#666666';
+      chamberCtx.fillRect(centerX + chamberWidth/3 - 8, exhaustValveY, 16, 20);
+      
+      // Valve labels
+      chamberCtx.fillStyle = '#ffffff';
+      chamberCtx.font = '12px Arial';
+      chamberCtx.textAlign = 'center';
+      chamberCtx.fillText('IN', centerX - chamberWidth/3, centerY - chamberHeight/2 - 25);
+      chamberCtx.fillText('EX', centerX + chamberWidth/3, centerY - chamberHeight/2 - 25);
+    }
+    
+    function drawEngineBlock(width, height) {
+      // Crankcase
+      chamberCtx.fillStyle = '#444444';
+      chamberCtx.fillRect(width * 0.1, height * 0.7, width * 0.4, height * 0.2);
+      
+      // Crankshaft
+      const crankCenterX = width * 0.3;
+      const crankCenterY = height * 0.8;
+      
+      chamberCtx.save();
+      chamberCtx.translate(crankCenterX, crankCenterY);
+      chamberCtx.rotate((crankAngle % 360) * Math.PI / 180);
+      
+      chamberCtx.fillStyle = '#ffaa00';
+      chamberCtx.fillRect(-30, -5, 60, 10);
+      chamberCtx.fillRect(-5, -20, 10, 40);
+      
+      chamberCtx.restore();
+      
+      // Engine data overlay
+      drawDataOverlay(width, height);
+    }
+    
+    function drawDataOverlay(width, height) {
+      const overlayX = width * 0.6;
+      const overlayY = height * 0.1;
+      
+      chamberCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      chamberCtx.fillRect(overlayX, overlayY, width * 0.35, height * 0.8);
+      
+      chamberCtx.fillStyle = '#ffffff';
+      chamberCtx.font = '14px Arial';
+      chamberCtx.textAlign = 'left';
+      
+      let y = overlayY + 30;
+      const lineHeight = 25;
+      
+      chamberCtx.fillText(`Cycle: ${engineCycle.toUpperCase()}`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`Fuel: ${fuelType}`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`CR: ${compressionRatio.toFixed(1)}:1`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`Displacement: ${displacement}cc`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`RPM: ${rpm}`, overlayX + 10, y);
+      y += lineHeight;
+      
+      y += 20;
+      chamberCtx.fillStyle = '#ff6b35';
+      chamberCtx.fillText('Thermodynamics:', overlayX + 10, y);
+      y += lineHeight;
+      
+      chamberCtx.fillStyle = '#ffffff';
+      chamberCtx.font = '12px monospace';
+      chamberCtx.fillText(`P: ${pressure.toFixed(2)} bar`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`T: ${temperature.toFixed(0)} K`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`V: ${volume.toFixed(1)} cc`, overlayX + 10, y);
+      y += lineHeight;
+      chamberCtx.fillText(`Burn: ${(burnProgress * 100).toFixed(1)}%`, overlayX + 10, y);
+    }
+    
+    // Draw P-V diagram
+    function drawPVDiagram() {
+      const width = pvCanvas.width;
+      const height = pvCanvas.height;
+      
+      // Clear canvas
+      pvCtx.fillStyle = '#1a1a1a';
+      pvCtx.fillRect(0, 0, width, height);
+      
+      // Margins
+      const margin = 40;
+      const plotWidth = width - 2 * margin;
+      const plotHeight = height - 2 * margin;
+      
+      // Axes
+      pvCtx.strokeStyle = '#666666';
+      pvCtx.lineWidth = 2;
+      pvCtx.beginPath();
+      pvCtx.moveTo(margin, margin);
+      pvCtx.lineTo(margin, height - margin);
+      pvCtx.lineTo(width - margin, height - margin);
+      pvCtx.stroke();
+      
+      // Labels
+      pvCtx.fillStyle = '#ffffff';
+      pvCtx.font = '12px Arial';
+      pvCtx.textAlign = 'center';
+      pvCtx.fillText('Volume (cc)', width / 2, height - 10);
+      
+      pvCtx.save();
+      pvCtx.translate(15, height / 2);
+      pvCtx.rotate(-Math.PI / 2);
+      pvCtx.fillText('Pressure (bar)', 0, 0);
+      pvCtx.restore();
+      
+      if (pvData.length > 1) {
+        // Find data ranges
+        const volumes = pvData.map(d => d.volume);
+        const pressures = pvData.map(d => d.pressure);
+        const minVol = Math.min(...volumes);
+        const maxVol = Math.max(...volumes);
+        const minPres = 0;
+        const maxPres = Math.max(...pressures) * 1.1;
+        
+        // Draw P-V curve
+        pvCtx.strokeStyle = '#ff6b35';
+        pvCtx.lineWidth = 2;
+        pvCtx.beginPath();
+        
+        for (let i = 0; i < pvData.length; i++) {
+          const x = margin + ((pvData[i].volume - minVol) / (maxVol - minVol)) * plotWidth;
+          const y = height - margin - ((pvData[i].pressure - minPres) / (maxPres - minPres)) * plotHeight;
+          
+          if (i === 0) pvCtx.moveTo(x, y);
+          else pvCtx.lineTo(x, y);
+        }
+        pvCtx.stroke();
+        
+        // Current point
+        if (pvData.length > 0) {
+          const current = pvData[pvData.length - 1];
+          const x = margin + ((current.volume - minVol) / (maxVol - minVol)) * plotWidth;
+          const y = height - margin - ((current.pressure - minPres) / (maxPres - minPres)) * plotHeight;
+          
+          pvCtx.fillStyle = '#ffffff';
+          pvCtx.beginPath();
+          pvCtx.arc(x, y, 4, 0, Math.PI * 2);
+          pvCtx.fill();
+        }
+        
+        // Grid lines
+        pvCtx.strokeStyle = '#333333';
+        pvCtx.lineWidth = 1;
+        for (let i = 1; i < 5; i++) {
+          const x = margin + (i * plotWidth / 5);
+          const y = height - margin - (i * plotHeight / 5);
+          
+          pvCtx.beginPath();
+          pvCtx.moveTo(x, margin);
+          pvCtx.lineTo(x, height - margin);
+          pvCtx.stroke();
+          
+          pvCtx.beginPath();
+          pvCtx.moveTo(margin, y);
+          pvCtx.lineTo(width - margin, y);
+          pvCtx.stroke();
+        }
+        
+        // Scale labels
+        pvCtx.fillStyle = '#cccccc';
+        pvCtx.font = '10px Arial';
+        pvCtx.textAlign = 'center';
+        
+        for (let i = 0; i <= 5; i++) {
+          const vol = minVol + (i * (maxVol - minVol) / 5);
+          const x = margin + (i * plotWidth / 5);
+          pvCtx.fillText(vol.toFixed(0), x, height - 5);
+          
+          const pres = minPres + (i * (maxPres - minPres) / 5);
+          const y = height - margin - (i * plotHeight / 5);
+          pvCtx.textAlign = 'right';
+          pvCtx.fillText(pres.toFixed(1), margin - 5, y + 3);
+          pvCtx.textAlign = 'center';
+        }
+      }
+    }
+    
+    // Update displays
+    function updateDisplays() {
+      document.getElementById('crankAngle').textContent = Math.round(crankAngle % 360) + '°';
+      document.getElementById('pressure').textContent = pressure.toFixed(2) + ' bar';
+      document.getElementById('temperature').textContent = Math.round(temperature) + ' K';
+      document.getElementById('volume').textContent = volume.toFixed(1) + ' cc';
+      document.getElementById('burnRate').textContent = Math.round(burnProgress * 100) + '%';
+      
+      // Update bars
+      const tempPercent = Math.min(100, ((temperature - 300) / 2000) * 100);
+      const pressurePercent = Math.min(100, (pressure / 50) * 100);
+      
+      document.getElementById('tempBar').style.width = tempPercent + '%';
+      document.getElementById('pressureBar').style.width = pressurePercent + '%';
+    }
+    
+    // Setup controls
+    function setupControls() {
+      // Cycle buttons
+      document.querySelectorAll('[id^="cycle-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="cycle-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          engineCycle = btn.id.replace('cycle-', '');
+        });
+      });
+      
+      // Fuel buttons
+      document.querySelectorAll('[id^="fuel-"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="fuel-"]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          fuelType = btn.id.replace('fuel-', '');
+        });
+      });
+      
+      // Sliders
+      const sliders = [
+        { id: 'compression', prop: 'compressionRatio', display: 'compressionValue', format: v => (v/10).toFixed(1) + ':1' },
+        { id: 'displacement', prop: 'displacement', display: 'displacementValue', format: v => v + 'cc' },
+        { id: 'rpm', prop: 'rpm', display: 'rpmValue', format: v => v },
+        { id: 'timing', prop: 'sparkTiming', display: 'timingValue', format: v => v + '° BTDC' },
+        { id: 'dwell', prop: 'dwellTime', display: 'dwellValue', format: v => v + 'ms' },
+        { id: 'airfuel', prop: 'airFuelRatio', display: 'airfuelValue', format: v => (v/10).toFixed(1) + ':1' },
+        { id: 'injection', prop: 'injectionTiming', display: 'injectionValue', format: v => Math.abs(v) + '° ' + (v < 0 ? 'BTDC' : 'ATDC') },
+        { id: 'simSpeed', prop: 'simSpeed', display: 'simSpeedValue', format: v => v + 'x' }
+      ];
+      
+      sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const display = document.getElementById(slider.display);
+        
+        element.addEventListener('input', () => {
+          const value = parseFloat(element.value);
+          window[slider.prop] = value;
+          display.textContent = slider.format(value);
+        });
+        
+        // Initialize display
+        display.textContent = slider.format(element.value);
+      });
+      
+      // Control buttons
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isRunning = !isRunning;
+        document.getElementById('pauseBtn').textContent = isRunning ? 'Pause' : 'Resume';
+      });
+      
+      document.getElementById('stepBtn').addEventListener('click', () => {
+        crankAngle = (Math.floor(crankAngle / 720) + 1) * 720;
+      });
+      
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        crankAngle = 0;
+        pvData = [];
+        combustionStarted = false;
+        burnProgress = 0;
+        flameKernels = [];
+      });
+    }
+    
+    // Animation loop
+    function animate() {
+      if (isRunning) {
+        crankAngle += (rpm / 60) * 6 * simSpeed; // degrees per frame at 60fps
+        
+        updatePhase();
+        updateThermodynamics();
+        updateCombustion();
+        updateDisplays();
+      }
+      
+      drawChamber();
+      drawPVDiagram();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    setupControls();
+    animate();
+  </script>
+</body>
+</html>

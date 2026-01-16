@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cat Behavior Simulation</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 10;
+    }
+    #canvas-container {
+      display: block;
+      overflow: hidden;
+    }
+    .slider {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div>
+      <label for="timeWarp">Time Warp (0.1x - 10x):</label>
+      <input type="range" id="timeWarp" class="slider" min="0.1" max="10" step="0.1" value="1">
+      <span id="timeWarpValue">1x</span>
+    </div>
+    <div>
+      <label for="catCount">Number of Cats (1-5):</label>
+      <input type="range" id="catCount" class="slider" min="1" max="5" step="1" value="3">
+      <span id="catCountValue">3</span>
+    </div>
+    <div>
+      <button id="playPauseBtn">Pause</button>
+      <button id="resetBtn">Reset Simulation</button>
+    </div>
+    <div>
+      <p>Simulation Time: <span id="simTime">00:00</span></p>
+      <p>Cat Count: <span id="catDisplay">1</span></p>
+    </div>
+  </div>
+  
+  <div id="canvas-container"></div>
+  
+  <!-- Two.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.7.0/two.min.js"></script>
+  
+  <script>
+    const canvas = document.getElementById("canvas-container");
+    // Full screen canvas
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols = Math.floor(canvas.width / gridSize);
+      rows = Math.floor(canvas.height / gridSize);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // --- Simulation Constants ---
+    const SIM_WIDTH = canvas.width;
+    const SIM_HEIGHT = canvas.height;
+    
+    const HOUSE_WIDTH = 1800;
+    const HOUSE_HEIGHT = 1600;
+    const HOUSE_COLOR = '#E0E0E0';
+    const WALL_THICKNESS = 10;
+    
+    // Fixed locations
+    const LITTER_BOX_1 = { x: 250, y: 250 };
+    const LITTER_BOX_2 = { x: 450, y: 300 };
+    const FEEDING_STATION = { x: 100, y: 250 };
+    const WATER_STATION = { x: 100, y: 300 };
+    
+    // Simulation Time Control
+    let simulationMinutes = 0;  // in minutes
+    let timeWarp = 1;  // multiplier for simulation speed
+    let simInterval = null;
+    let isPaused = false;
+    
+    // Cat Simulation Setup (minimal placeholder)
+    let cats = [];
+    let maxCats = 1;
+    
+    // --- Two.js Setup ---
+    const elem = document.getElementById('canvas-container');
+    const params = { width: window.innerWidth, height: window.innerHeight };
+    const two = new Two(params).appendTo(elem);
+    
+    // --- Draw the House ---
+    // Center the house in simulation coordinates at (0,0)
+    const houseX = -HOUSE_WIDTH / 2;
+    const houseY = -HOUSE_HEIGHT / 2;
+    const house = two.makeRectangle(0, 0, HOUSE_WIDTH, HOUSE_HEIGHT);
+    house.fill = HOUSE_COLOR;
+    house.noStroke();
+    
+    // Walls (using Four rectangles)
+    const walls = [];
+    // Top wall
+    walls.push(two.makeRectangle(0, houseY + HOUSE_HEIGHT + WALL_THICKNESS / 2, HOUSE_WIDTH + WALL_THICKNESS*2, WALL_THICKNESS));
+    // Bottom wall
+    walls.push(two.makeRectangle(0, houseY - WALL_THICKNESS / 2, HOUSE_WIDTH + WALL_THICKNESS*2, WALL_THICKNESS));
+    // Left wall
+    walls.push(two.makeRectangle(houseX - WALL_THICKNESS / 2, 0, WALL_THICKNESS, HOUSE_HEIGHT));
+    // Right wall
+    walls.push(two.makeRectangle(houseX + HOUSE_WIDTH + WALL_THICKNESS / 2, 0, WALL_THICKNESS, HOUSE_HEIGHT));
+    
+    walls.forEach(wall => {
+      wall.fill = '#000'; // black walls
+      wall.noStroke();
+    });
+    
+    // --- Draw Fixed Locations ---
+    function drawStation(pos, color, label) {
+      const station = two.makeCircle(pos.x, pos.y, 10);
+      station.fill = color;
+      station.noStroke();
+      
+      const text = two.makeText(label, pos.x, pos.y - 20);
+      text.fill = "#000";
+    }
+    drawStation(LITTER_BOX_1, '#8B4513', 'Litter 1');
+    drawStation(LITTER_BOX_2, '#8B4513', 'Litter 2');
+    drawStation(FEEDING_STATION, '#FF0000', 'Feed');
+    drawStation(WATER_STATION, '#0000FF', 'Water');
+    
+    // --- Cat Object Constructor ---
+    class Station {
+        constructor(pos, type, initialPercentage) {
+            this.x = pos.x;
+            this.y = pos.y;
+            this.type = type;
+            this.percentage = initialPercentage;
+            this.circle = two.makeCircle(pos.x, pos.y, 15);
+            
+            // Color based on type
+            switch(type) {
+            case 'feed':
+                this.circle.fill = '#FF0000';
+                break;
+            case 'water':
+                this.circle.fill = '#0000FF';
+                break;
+            case 'litter':
+                this.circle.fill = '#8B4513';
+                break;
+            }
+            this.circle.noStroke();
+            
+            // Percentage text
+            this.percentText = two.makeText(`${this.percentage}%`, pos.x, pos.y);
+            this.percentText.fill = '#000';
+        }
+        updatePercentage(delta) {
+            this.percentage = Math.max(0, Math.min(100, this.percentage + delta));
+            this.percentText.value = `${Math.round(this.percentage)}%`;
+        }
+    }
+
+    class Cat {
+        constructor(name, color) {
+            this.name = name;
+            this.color = color;
+            
+            // Random starting position inside house
+            this.x = (Math.random() - 0.5) * HOUSE_WIDTH * 0.8;
+            this.y = (Math.random() - 0.5) * HOUSE_HEIGHT * 0.8;
+            
+            // Visual representation
+            this.circle = two.makeCircle(this.x, this.y, 8);
+            this.circle.fill = this.color;
+            this.circle.noStroke();
+            
+            // Timers for waste and station visits (in minutes)
+            this.urineTimer = randomTime(180, 300);  // 3-5 hours in minutes
+            this.fecesTimer = randomTime(720, 1440);   // 12-24 hours in minutes
+            
+            // Station visit timers and states
+            this.feedTimer = randomTime(120, 240);  // 2-4 hours
+            this.waterTimer = randomTime(60, 120);  // 1-2 hours
+            this.litterTimer = randomTime(240, 480);  // 4-8 hours
+            
+            // Current target station
+            this.targetStation = null;
+        }
+    
+        moveToStation(station) {
+            // Simple linear interpolation towards station
+            const dx = station.x - this.x;
+            const dy = station.y - this.y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+        
+            if (distance < 10) {
+            // Reached station
+            switch(station.type) {
+                case 'feed':
+                station.updatePercentage(-5);
+                this.feedTimer = randomTime(120, 240);
+                break;
+                case 'water':
+                station.updatePercentage(-5);
+                this.waterTimer = randomTime(60, 120);
+                break;
+                case 'litter':
+                station.updatePercentage(5);
+                this.litterTimer = randomTime(240, 480);
+                break;
+            }
+            this.targetStation = null;
+                return;
+            }
+        
+            // Move towards station
+            const speed = 2;
+            this.x += (dx / distance) * speed;
+            this.y += (dy / distance) * speed;
+            
+            // Constrain within house bounds
+            const halfWidth = HOUSE_WIDTH/2 - 10;
+            const halfHeight = HOUSE_HEIGHT/2 - 10;
+            this.x = Math.max(-halfWidth, Math.min(halfWidth, this.x));
+            this.y = Math.max(-halfHeight, Math.min(halfHeight, this.y));
+        }
+    
+        update(dt) {
+            // Decrease timers
+            this.feedTimer -= dt;
+            this.waterTimer -= dt;
+            this.litterTimer -= dt;
+                
+            // Choose a station to visit if no current target
+            if (!this.targetStation) {
+                if (this.feedTimer <= 0) {
+                    this.targetStation = stations.find(s => s.type === 'feed');
+                } else if (this.waterTimer <= 0) {
+                    this.targetStation = stations.find(s => s.type === 'water');
+                } else if (this.litterTimer <= 0) {
+                    this.targetStation = stations.find(s => s.type === 'litter');
+                }
+            }
+                
+            // Move to target station if exists
+            if (this.targetStation) {
+                this.moveToStation(this.targetStation);
+            } else {
+                // Random wandering if no station target
+                const stepX = gaussianRandom() * 5;
+                const stepY = gaussianRandom() * 5;
+                this.x += stepX;
+                this.y += stepY;
+            }
+                
+            // Update visual position
+            this.circle.translation.set(this.x, this.y);
+                
+            // Existing waste generation logic
+            this.urineTimer -= dt;
+            if (this.urineTimer <= 0) {
+                this.generateWaste('urine');
+                this.urineTimer = randomTime(180, 300);
+            }
+            this.fecesTimer -= dt;
+            if (this.fecesTimer <= 0) {
+                this.generateWaste('feces');
+                this.fecesTimer = randomTime(720, 1440);
+            }
+        }
+        
+        generateWaste(type) {
+            // For now, we simply draw a small circle at the cat's position.
+            // Waste properties based on type
+            let volume, radius, color;
+            if (type === 'urine') {
+                volume = randomInt(10,20);
+                radius = randomInt(20,30);
+                color = 'rgba(255,255,0,0.5)';  // transparent yellow
+            } else {
+                volume = randomInt(15,25);
+                radius = randomInt(10,15);
+                color = '#8B4513';  // brown
+            }
+            const waste = two.makeCircle(this.x, this.y, radius);
+            waste.fill = color;
+            waste.noStroke();
+        }
+    }
+
+    // --- Utility Functions ---
+    function randomTime(min, max) {
+      // Returns a random time in minutes between min and max
+      return Math.random() * (max - min) + min;
+    }
+    
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    // Gaussian random function (using Box-Muller transform)
+    function gaussianRandom() {
+      let u = 0, v = 0;
+      while(u === 0) u = Math.random();
+      while(v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+    
+    // Global stations array
+    let stations = [];
+
+    // Modified initialization function
+    function initStations() {
+    // Clear existing stations
+    stations.forEach(station => {
+        two.remove(station.circle);
+        two.remove(station.percentText);
+    });
+    
+    // Create new stations with initial percentages
+    stations = [
+        new Station(LITTER_BOX_1, 'litter', 0),
+        new Station(LITTER_BOX_2, 'litter', 0),
+        new Station(FEEDING_STATION, 'feed', 100),
+        new Station(WATER_STATION, 'water', 100)
+    ];
+    }
+
+    // Update initCats to work with stations
+    function initCats() {
+    // Remove previous cat elements from Two.js
+    cats.forEach(cat => {
+        two.remove(cat.circle);
+    });
+    cats = [];
+    for(let i=0; i<maxCats; i++){
+        const name = 'Cat-' + (i+1);
+        const color = getRandomColor();
+        const cat = new Cat(name, color);
+        cats.push(cat);
+    }
+    document.getElementById('catDisplay').innerText = maxCats;
+    }
+
+    // Modify reset to reinitialize stations
+    document.getElementById('resetBtn').addEventListener('click', function() {
+    simulationMinutes = 0;
+    initStations();
+    initCats();
+    });
+
+    // Initialize stations on first load
+    initStations();
+    
+    // Random Color Generator
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+    
+    // --- Simulation Loop ---
+    function updateSimulation(dt) {
+      simulationMinutes += dt;
+      // Update time display
+      const hours = Math.floor(simulationMinutes / 60) % 24;
+      const minutes = Math.floor(simulationMinutes % 60);
+      document.getElementById('simTime').innerText = 
+        String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+      
+      // Update all cats
+      cats.forEach(cat => cat.update(dt));
+    }
+    
+    function startSimulation() {
+      if (simInterval) clearInterval(simInterval);
+      simInterval = setInterval(() => {
+        if (!isPaused) {
+          // dt in minutes is affected by timeWarp multiplier; 1 real second = 1 sim minute at normal speed.
+          updateSimulation(1 * timeWarp);
+          two.update();
+        }
+      }, 1000);
+    }
+    
+    // --- UI Event Listeners ---
+    document.getElementById('timeWarp').addEventListener('input', function() {
+      timeWarp = parseFloat(this.value);
+      document.getElementById('timeWarpValue').innerText = timeWarp.toFixed(1) + "x";
+    });
+    
+    document.getElementById('catCount').addEventListener('input', function() {
+      maxCats = parseInt(this.value);
+      document.getElementById('catCountValue').innerText = maxCats;
+      initCats();
+    });
+    
+    document.getElementById('playPauseBtn').addEventListener('click', function() {
+      isPaused = !isPaused;
+      this.innerText = isPaused ? "Play" : "Pause";
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', function() {
+      simulationMinutes = 0;
+      initCats();
+    });
+    
+    // --- Initialize Simulation ---
+    initCats();
+    startSimulation();
+    
+    // Adjust canvas size on window resize
+    window.addEventListener('resize', function() {
+      two.width = window.innerWidth;
+      two.height = window.innerHeight;
+      two.renderer.setSize(two.width, two.height);
+    });
+  </script>
+</body>
+</html>

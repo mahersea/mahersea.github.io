@@ -4,54 +4,160 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("modal");
     const modalBody = document.querySelector(".modal-body");
     const closeButton = document.querySelector(".close-button");
-    let projectsData = {};
+    const topicSelect = document.getElementById("topicSelect");
+    let directoryData = {};
+    let allTopics = new Set();
   
-    // Fetch the projects data from the JSON file
-    fetch('projects.json')
-      .then(response => response.json())
-      .then(data => {
-        projectsData = data;
-        renderProjects(data.projects);
+    // Load project directories dynamically
+    loadDirectories();
+    loadTopics();
+  
+    async function loadDirectories() {
+      try {
+        // Fetch directory list from server API
+        const response = await fetch('/api/directories');
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        directoryData = data;
+        renderDirectories(data.directories);
         setupEventListeners();
-      })
-      .catch(error => {
-        console.error('Error loading project data:', error);
+      } catch (error) {
+        console.error('Error loading directory data:', error);
+        projectsGrid.innerHTML = '<div class="error-message">Error loading projects. Please try again later.</div>';
+      }
+    }
+    
+    async function loadTopics() {
+      try {
+        // Fetch topics from topics.json
+        const response = await fetch('/topics.json');
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        populateTopicFilter(data.topics);
+      } catch (error) {
+        console.error('Error loading topic data:', error);
+      }
+    }
+    
+    function populateTopicFilter(topics) {
+      // Sort topics alphabetically by name
+      const sortedTopics = [...topics].sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Add topics to dropdown
+      sortedTopics.forEach(topic => {
+        const option = document.createElement('option');
+        option.value = topic.id;
+        option.textContent = `${topic.icon} ${topic.name}`;
+        topicSelect.appendChild(option);
       });
+      
+      // Add event listener for topic filter
+      topicSelect.addEventListener('change', function() {
+        const selectedTopic = this.value;
+        filterDirectoriesByTopic(selectedTopic);
+      });
+    }
+    
+    function filterDirectoriesByTopic(topicId) {
+      if (!directoryData || !directoryData.directories) return;
+      
+      const projectCards = document.querySelectorAll('.project-card');
+      
+      if (topicId === 'all') {
+        // Show all projects
+        projectCards.forEach(card => {
+          card.classList.remove('hidden');
+        });
+      } else {
+        // Filter projects by topic
+        projectCards.forEach(card => {
+          const path = card.getAttribute('data-path');
+          const directory = directoryData.directories.find(dir => dir.path === path);
+          
+          if (directory && directory.topics && directory.topics.includes(topicId)) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      }
+    }
   
-    // Render project cards based on JSON data
-    function renderProjects(projects) {
+    // Render directory entries
+    function renderDirectories(directories) {
       // Clear existing content
       projectsGrid.innerHTML = '';
       
-      // Create a card for each project
-      projects.forEach(project => {
-        const projectCard = document.createElement('div');
-        projectCard.className = 'project-card';
-        projectCard.setAttribute('data-project', project.id);
+      if (!directories || directories.length === 0) {
+        projectsGrid.innerHTML = '<div class="no-projects">No projects with README.md files found.</div>';
+        return;
+      }
+      
+      // Create a simple grid of all directories
+      const grid = document.createElement('div');
+      grid.className = 'type-grid';
+      
+      // Sort alphabetically by title
+      const sortedDirs = [...directories].sort((a, b) => a.title.localeCompare(b.title));
+      
+      sortedDirs.forEach(dir => {
+        const dirCard = document.createElement('div');
+        dirCard.className = 'project-card';
+        dirCard.setAttribute('data-path', dir.path);
         
-        projectCard.innerHTML = `
-          <img src="${project.thumbnail}" alt="" />
-          <h3 class="project-title">${project.title}</h3>
+        // Store topics as data attribute
+        if (dir.topics) {
+          dirCard.setAttribute('data-topics', dir.topics.join(','));
+          
+          // Collect all topics for the filter dropdown
+          dir.topics.forEach(topic => allTopics.add(topic));
+        }
+
+        // Create topic icons HTML and De-dupe icons if necessary
+        let topicIconsHTML = '';
+        const uniqueIcons = new Set();
+        if (dir.topicIcons && dir.topicIcons.length > 0) {
+          topicIconsHTML = dir.topicIcons.map(icon => {
+            if (!uniqueIcons.has(icon)) {
+              uniqueIcons.add(icon);
+              return `<span class="topic-icon" title="${icon}">${icon}</span>`;
+            }
+            return '';
+          }
+          ).join('');
+        }
+
+        dirCard.innerHTML = `
+          <div>
+            <h3 class="project-title"> ${dir.title}</h3>
+            <div style="margin-top:30px">${topicIconsHTML}</div>
+          </div>
         `;
         
-        projectsGrid.appendChild(projectCard);
+        grid.appendChild(dirCard);
       });
+      
+      projectsGrid.appendChild(grid);
     }
   
-    // Set up event listeners after projects are loaded
+    // Set up event listeners after directories are loaded
     function setupEventListeners() {
       const projectCards = document.querySelectorAll(".project-card");
   
-      // Open modal when a project card is clicked
+      // Open project when a card is clicked
       projectCards.forEach((card) => {
         card.addEventListener("click", function () {
-          const projectId = card.getAttribute("data-project");
-          const project = projectsData.projects.find(p => p.id === projectId);
-          // go directly to the project link: `project.link`
-          if (project) {
-            window.location.href =
-            project.link;
-            return;
+          const path = card.getAttribute("data-path");
+          if (path) {
+            window.location.href = `/${path}/`;
           }
         });
       });
@@ -79,7 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   
-
     ////// Canvas animation for hero section
     const canvas = document.getElementById('hero-canvas');
     const ctx = canvas.getContext('2d');
@@ -162,5 +267,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     animate();
-
-  });
+});

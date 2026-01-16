@@ -1,0 +1,45 @@
+flowchart TD
+    A[Login Screen] --> B[Dashboard]
+    
+    B --> C[Appointments]
+    B --> D[Work Orders]
+    B --> E[Inventory]
+    B --> F[Customers]
+    B --> G[Reports]
+    B --> H[Settings]
+    
+    C --> C1[View Calendar]
+    C --> C2[Create Appointment]
+    C --> C3[Edit Appointment]
+    
+    D --> D1[Create Work Order]
+    D --> D2[Active Work Orders]
+    D --> D3[Completed Orders]
+    D1 --> D1a[Select Customer/Vehicle]
+    D1a --> D1b[Add Services/Parts]
+    D1b --> D1c[Assign Bay/Technician]
+    D1c --> D1d[Set Status]
+    
+    D2 --> D2a[Update Status]
+    D2a --> D2b[Add Parts/Labor]
+    D2b --> D2c[Complete & Invoice]
+    
+    E --> E1[View Inventory]
+    E --> E2[Order Parts]
+    E --> E3[Receive Shipment]
+    E --> E4[Manage Vendors]
+    
+    F --> F1[Customer Database]
+    F --> F2[Vehicle Records]
+    F --> F3[Service History]
+    F --> F4[Communication]
+    
+    G --> G1[Daily Summary]
+    G --> G2[Financial Reports]
+    G --> G3[Technician Performance]
+    G --> G4[Inventory Reports]
+    
+    H --> H1[User Management]
+    H --> H2[Shop Settings]
+    H --> H3[Tax Settings]
+    H --> H4[Backup/Restore]

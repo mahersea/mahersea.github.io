@@ -1,0 +1,42 @@
+[
+  {
+    "project": "Squirrel Trap",
+    "title": "Concept of a Plan",
+    "assignedUser": "dog",
+    "deadline": "2025-04-18",
+    "status": "In Progress",
+    "id": 1,
+    "start_date": "2025-04-17",
+    "duration": 1
+  },
+  {
+    "project": "Test",
+    "title": "test 2",
+    "assignedUser": "Sean",
+    "deadline": "2025-04-10",
+    "status": "Completed",
+    "id": 2
+  },
+  {
+    "project": "Build a Damn Cat Cage.",
+    "title": "Draw a concept",
+    "assignedUser": "Sean",
+    "start_date": "2025-04-15",
+    "deadline": "2025-04-22",
+    "duration": 7,
+    "status": "Open",
+    "id": 3,
+    "dependencies": []
+  },
+  {
+    "project": "Build a Damn Cat Cage.",
+    "title": "Draw a picture of those things in a cage. Not me in a cage.",
+    "assignedUser": "Bird",
+    "start_date": "2025-04-16",
+    "deadline": "2025-04-19",
+    "duration": 3,
+    "status": "Open",
+    "id": 4,
+    "dependencies": []
+  }
+]

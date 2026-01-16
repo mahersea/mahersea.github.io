@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lightning with Controls and SVG Background</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: black;
+    }
+    /* Control panel styling */
+    #control-panel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      z-index: 10;
+    }
+    #control-panel label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    #control-panel input[type="range"] {
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <!-- Control panel -->
+  <div id="control-panel">
+    <label>
+      Intensity (Bolt Count): <span id="intensityValue">5</span>
+      <input type="range" id="intensitySlider" min="1" max="10" value="5">
+    </label>
+    <label>
+      Frequency (ms): <span id="frequencyValue">3500</span>
+      <input type="range" id="frequencySlider" min="1000" max="7000" value="3500">
+    </label>
+    <label>
+      Complexity: <span id="complexityValue">80</span>
+      <input type="range" id="complexitySlider" min="20" max="150" value="80">
+    </label>
+  </div>
+  <script>
+    window.onload = function () {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Fade duration in milliseconds (duration of illumination).
+      const fade = 100;
+
+      // Global variables controlled by the UI.
+      let boltCount = 5;         // Number of bolts per burst.
+      let pseudoFrequency = 3500;  // Mean delay in ms between pseudo lightning events.
+      let complexity = 80;         // Initial displacement for lightning fractal.
+
+      // Get control panel elements.
+      const intensitySlider = document.getElementById('intensitySlider');
+      const frequencySlider = document.getElementById('frequencySlider');
+      const complexitySlider = document.getElementById('complexitySlider');
+      const intensityValue = document.getElementById('intensityValue');
+      const frequencyValue = document.getElementById('frequencyValue');
+      const complexityValue = document.getElementById('complexityValue');
+
+      // Update control values when sliders move.
+      intensitySlider.oninput = function () {
+        boltCount = parseInt(this.value);
+        intensityValue.textContent = this.value;
+      };
+      frequencySlider.oninput = function () {
+        pseudoFrequency = parseInt(this.value);
+        frequencyValue.textContent = this.value;
+      };
+      complexitySlider.oninput = function () {
+        complexity = parseInt(this.value);
+        complexityValue.textContent = this.value;
+      };
+
+      // Resize the canvas.
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Preload the SVG background image.
+      const backgroundSVG = new Image();
+      backgroundSVG.src = "mountain-clouds-svg.svg"; // The SVG must reside in the same directory.
+
+      // Utility: Return a random number between min and max.
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      // Recursive function to draw a fractal-style lightning bolt.
+      function drawLightning(x1, y1, x2, y2, displace) {
+        if (displace < 1) {
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        } else {
+          const midX = (x1 + x2) / 2 + random(-displace, displace);
+          const midY = (y1 + y2) / 2 + random(-displace, displace);
+          drawLightning(x1, y1, midX, midY, displace / 2);
+          drawLightning(midX, midY, x2, y2, displace / 2);
+        }
+      }
+
+      // Draw a burst of lightning bolts from (x, y).
+      function burstLightning(x, y) {
+        for (let i = 0; i < boltCount; i++) {
+          let endX, endY;
+          // Choose an endpoint randomly from the canvas edges.
+          if (Math.random() < 0.5) {
+            // Vertical edge.
+            endX = Math.random() < 0.5 ? 0 : canvas.width;
+            endY = random(0, canvas.height);
+          } else {
+            // Horizontal edge.
+            endX = random(0, canvas.width);
+            endY = Math.random() < 0.5 ? 0 : canvas.height;
+          }
+          ctx.globalAlpha = random(0.7, 1);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+          ctx.lineWidth = 2;
+          drawLightning(x, y, endX, endY, complexity);
+        }
+      }
+
+      // Return a random y-coordinate within the cloud region (top 40%).
+      function getCloudY() {
+        return random(0, canvas.height * 0.4);
+      }
+
+      // Simulate a lightning event with a bolt that originates in the clouds.
+      // The x coordinate is taken from either the user click or the pseudo event.
+      function simulateLightning(origX) {
+        // Force lightning bolt to originate in the cloud region.
+        const originX = origX;
+        const originY = getCloudY();
+
+        // Clear the canvas to black.
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the SVG background (illuminated for the lightning event).
+        if (backgroundSVG.complete) {
+          ctx.drawImage(backgroundSVG, 0, 0, canvas.width, canvas.height);
+        } else {
+          backgroundSVG.onload = () => {
+            ctx.drawImage(backgroundSVG, 0, 0, canvas.width, canvas.height);
+          };
+        }
+
+        // Draw the lightning burst from the cloud-origin.
+        burstLightning(originX, originY);
+
+        // After 'fade' milliseconds, clear the canvas back to pure darkness.
+        setTimeout(() => {
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }, fade);
+      }
+
+      // Listen for user clicks.
+      canvas.addEventListener('click', function(event) {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        simulateLightning(clickX);
+      });
+
+      // Pseudo-random lightning events.
+      function triggerPseudoLightning() {
+        // Randomize delay around the pseudoFrequency value.
+        const delay = random(pseudoFrequency * 0.8, pseudoFrequency * 1.2);
+        setTimeout(() => {
+          const pseudoX = random(0, canvas.width);
+          simulateLightning(pseudoX);
+          triggerPseudoLightning();
+        }, delay);
+      }
+      
+      // Start pseudo lightning events.
+      triggerPseudoLightning();
+    };
+  </script>
+</body>
+</html>

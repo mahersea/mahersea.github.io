@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Chamber Simulation</title>
+  <meta name="description" content="Interactive particle physics bubble chamber visualization showing charged particle tracks and bubble formation">
+  <style>
+    body { 
+      margin: 0; 
+      background: #000011; 
+      color: #ffffff;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+    }
+    canvas { 
+      display: block; 
+      margin: 20px auto; 
+      background: #000022; 
+      border: 2px solid #333;
+      box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+    }
+    .controls { 
+      margin: 10px auto; 
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      max-width: 800px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(50, 50, 100, 0.3);
+      padding: 8px;
+      border-radius: 6px;
+    }
+    button {
+      background: #334477;
+      color: #fff;
+      border: 1px solid #556699;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #445588;
+    }
+    button.active {
+      background: #4477aa;
+      box-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+    }
+    input[type="range"] {
+      background: #334477;
+      accent-color: #6699cc;
+    }
+    label {
+      font-size: 12px;
+      color: #ccddff;
+    }
+    .info {
+      max-width: 700px;
+      margin: 0 auto 15px;
+      font-size: 14px;
+      color: #aabbdd;
+      line-height: 1.4;
+    }
+    .particle-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 10px;
+      font-size: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <h1>🫧 Bubble Chamber Simulation</h1>
+  <div class="info">
+    <p>A bubble chamber detector filled with superheated liquid hydrogen. Charged particles create ionization trails that cause bubble formation along their paths. Magnetic field curves the tracks based on charge and momentum.</p>
+  </div>
+  
+  <div class="particle-legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background: #ff4444;"></div>
+      <span>Proton (+)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #4444ff;"></div>
+      <span>Electron (-)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #44ff44;"></div>
+      <span>Muon (±)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #ffaa00;"></div>
+      <span>Pion (±)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #ff44ff;"></div>
+      <span>Photon (γ)</span>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <button id="pauseBtn">Pause</button>
+      <button id="clearBtn">Clear Chamber</button>
+    </div>
+    <div class="control-group">
+      <label for="magneticField">Magnetic Field: </label>
+      <input type="range" id="magneticField" min="0" max="100" value="50">
+      <span id="magneticFieldValue">50</span>
+    </div>
+    <div class="control-group">
+      <label for="particleRate">Beam Intensity: </label>
+      <input type="range" id="particleRate" min="1" max="20" value="5">
+      <span id="particleRateValue">5</span>
+    </div>
+    <div class="control-group">
+      <label for="bubbleLife">Bubble Lifetime: </label>
+      <input type="range" id="bubbleLife" min="10" max="200" value="100">
+      <span id="bubbleLifeValue">100</span>
+    </div>
+    <div class="control-group">
+      <label for="mouseStrength">Mouse Magnet: </label>
+      <input type="range" id="mouseStrength" min="0" max="100" value="30">
+      <span id="mouseStrengthValue">30</span>
+    </div>
+    <div class="control-group">
+      <button id="cosmicRayBtn">Cosmic Ray Event</button>
+      <button id="collisionBtn">Particle Collision</button>
+    </div>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 900;
+    canvas.height = 600;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    
+    // Animation variables
+    let animationId;
+    let isAnimating = true;
+    let time = 0;
+    
+    // Simulation parameters
+    let magneticFieldStrength = 0.5;
+    let particleRate = 5;
+    let bubbleLifetime = 100;
+    
+    // Mouse magnet
+    let mouseX = cx;
+    let mouseY = cy;
+    let mouseMagnetStrength = 0.3;
+    
+    // Add mouse tracking
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    });
+    
+    // Particle system
+    let particles = [];
+    let bubbles = [];
+    let trackSegments = [];
+    
+    // Particle types
+    const particleTypes = {
+      proton: { 
+        color: '#ff4444', 
+        charge: 1, 
+        mass: 938.3, 
+        name: 'proton',
+        symbol: 'p+',
+        energyScale: 1.5, // Protons are high energy
+        trackDensity: 0.8 // Dense ionization tracks
+      },
+      electron: { 
+        color: '#4444ff', 
+        charge: -1, 
+        mass: 0.511, 
+        name: 'electron',
+        symbol: 'e-',
+        energyScale: 0.8,
+        trackDensity: 0.3 // Light ionization
+      },
+      muon: { 
+        color: '#44ff44', 
+        charge: 1, 
+        mass: 105.7, 
+        name: 'muon',
+        symbol: 'μ±',
+        energyScale: 1.2,
+        trackDensity: 0.4
+      },
+      pion: { 
+        color: '#ffaa00', 
+        charge: 1, 
+        mass: 139.6, 
+        name: 'pion',
+        symbol: 'π±',
+        energyScale: 1.0,
+        trackDensity: 0.6
+      },
+      photon: { 
+        color: '#ff44ff', 
+        charge: 0, 
+        mass: 0, 
+        name: 'photon',
+        symbol: 'γ',
+        energyScale: 2.0, // Photons travel far
+        trackDensity: 0.1 // Very little ionization
+      }
+    };
+    
+    // Particle class
+    class Particle {
+      constructor(x, y, vx, vy, type) {
+        this.x = x;
+        this.y = y;
+        // Scale velocity based on particle type
+        this.vx = vx * type.energyScale;
+        this.vy = vy * type.energyScale;
+        this.type = type;
+        this.energy = Math.sqrt(this.vx * this.vx + this.vy * this.vy) * type.mass;
+        this.track = [{ x: x, y: y, time: time }];
+        this.age = 0;
+        this.active = true;
+        this.charge = type.charge * (Math.random() > 0.5 ? 1 : -1); // Random charge sign
+        if (type.name === 'photon') this.charge = 0;
+        this.initialSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      }
+      
+      update() {
+        if (!this.active) return;
+        
+        this.age++;
+        
+        // Apply magnetic field (Lorentz force)
+        if (this.charge !== 0 && magneticFieldStrength > 0) {
+          const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          const radius = (this.type.mass * speed) / (Math.abs(this.charge) * magneticFieldStrength * 10);
+          
+          // Circular motion in magnetic field
+          const force = speed * speed / radius;
+          const perpX = -this.vy / speed;
+          const perpY = this.vx / speed;
+          
+          this.vx += perpX * force * this.charge * 0.001;
+          this.vy += perpY * force * this.charge * 0.001;
+        }
+        
+        // Mouse magnet effect for charged particles
+        if (this.charge !== 0) {
+          const dxMouse = this.x - mouseX;
+          const dyMouse = this.y - mouseY;
+          const distFromMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+          
+          if (distFromMouse > 0 && distFromMouse < 150) {
+            const magnetForce = mouseMagnetStrength * this.charge / (distFromMouse * distFromMouse + 1);
+            const magnetX = -dxMouse / distFromMouse;
+            const magnetY = -dyMouse / distFromMouse;
+            
+            this.vx += magnetX * magnetForce * 0.01;
+            this.vy += magnetY * magnetForce * 0.01;
+          }
+        }
+        
+        // Subtle attraction toward center to keep activity focused
+        const distFromCenter = Math.sqrt((this.x - cx) * (this.x - cx) + (this.y - cy) * (this.y - cy));
+        if (distFromCenter > 50) {
+          const pullStrength = 0.0005 * (distFromCenter / 100);
+          const pullX = (cx - this.x) / distFromCenter;
+          const pullY = (cy - this.y) / distFromCenter;
+          
+          this.vx += pullX * pullStrength;
+          this.vy += pullY * pullStrength;
+        }
+        
+        // Update position
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Energy loss in medium - much more realistic
+        // High energy particles lose energy more slowly
+        const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        const energyFactor = Math.min(currentSpeed / this.initialSpeed, 1.0);
+        
+        let energyLoss;
+        if (this.type.name === 'proton') {
+          energyLoss = 0.9995; // Protons barely lose energy
+        } else if (this.type.name === 'electron') {
+          energyLoss = 0.998; // Electrons lose energy faster
+        } else if (this.type.name === 'photon') {
+          energyLoss = 1.0; // Photons don't lose energy
+        } else {
+          energyLoss = 0.999; // Other particles
+        }
+        
+        this.vx *= energyLoss;
+        this.vy *= energyLoss;
+        
+        // Record track point
+        if (this.age % 2 === 0) { // Record every other frame
+          this.track.push({ x: this.x, y: this.y, time: time });
+          
+          // Create bubbles along track based on particle type
+          if (Math.random() < this.type.trackDensity) {
+            this.createBubble();
+          }
+        }
+        
+        // Check boundaries
+        if (this.x < 0 || this.x > canvas.width || 
+            this.y < 0 || this.y > canvas.height) {
+          this.active = false;
+        }
+        
+        // Particle decay - much longer lifetimes
+        let decayThreshold;
+        if (this.type.name === 'proton') {
+          decayThreshold = 5000; // Protons are very stable
+        } else if (this.type.name === 'photon') {
+          decayThreshold = Infinity; // Photons don't decay
+        } else if (this.type.name === 'electron') {
+          decayThreshold = 3000; // Electrons are stable
+        } else {
+          decayThreshold = 800 + Math.random() * 600; // Muons and pions decay faster
+        }
+        
+        if (this.age > decayThreshold) {
+          this.decay();
+        }
+        
+        // Speed threshold - much lower for stopping
+        if (Math.sqrt(this.vx * this.vx + this.vy * this.vy) < 0.01) {
+          this.active = false;
+        }
+      }
+      
+      createBubble() {
+        bubbles.push(new Bubble(
+          this.x + (Math.random() - 0.5) * 3,
+          this.y + (Math.random() - 0.5) * 3,
+          this.type.color
+        ));
+      }
+      
+      decay() {
+        // Create decay products
+        if (this.type.name === 'muon') {
+          // Muon -> electron + neutrinos
+          particles.push(new Particle(
+            this.x, this.y,
+            this.vx * 0.3 + (Math.random() - 0.5) * 2,
+            this.vy * 0.3 + (Math.random() - 0.5) * 2,
+            particleTypes.electron
+          ));
+        } else if (this.type.name === 'pion') {
+          // Pion -> muon + neutrino
+          particles.push(new Particle(
+            this.x, this.y,
+            this.vx * 0.7 + (Math.random() - 0.5) * 1,
+            this.vy * 0.7 + (Math.random() - 0.5) * 1,
+            particleTypes.muon
+          ));
+        }
+        
+        this.active = false;
+      }
+      
+      draw() {
+        // Draw track
+        if (this.track.length > 1) {
+          ctx.strokeStyle = this.type.color;
+          ctx.lineWidth = Math.max(0.5, this.type.mass / 500);
+          ctx.globalAlpha = 0.7;
+          
+          ctx.beginPath();
+          ctx.moveTo(this.track[0].x, this.track[0].y);
+          
+          for (let i = 1; i < this.track.length; i++) {
+            ctx.lineTo(this.track[i].x, this.track[i].y);
+          }
+          
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+        
+        // Draw particle
+        if (this.active) {
+          const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          const size = Math.max(1, this.type.mass / 200 + speed * 0.1);
+          
+          // Glow effect
+          const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, size * 3
+          );
+          glow.addColorStop(0, this.type.color);
+          glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, size * 3, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Core
+          ctx.fillStyle = this.type.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    
+    // Bubble class
+    class Bubble {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.growthRate = Math.random() * 0.02 + 0.01;
+        this.life = bubbleLifetime + Math.random() * 50;
+        this.age = 0;
+        this.vx = (Math.random() - 0.5) * 0.1;
+        this.vy = (Math.random() - 0.5) * 0.1 - 0.05; // Slight upward drift
+      }
+      
+      update() {
+        this.age++;
+        this.size += this.growthRate;
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Slow down growth over time
+        this.growthRate *= 0.995;
+        
+        return this.age < this.life;
+      }
+      
+      draw() {
+        const alpha = Math.max(0, 1 - this.age / this.life);
+        
+        // Bubble outline
+        ctx.strokeStyle = `rgba(200, 220, 255, ${alpha * 0.6})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Bubble highlight
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.2})`;
+        ctx.beginPath();
+        ctx.arc(this.x - this.size * 0.3, this.y - this.size * 0.3, this.size * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Event generators
+    function generateCosmicRay() {
+      const x = cx + (Math.random() - 0.5) * canvas.width * 0.6; // More centered
+      const y = 0;
+      const angle = Math.PI * 0.4 + Math.random() * Math.PI * 0.2; // More vertical, aimed at center
+      const speed = 3 + Math.random() * 4;
+      
+      const types = [particleTypes.muon, particleTypes.pion, particleTypes.proton];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      particles.push(new Particle(
+        x, y,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        type
+      ));
+    }
+    
+    function generateCollision() {
+      const x = cx + (Math.random() - 0.5) * 80; // Tighter around center
+      const y = cy + (Math.random() - 0.5) * 80;
+      
+      // Create multiple particles from collision
+      for (let i = 0; i < 3 + Math.random() * 4; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 2.5; // Slightly slower to stay more centered
+        
+        const types = Object.values(particleTypes);
+        const type = types[Math.floor(Math.random() * types.length)];
+        
+        particles.push(new Particle(
+          x, y,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          type
+        ));
+      }
+    }
+    
+    function generateBeamParticles() {
+      if (Math.random() < particleRate / 100) {
+        const x = 0;
+        const y = cy + (Math.random() - 0.5) * 120; // Narrower beam spread
+        const angle = (Math.random() - 0.5) * 0.15; // Tighter beam angle, aimed toward center
+        const speed = 2.5 + Math.random() * 1.5; // More consistent speed
+        
+        const types = [particleTypes.proton, particleTypes.electron, particleTypes.pion];
+        const type = types[Math.floor(Math.random() * types.length)];
+        
+        particles.push(new Particle(
+          x, y,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          type
+        ));
+      }
+    }
+    
+    // Controls
+    const pauseBtn = document.getElementById('pauseBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const magneticField = document.getElementById('magneticField');
+    const magneticFieldValue = document.getElementById('magneticFieldValue');
+    const particleRateSlider = document.getElementById('particleRate');
+    const particleRateValue = document.getElementById('particleRateValue');
+    const bubbleLifeSlider = document.getElementById('bubbleLife');
+    const bubbleLifeValue = document.getElementById('bubbleLifeValue');
+    const cosmicRayBtn = document.getElementById('cosmicRayBtn');
+    const collisionBtn = document.getElementById('collisionBtn');
+    
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+    });
+    
+    clearBtn.addEventListener('click', () => {
+      particles = [];
+      bubbles = [];
+      trackSegments = [];
+    });
+    
+    magneticField.addEventListener('input', () => {
+      magneticFieldStrength = magneticField.value / 100;
+      magneticFieldValue.textContent = magneticField.value;
+    });
+    
+    particleRateSlider.addEventListener('input', () => {
+      particleRate = particleRateSlider.value;
+      particleRateValue.textContent = particleRate;
+    });
+    
+    bubbleLifeSlider.addEventListener('input', () => {
+      bubbleLifetime = bubbleLifeSlider.value;
+      bubbleLifeValue.textContent = bubbleLifetime;
+    });
+    
+    const mouseStrengthSlider = document.getElementById('mouseStrength');
+    const mouseStrengthValue = document.getElementById('mouseStrengthValue');
+    
+    mouseStrengthSlider.addEventListener('input', () => {
+      mouseMagnetStrength = mouseStrengthSlider.value / 100;
+      mouseStrengthValue.textContent = mouseStrengthSlider.value;
+    });
+    
+    cosmicRayBtn.addEventListener('click', generateCosmicRay);
+    collisionBtn.addEventListener('click', generateCollision);
+    
+    // Animation loop
+    function animate() {
+      time++;
+      
+      // Clear with slight fade
+      ctx.fillStyle = 'rgba(0, 0, 34, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Background grid (detection chamber)
+      ctx.strokeStyle = 'rgba(100, 150, 200, 0.1)';
+      ctx.lineWidth = 0.5;
+      
+      for (let x = 50; x < canvas.width; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      
+      for (let y = 50; y < canvas.height; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      
+      // Generate beam particles
+      generateBeamParticles();
+      
+      // Update particles
+      particles = particles.filter(particle => {
+        particle.update();
+        return particle.active || particle.track.length > 0;
+      });
+      
+      // Update bubbles
+      bubbles = bubbles.filter(bubble => bubble.update());
+      
+      // Draw bubbles
+      bubbles.forEach(bubble => bubble.draw());
+      
+      // Draw particles and tracks
+      particles.forEach(particle => particle.draw());
+      
+      // Draw magnetic field indicator
+      if (magneticFieldStrength > 0) {
+        ctx.fillStyle = `rgba(100, 100, 255, ${magneticFieldStrength * 0.3})`;
+        ctx.fillRect(0, 0, canvas.width, 20);
+        ctx.fillStyle = '#aaccff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Magnetic Field: ${(magneticFieldStrength * 2).toFixed(1)} Tesla`, 10, 15);
+      }
+      
+      // Draw mouse magnet indicator
+      if (mouseMagnetStrength > 0) {
+        const gradient = ctx.createRadialGradient(
+          mouseX, mouseY, 0,
+          mouseX, mouseY, 150
+        );
+        gradient.addColorStop(0, `rgba(255, 100, 100, ${mouseMagnetStrength * 0.3})`);
+        gradient.addColorStop(1, 'rgba(255, 100, 100, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 150, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw mouse cursor
+        ctx.strokeStyle = '#ff6464';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#ff6464';
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Continue animation
+      if (isAnimating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+    
+    // Start with some initial particles
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => generateCollision(), i * 1000);
+    }
+    
+    // Start animation
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

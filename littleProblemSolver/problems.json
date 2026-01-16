@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Customer Service Improvement",
+    "description": "Need to improve customer satisfaction scores by 15% in the next quarter.",
+    "priority": "High",
+    "status": "Open"
+  },
+  {
+    "id": 2,
+    "name": "Inventory Management",
+    "description": "Current system leads to stockouts and excess inventory. Need a better approach.",
+    "priority": "Medium",
+    "status": "In Progress"
+  },
+  {
+    "id": 3,
+    "name": "Website Performance",
+    "description": "Website load times are too slow, affecting conversions.",
+    "priority": "High",
+    "status": "Open"
+  }
+]

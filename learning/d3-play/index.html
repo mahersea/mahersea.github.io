@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js Playground</title>
+  <link rel="stylesheet" href="../common.css">
+  <!-- D3.js CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .container {
+      display: flex;
+      height: calc(100vh - 100px);
+      margin-top: 20px;
+    }
+    
+    .sidebar {
+      width: 25%;
+      padding: 20px;
+      border-right: 1px solid var(--primary3);
+      background-color: var(--primary5);
+      border-radius: 8px 0 0 8px;
+    }
+    
+    .visualization {
+      width: 75%;
+      padding: 20px;
+      background-color: var(--bg-color);
+      border-radius: 0 8px 8px 0;
+    }
+    
+    h2 {
+      margin-bottom: 20px;
+      color: var(--text-color);
+    }
+    
+    select {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    svg {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <h1>D3.js Playground</h1>
+  
+  <div class="container">
+    <!-- Sidebar: Controls -->
+    <div class="sidebar">
+      <h2>Controls</h2>
+      <div>
+        <label for="visualization-select">Select Visualization:</label>
+        <select id="visualization-select">
+          <option value="bar">Bar Chart</option>
+          <option value="line">Line Chart</option>
+          <option value="scatter">Scatter Plot</option>
+        </select>
+      </div>
+      <button id="randomize-btn">
+        Randomize Data
+      </button>
+    </div>
+    <!-- Preview: SVG Container -->
+    <div class="visualization">
+      <svg id="chart" width="600" height="400"></svg>
+    </div>
+  </div>
+  
+  <a href="../" class="back-link">Back to Learning Projects</a>
+  
+  <script src="../common.js"></script>
+  <script>
+    // Function to generate a random dataset of 10 points
+    function generateRandomData(numPoints = 10) {
+      return Array.from({ length: numPoints }, (_, i) => ({
+        x: i,
+        y: Math.floor(Math.random() * 100) + 10,
+      }));
+    }
+
+    let data = generateRandomData();
+    let visualizationType = document.getElementById("visualization-select").value;
+
+    // Set up dimensions and margins
+    const svg = d3.select("#chart");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+    // Render visualization based on current selection and data
+    function renderVisualization() {
+      // Clear any previous SVG content
+      svg.selectAll("*").remove();
+
+      // Use theme-aware colors
+      const barColor = document.body.classList.contains('dark-mode') ? "#64B5F6" : "#1E88E5";
+      const lineColor = document.body.classList.contains('dark-mode') ? "#F48FB1" : "#F06292";
+      const scatterColor = document.body.classList.contains('dark-mode') ? "#4DB6AC" : "#009688";
+      const axisColor = document.body.classList.contains('dark-mode') ? "#90A4AE" : "#607D8B";
+
+      if (visualizationType === "bar") {
+        // Bar Chart
+        const xScale = d3.scaleBand()
+          .domain(data.map(d => d.x))
+          .range([margin.left, width - margin.right])
+          .padding(0.1);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        svg.append("g")
+          .attr("fill", barColor)
+          .selectAll("rect")
+          .data(data)
+          .join("rect")
+          .attr("x", d => xScale(d.x))
+          .attr("y", d => yScale(d.y))
+          .attr("height", d => yScale(0) - yScale(d.y))
+          .attr("width", xScale.bandwidth());
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale).tickFormat(d => d))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+
+      } else if (visualizationType === "line") {
+        // Line Chart
+        const xScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.x))
+          .range([margin.left, width - margin.right]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        const line = d3.line()
+          .x(d => xScale(d.x))
+          .y(d => yScale(d.y));
+
+        svg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", lineColor)
+          .attr("stroke-width", 2)
+          .attr("d", line);
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+
+      } else if (visualizationType === "scatter") {
+        // Scatter Plot
+        const xScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.x))
+          .range([margin.left, width - margin.right]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.y)])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        svg.append("g")
+          .selectAll("circle")
+          .data(data)
+          .join("circle")
+          .attr("cx", d => xScale(d.x))
+          .attr("cy", d => yScale(d.y))
+          .attr("r", 5)
+          .attr("fill", scatterColor);
+
+        // X Axis
+        svg.append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(xScale))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+
+        // Y Axis
+        svg.append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(yScale))
+          .attr("font-size", '12px')
+          .attr("color", axisColor);
+      }
+    }
+
+    // Render the initial visualization
+    document.addEventListener('DOMContentLoaded', function() {
+      renderVisualization();
+    });
+
+    // Event listeners for the controls
+    document.getElementById("visualization-select").addEventListener("change", function(e) {
+      visualizationType = e.target.value;
+      renderVisualization();
+    });
+
+    document.getElementById("randomize-btn").addEventListener("click", function() {
+      data = generateRandomData();
+      renderVisualization();
+    });
+    
+    // Re-render when theme changes
+    document.getElementById("themeToggleSwitch").addEventListener("change", function() {
+      setTimeout(renderVisualization, 100); // Small delay to ensure theme has changed
+    });
+  </script>
+</body>
+</html>

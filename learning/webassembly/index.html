@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebAssembly Intro</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 30%;
+      background-color: var(--primary5);
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .canvas-container {
+      flex-grow: 1;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    input {
+      padding: 5px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--primary3);
+    }
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+    hr {
+      margin: 20px 0;
+      border-color: var(--primary3);
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="container">
+    <!-- Left Panel: Controls -->
+    <div class="sidebar">
+      <h1>WebAssembly Intro</h1>
+      <hr>
+      <div id="controls">
+        <label for="inputA">Input A:</label>
+        <input type="number" id="inputA" value="1">
+        <label for="inputB">Input B:</label>
+        <input type="number" id="inputB" value="2">
+        <button id="runButton">Run Add Function</button>
+      </div>
+      <div id="output">
+        <p>Result: <span id="result">?</span></p>
+      </div>
+    </div>
+    <!-- Right Panel: Full-screen Canvas -->
+    <div class="canvas-container">
+      <canvas id="wasmCanvas"></canvas>
+    </div>
+  </div>
+  
+  <a href="../" class="back-link">Back to Learning Projects</a>
+  
+  <script src="../common.js"></script>
+  <script>
+    // A simple WebAssembly module in binary form implementing an "add" function.
+    // The module is defined to take two i32 parameters and return their sum.
+    const wasmCode = new Uint8Array([
+      0x00,0x61,0x73,0x6d, // Magic header "\0asm"
+      0x01,0x00,0x00,0x00, // Version 1
+      // Type section
+      0x01,       // Section code: Type
+      0x07,       // Section length
+      0x01,       // One type
+      0x60,       // Function type indicator
+      0x02,       // Two parameters
+      0x7f,0x7f,  // Both parameters are i32 (0x7f)
+      0x01,       // One result
+      0x7f,       // Result is i32
+      // Function section
+      0x03,       // Section code: Function
+      0x02,       // Section length
+      0x01,       // One function
+      0x00,       // Type index 0
+      // Export section
+      0x07,       // Section code: Export
+      0x07,       // Section length
+      0x01,       // One export
+      0x03,       // String length of export name (3)
+      0x61,0x64,0x64, // "add"
+      0x00,       // Export kind: function
+      0x00,       // Function index: 0
+      // Code section
+      0x0a,       // Section code: Code
+      0x09,       // Section length
+      0x01,       // One function body
+      0x07,       // Body size
+      0x00,       // No local variables
+      0x20,0x00,  // Get first parameter
+      0x20,0x01,  // Get second parameter
+      0x6a,      // i32.add
+      0x0b       // End of function body
+    ]);
+    
+    let wasmInstance = null;
+    // Compile and instantiate the WebAssembly module
+    WebAssembly.instantiate(wasmCode).then(result => {
+      wasmInstance = result.instance;
+      console.log("WebAssembly module loaded.");
+    }).catch(err => {
+      console.error("Error loading WebAssembly module:", err);
+    });
+
+    // Handle the "Run" button click to invoke the WASM add function
+    document.getElementById('runButton').addEventListener('click', () => {
+      if (!wasmInstance) {
+        alert("WASM module is not loaded yet. Please wait.");
+        return;
+      }
+      const a = parseInt(document.getElementById('inputA').value, 10);
+      const b = parseInt(document.getElementById('inputB').value, 10);
+      const result = wasmInstance.exports.add(a, b);
+      document.getElementById('result').textContent = result;
+      
+      // Draw the result on the full-screen canvas
+      const canvas = document.getElementById('wasmCanvas');
+      const ctx = canvas.getContext('2d');
+      // Ensure the canvas matches the display size
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Theme-aware drawing
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      ctx.fillStyle = isDarkMode ? '#ffffff' : '#000000';
+      ctx.font = "48px sans-serif";
+      ctx.fillText("Result: " + result, 50, 100);
+    });
+  </script>
+</body>
+</html>

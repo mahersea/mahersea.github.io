@@ -82,6 +82,16 @@
     .btn-control.active {
       background-color: #3498db;
     }
+    .mute-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: white;
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -96,7 +106,9 @@
       <button id="btn-arrivals" class="btn-control">Arrivals Only</button>
       <button id="btn-departures" class="btn-control">Departures Only</button>
       <button id="btn-toggle-labels" class="btn-control">Toggle Labels</button>
-      <button id="btn-reload" class="btn-control" onclick="window.location.reload();">Relresh</button>
+      <button id="btn-reload" class="btn-control" onclick="window.location.reload();">Refresh</button>
+      <!-- Sound control -->
+      <button id="btn-mute" class="mute-btn" title="Toggle sound">🔇</button>
       <!-- Slider Control for Time Speed -->
       <div class="slider-container" style="display: flex; align-items: center; gap: 10px;">
         <label for="timeSlider" style="margin: 0; color: white;">Time Warp:</label>
@@ -137,6 +149,8 @@
     let showArrivals = true;
     let showDepartures = true;
     let timeMultiplier = 1; // Multiplier for simulation speed (set by slider)
+    let isMuted = true; // Sound is muted by default
+    let pendingPlanes = []; // Planes waiting to be added based on their timestamp
     
     // Flight board arrays
     let arrivalList = [];
@@ -163,6 +177,8 @@
     }
     
     function playNote(frequency) {
+      if (isMuted) return; // Skip playing sound if muted
+      
       let osc = new p5.Oscillator('sine');
       osc.freq(frequency);
       osc.amp(0.3, 0.05); // Quick fade-in for percussive effect
@@ -435,6 +451,11 @@
       setupAirportCoordinates();
       mapCenterX = width / 2;
       mapCenterY = height / 2;
+      
+      // Make sure audio context is initialized
+      if (getAudioContext().state !== 'running') {
+        getAudioContext().suspend();
+      }
     
       document.getElementById('btn-both').addEventListener('click', function() {
         showArrivals = true;
@@ -457,6 +478,16 @@
       document.getElementById('btn-toggle-labels').addEventListener('click', function() {
         showLabels = !showLabels;
         this.classList.toggle('active');
+      });
+      
+      document.getElementById('btn-mute').addEventListener('click', function() {
+        isMuted = !isMuted;
+        this.textContent = isMuted ? '🔇' : '🔊';
+        
+        // Resume audio context if unmuting
+        if (!isMuted && getAudioContext().state !== 'running') {
+          getAudioContext().resume();
+        }
       });
     
       document.getElementById('timeSlider').addEventListener('input', function() {
@@ -533,11 +564,30 @@
       // Remove planes that have fully faded
       planes = planes.filter(plane => plane.opacity > 0);
     
-      drawFlightBoard();
-    
       // Update and draw the simulated clock (projected time based on simulation)
       if (simulationInitialized) {
+        let oldTime = simulatedTime;
         simulatedTime += (deltaTime / 1000) * timeMultiplier;
+        
+        // Check if any pending planes should be added based on the current simulated time
+        if (pendingPlanes.length > 0) {
+          // Check if any planes should be added now based on their timestamps
+          const planesAdded = [];
+          
+          pendingPlanes.forEach((planeData, index) => {
+            // If this plane's time is now at or before our simulated time
+            if (planeData.time <= simulatedTime) {
+              planes.push(new Plane(planeData.flight, planeData.isArrival));
+              planesAdded.push(index);
+            }
+          });
+          
+          // Remove added planes from pending list (in reverse order to not affect indices)
+          for (let i = planesAdded.length - 1; i >= 0; i--) {
+            pendingPlanes.splice(planesAdded[i], 1);
+          }
+        }
+        
         let simulatedDate = new Date(simulatedTime * 1000);
         let clockStr = simulatedDate.toLocaleTimeString('en-US', {
           timeZone: 'America/Chicago',
@@ -551,6 +601,8 @@
         textAlign(RIGHT, TOP);
         text(clockStr, width - 20, 20);
       }
+      
+      drawFlightBoard();
     }
     
     function mousePressed() {
@@ -663,23 +715,41 @@
           simulationStartTime = combinedData[0].time;
           simulatedTime = simulationStartTime;
           simulationInitialized = true;
-        }
-    
-        let delayBetweenPlanes = (totalTime * 1000) / combinedData.length;
-        interval = setInterval(() => {
-          if (planeIndex < combinedData.length) {
-            let item = combinedData[planeIndex];
-            planes.push(new Plane(item.flight, item.isArrival));
-            planeIndex++;
-            console.log('Plane Index:', planeIndex);
-          } else {
-            clearInterval(interval);
+          
+          // Instead of using intervals, put all planes in the pendingPlanes array
+          // and let the draw loop add them when the time is right
+          pendingPlanes = combinedData;
+          
+          // Add a small number of initial planes for visual interest
+          const initialPlaneCount = Math.min(5, combinedData.length);
+          for (let i = 0; i < initialPlaneCount; i++) {
+            let randomIndex = Math.floor(Math.random() * combinedData.length);
+            planes.push(new Plane(combinedData[randomIndex].flight, combinedData[randomIndex].isArrival));
           }
-        }, delayBetweenPlanes);
+        } else {
+          // Fallback if no data available
+          for (let i = 0; i < 5; i++) {
+            planes.push(new Plane(sampleArrivals[i % sampleArrivals.length], true));
+            planes.push(new Plane(sampleDepartures[i % sampleDepartures.length], false));
+          }
+          simulationInitialized = true;
+          simulationStartTime = Date.now() / 1000 - 3600;
+          simulatedTime = simulationStartTime;
+        }
       } catch (error) {
         console.error('Error processing flight data:', error);
         document.getElementById('loading').style.display = 'none';
         document.getElementById('error').style.display = 'block';
+        
+        // Fallback to sample data
+        simulationInitialized = true;
+        simulationStartTime = Date.now() / 1000 - 3600;
+        simulatedTime = simulationStartTime;
+        
+        for (let i = 0; i < 5; i++) {
+          planes.push(new Plane(sampleArrivals[i % sampleArrivals.length], true));
+          planes.push(new Plane(sampleDepartures[i % sampleDepartures.length], false));
+        }
       }
     }
     

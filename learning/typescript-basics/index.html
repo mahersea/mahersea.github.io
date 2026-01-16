@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TypeScript Basics</title>
+  <style>
+    /* Light mode theme variables */
+    :root {
+      --primary1: #1E88E5;
+      --primary2: #42A5F5;
+      --primary3: #90CAF9;
+      --primary4: #64B5F6;
+      --primary5: #BBDEFB;
+      --accent: #F06292;
+      --bg-color: #f5f5f5;
+      --text-color: #212121;
+      --link: rgb(43, 136, 43);
+    }
+    /* Dark mode: alternative palette */
+    body.dark-mode {
+      --primary1: #90CAF9;
+      --primary2: #64B5F6;
+      --primary3: #42A5F5;
+      --primary4: #1E88E5;
+      --primary5: #0D47A1;
+      --accent: #F48FB1;
+      --bg-color: #303030;
+      --text-color: #ffffff;
+      --link: rgb(0, 172, 0);
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      position: relative;
+      font-size: 18px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    /* Standard buttons and select */
+    button, select {
+      font-size: 1rem;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 0 10px 20px 0;
+      border: none;
+      color: var(--text-color);
+      background: linear-gradient(145deg, var(--primary1), var(--primary2));
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+      border-radius: 5px;
+    }
+    /* Grayscale style for dropdown */
+    select {
+      background: linear-gradient(145deg, #888, #ccc);
+    }
+    button:hover, select:hover {
+      opacity: 0.9;
+    }
+    /* Dark/Light Mode Toggle Container (top right) */
+    #themeToggleContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+    /* Toggle switch styles */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+      margin-right: 10px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, #0A237A, #283593);
+      transition: 0.4s;
+      border-radius: 34px;
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: var(--bg-color);
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background: linear-gradient(90deg, #0A237A, #5C6BC0);
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    /* Control panel */
+    #controlPanel {
+      margin-bottom: 20px;
+    }
+    #controlPanel select,
+    #controlPanel button {
+      padding: 5px;
+      margin-right: 10px;
+    }
+    /* Layout for code and explanation sections */
+    #content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      height: calc(100vh - 150px); /* Adjust height to fit within the viewport */
+      overflow: hidden; /* Prevent overflow */
+      box-sizing: border-box;
+    }
+    #codePreview, #topicExplanation {
+      flex: 1 1 45%;
+      padding: 10px;
+      border: 1px solid var(--primary2);
+      overflow: auto;
+      max-height: 400px;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    }
+    /* Align code content to the top */
+    #codePreview {
+      background: #000;
+      color: #00FF00;
+      white-space: pre-wrap;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: flex-start;
+    }
+    #codePreview pre {
+      margin: 0;
+    }
+    #topicExplanation {
+      background: var(--primary5);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      white-space: normal;
+      word-wrap: break-word;
+      padding: 15px;
+    }
+    /* Interactive element styling within code preview */
+    .interactive {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    a {
+      color: var(--primary1);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <h1>TypeScript Basics</h1>
+  <div id="controlPanel">
+    <label for="tsTopic">Select a Topic:</label>
+    <select id="tsTopic">
+      <option value="annotations" selected>Type Annotations</option>
+      <option value="interfaces">Interfaces</option>
+      <option value="classes">Classes</option>
+      <option value="generics">Generics</option>
+      <option value="enums">Enums</option>
+      <option value="functions">Functions</option>
+      <option value="inference">Type Inference</option>
+      <option value="unions">Union Types</option>
+      <option value="intersections">Intersection Types</option>
+      <option value="aliases">Type Aliases</option>
+      <option value="modules">Modules</option>
+      <option value="decorators">Decorators</option>
+    </select>
+    <!-- hide button by default-->
+    <button id="showExample" style="display: none;">Show Example</button>
+  </div>
+  <div id="content">
+    <div id="codePreview">
+      <pre id="tsCode"></pre>
+    </div>
+    <div id="topicExplanation"></div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tsCode = document.getElementById('tsCode');
+      const tsExplanation = document.getElementById('topicExplanation');
+      const tsTopicSelect = document.getElementById('tsTopic');
+      const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+      
+      // Store the current topic for later use.
+      let currentTopic = "annotations";
+
+      // Detailed explanations for each topic.
+      const detailedExplanations = {
+        annotations: `
+<p><strong>Type Annotations</strong> allow you to explicitly specify the types of variables, function parameters, and return values in TypeScript. This provides clarity and helps catch errors early during development.</p>
+<p>For more details, see the <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">Basic Types</a> section of the TypeScript Handbook.</p>
+<p><em>Example:</em> Declaring a variable with type <code>string</code> ensures that only string values can be assigned.</p>`,
+        interfaces: `
+<p><strong>Interfaces</strong> in TypeScript are used to define contracts within your code. They specify the structure that an object should adhere to.</p>
+<p>For more information, check out the <a href="https://www.typescriptlang.org/docs/handbook/interfaces.html" target="_blank">Interfaces</a> section of the Handbook.</p>
+<p><em>Example:</em> An interface can enforce that an object has properties like <code>name</code> and <code>age</code>.</p>`,
+        classes: `
+<p><strong>Classes</strong> provide a blueprint for creating objects with properties and methods, supporting object-oriented programming concepts like inheritance and encapsulation.</p>
+<p>Learn more about classes in the <a href="https://www.typescriptlang.org/docs/handbook/classes.html" target="_blank">Classes</a> section of the Handbook.</p>
+<p><em>Example:</em> A class can have a constructor to initialize properties and methods to operate on them.</p>`,
+        generics: `
+<p><strong>Generics</strong> enable you to create reusable components that work with a variety of types while maintaining type safety.</p>
+<p>See the <a href="https://www.typescriptlang.org/docs/handbook/generics.html" target="_blank">Generics</a> section for in-depth details.</p>
+<p><em>Example:</em> A generic function can accept an argument of any type and return that type.</p>`,
+        enums: `
+<p><strong>Enums</strong> allow you to define a set of named constants. They make your code more readable by giving meaningful names to numeric values.</p>
+<p>For more, visit the <a href="https://www.typescriptlang.org/docs/handbook/enums.html" target="_blank">Enums</a> section.</p>
+<p><em>Example:</em> An enum can represent directions, such as <code>Up</code> and <code>Down</code>.</p>`,
+        functions: `
+<p><strong>Functions</strong> in TypeScript can have type annotations for parameters and return values. This ensures correct usage and type safety.</p>
+<p>Refer to the <a href="https://www.typescriptlang.org/docs/handbook/functions.html" target="_blank">Functions</a> section for more details.</p>
+<p><em>Example:</em> A function that adds two numbers will specify both parameter types and the return type.</p>`,
+        inference: `
+<p><strong>Type Inference</strong> allows TypeScript to automatically determine the type of a variable when an initializer is provided.</p>
+<p>For more, see the <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html#inferring-types" target="_blank">Inferring Types</a> section.</p>
+<p><em>Example:</em> When you write <code>let count = 10;</code>, TypeScript infers that <code>count</code> is a number.</p>`,
+        unions: `
+<p><strong>Union Types</strong> let a variable hold more than one type using the <code>|</code> operator, offering flexibility while preserving type safety.</p>
+<p>See the <a href="https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html" target="_blank">Unions and Intersections</a> section for details.</p>
+<p><em>Example:</em> A function parameter might be a <code>string</code> or a <code>number</code>.</p>`,
+        intersections: `
+<p><strong>Intersection Types</strong> combine multiple types into one. A variable of an intersection type must satisfy all the combined types.</p>
+<p>For more, check the <a href="https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html" target="_blank">Unions and Intersections</a> section.</p>
+<p><em>Example:</em> Combining <code>Person</code> and <code>Employee</code> types to form a new type.</p>`,
+        aliases: `
+<p><strong>Type Aliases</strong> allow you to create a new name for an existing type, which can simplify complex type definitions.</p>
+<p>Learn more at the <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-aliases" target="_blank">Type Aliases</a> section.</p>
+<p><em>Example:</em> Defining <code>type StrOrNum = string | number;</code> to simplify code.</p>`,
+        modules: `
+<p><strong>Modules</strong> help organize your code into separate files. They allow you to export and import functionality between modules.</p>
+<p>For details, see the <a href="https://www.typescriptlang.org/docs/handbook/modules.html" target="_blank">Modules</a> section.</p>
+<p><em>Example:</em> Exporting a function from one file and importing it in another.</p>`,
+        decorators: `
+<p><strong>Decorators</strong> (an experimental feature) provide a way to modify or augment classes and their members at design time.</p>
+<p>Read more in the <a href="https://www.typescriptlang.org/docs/handbook/decorators.html" target="_blank">Decorators</a> section.</p>
+<p><em>Example:</em> A class decorator that seals a class to prevent further modifications.</p>`
+      };
+
+      // Define interactive snippets for each topic.
+      const interactiveTopics = {
+        annotations: `
+<span class="interactive" data-definition="Variable declaration with type annotation">let</span> <span class="interactive" data-definition="Variable name">msg</span> : <span class="interactive" data-definition="The string type">string</span> = <span class="interactive" data-definition="A string literal">"Hello"</span>;
+
+<span class="interactive" data-definition="Function definition with parameter and return types">function</span> <span class="interactive" data-definition="Function name">greet</span> <span class="interactive" data-definition="Parameter 'name' of type string">name: string</span>): <span class="interactive" data-definition="Return type">string</span> {
+  <span class="interactive" data-definition="Return statement">return</span> <span class="interactive" data-definition="Template literal greeting">\`Hi, \${name}\`</span>;
+}
+
+<span class="interactive" data-definition="Interface declaration">interface</span> <span class="interactive" data-definition="Interface name">Person</span> {
+  <span class="interactive" data-definition="Property 'name' of type string">name: string</span>;
+  <span class="interactive" data-definition="Property 'age' of type number">age: number</span>;
+}
+
+<span class="interactive" data-definition="Generic function declaration">function</span> <span class="interactive" data-definition="Generic function name">identity</span>&lt;<span class="interactive" data-definition="Generic type parameter">T</span>&gt;(<span class="interactive" data-definition="Parameter with generic type">arg: T</span>): <span class="interactive" data-definition="Return type">T</span> {
+  <span class="interactive" data-definition="Return the argument">return</span> <span class="interactive" data-definition="Generic parameter reference">arg</span>;
+}`,
+        interfaces: `
+<span class="interactive" data-definition="Interface declaration">interface</span> <span class="interactive" data-definition="Interface name">Person</span> {
+  <span class="interactive" data-definition="Property 'name'">name</span>: <span class="interactive" data-definition="Type string">string</span>;
+  <span class="interactive" data-definition="Property 'age'">age</span>: <span class="interactive" data-definition="Type number">number</span>;
+}`,
+        classes: `
+<span class="interactive" data-definition="Class declaration">class</span> <span class="interactive" data-definition="Class name">Greeter</span> {
+  <span class="interactive" data-definition="Constructor">constructor</span>(<span class="interactive" data-definition="Parameter with type">msg: string</span>) {
+    this.msg = msg;
+  }
+  <span class="interactive" data-definition="Method">greet</span>() {
+    <span class="interactive" data-definition="Return statement">return</span> <span class="interactive" data-definition="Template literal greeting">\`Hi, \${this.msg}\`</span>;
+  }
+}`,
+        generics: `
+<span class="interactive" data-definition="Generic function declaration">function</span> <span class="interactive" data-definition="Function name">identity</span>&lt;<span class="interactive" data-definition="Generic type parameter">T</span>&gt;(<span class="interactive" data-definition="Parameter with generic type">arg: T</span>): <span class="interactive" data-definition="Return type">T</span> {
+  <span class="interactive" data-definition="Return the argument">return</span> <span class="interactive" data-definition="Generic parameter reference">arg</span>;
+}`,
+        enums: `
+<span class="interactive" data-definition="Enum declaration">enum</span> <span class="interactive" data-definition="Enum name">Direction</span> {
+  <span class="interactive" data-definition="Enum member">Up</span>,
+  <span class="interactive" data-definition="Enum member">Down</span>
+}`,
+        functions: `
+<span class="interactive" data-definition="Function declaration">function</span> <span class="interactive" data-definition="Function name">add</span>(<span class="interactive" data-definition="Parameter a">a: number</span>, <span class="interactive" data-definition="Parameter b">b: number</span>): <span class="interactive" data-definition="Return type">number</span> {
+  <span class="interactive" data-definition="Return statement">return</span> a + b;
+}`,
+        inference: `
+<span class="interactive" data-definition="Variable declaration with inference">let</span> <span class="interactive" data-definition="Variable name">count</span> = 10;`,
+        unions: `
+<span class="interactive" data-definition="Type alias with union type">type</span> <span class="interactive" data-definition="Alias name">StrOrNum</span> = <span class="interactive" data-definition="String type">string</span> | <span class="interactive" data-definition="Number type">number</span>;`,
+        intersections: `
+<span class="interactive" data-definition="Intersection type alias">type</span> <span class="interactive" data-definition="Alias name">PersonEmployee</span> = <span class="interactive" data-definition="Interface name">Person</span> & <span class="interactive" data-definition="Interface name">Employee</span>;`,
+        aliases: `
+<span class="interactive" data-definition="Type alias">type</span> <span class="interactive" data-definition="Alias name">StrOrNum</span> = <span class="interactive" data-definition="String type">string</span> | <span class="interactive" data-definition="Number type">number</span>;`,
+        modules: `
+<span class="interactive" data-definition="Module export">export</span> <span class="interactive" data-definition="Function declaration">function</span> <span class="interactive" data-definition="Function name">add</span>(<span class="interactive" data-definition="Parameter a">a: number</span>, <span class="interactive" data-definition="Parameter b">b: number</span>): <span class="interactive" data-definition="Return type">number</span> {
+  <span class="interactive" data-definition="Return statement">return</span> a + b;
+}`,
+        decorators: `
+<span class="interactive" data-definition="Decorator (experimental)">@sealed</span><span class="interactive" data-definition="Class declaration">class</span> <span class="interactive" data-definition="Class name">Example</span> { }`
+      };
+
+      // Function to update the code pane and detailed explanation based on the selected topic.
+      function updateCodeSnippet() {
+        currentTopic = tsTopicSelect.value;
+        const snippet = interactiveTopics[currentTopic] || 
+          `<span class="interactive" data-definition="Default snippet">No snippet available.</span>`;
+        tsCode.innerHTML = snippet;
+        tsExplanation.innerHTML = detailedExplanations[currentTopic] || "No details available.";
+        attachHoverEvents();
+      }
+
+      // Attach mouseover/mouseout events to interactive elements.
+      function attachHoverEvents() {
+        document.querySelectorAll('.interactive').forEach(el => {
+          el.addEventListener('mouseover', function() {
+            el.style.color = "red";
+            tsExplanation.style.fontSize = "18px";
+            tsExplanation.innerHTML = el.getAttribute("data-definition");
+          });
+          el.addEventListener('mouseout', function() {
+            el.style.color = "";
+            tsExplanation.innerHTML = detailedExplanations[currentTopic] || "";
+          });
+        });
+      }
+      
+      // Update snippet on drop-down change and on "Show Example" button click.
+      tsTopicSelect.addEventListener('change', updateCodeSnippet);
+      document.getElementById('showExample').addEventListener('click', updateCodeSnippet);
+
+      // Set default snippet (using "annotations" as default).
+      updateCodeSnippet();
+
+      // Toggle dark/light mode functionality.
+      themeToggleSwitch.addEventListener('change', function() {
+        document.body.classList.toggle('dark-mode');
+      });
+    });
+  </script>
+</body>
+</html>

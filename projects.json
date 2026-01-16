@@ -1,436 +1,1816 @@
 {
+  "lastUpdated": "2025-06-23T03:06:59.865Z",
+  "totalProjects": 88,
+  "summary": {
+    "byStatus": {
+      "ready": 35,
+      "needs-docs": 24,
+      "needs-thumbnail": 26,
+      "incomplete": 3
+    },
+    "byCategory": {
+      "Experiments": 57,
+      "Web Tools": 5,
+      "Small Games": 7,
+      "Mathematical Expressions": 8,
+      "Visualizations": 9,
+      "Tools": 2
+    },
+    "byTechnology": {
+      "HTML": 86,
+      "JavaScript": 13,
+      "CSS": 3,
+      "Node.js": 1
+    }
+  },
   "projects": [
     {
-      "id": "astro-claus",
-      "title": "Astro-Claus",
-      "description": "Astro-Claus is a festive space-themed game where you navigate through a starry sky, collecting gifts and avoiding obstacles.",
-      "image": "images/astro-claus.png",
-      "link": "/astro-claus/",
-      "thumbnail": "images/astro-claus_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "practice-exam",
-      "title": "Practice Exam",
-      "description": "A practice exam format, designed to help users prepare for the any test with a variety of questions and explanations.",
-      "image": "images/exam.png",
-      "link": "/aws-practice/",
-      "thumbnail": "images/exam_thumb.png",
-      "category": "Tools"
-    },
-    {
-      "id": "drifting-cube",
-      "title": "Drifting Cube",
-      "description": "A 3D simulation where a cube spins a virtual environment with 6 spacial vectors, showcasing basic physics and graphics.",
-      "image": "images/cube.png",
+      "id": "cube",
+      "title": "3D Interactive Cube with Nodes and Vectors",
+      "directory": "cube",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "cube.html",
+        "cube.js",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Experiments",
+      "description": "A Three.js visualization showing a 3D cube with dynamic nodes and connecting vectors.",
       "link": "cube",
-      "thumbnail": "images/cube_thumb.png",
-      "category": "Medium Sized Games"
+      "thumbnail": "images/cube_thumb.png"
     },
     {
-      "id": "flowing-pix",
-      "title": "Flowing Pixels",
-      "description": "An interactive art piece where pixels flow, creating a visual background for use in other contexts.",
-      "image": "images/pixel-flow.png",
-      "link": "flowing-pix",
-      "thumbnail": "images/pixel-flow_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "geojson",
-      "title": "GeoJSON",
-      "description": "A simple Leaflet application that visualizes GeoJSON data on a map, allowing users to view GeoJSON geographical information in a graphical format.",
-      "image": "images/geojson.png",
-      "link": "geojson/leaflet",
-      "thumbnail": "images/geojson_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "gridout",
-      "title": "Grid Out",
-      "description": "A grid-based game where the user can fidget with colliding squares",
-      "image": "images/pixels.png",
-      "link": "gridout",
-      "thumbnail": "images/pixels_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "a*-pathfinding",
-      "title": "A* Pathfinding",
-      "description": "An implementation of the A* pathfinding algorithm, using AI output to demonstrate how each LLM creates a solution to find the shortest path in a grid-based environment.",
-      "image": "images/pathfinding.png",
+      "id": "pathfinding",
+      "title": "AI Pathfinding Experiments",
+      "directory": "pathfinding",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "app.js",
+        "claude-output.html",
+        "index.html",
+        "openai-output-large.html",
+        "openai-output.html",
+        "pathfinder-medium.png",
+        "pathfinding.png",
+        "styles.css"
+      ],
+      "technologies": [
+        "JavaScript",
+        "HTML",
+        "CSS"
+      ],
+      "category": "Experiments",
+      "description": "A comparative demonstration of pathfinding implementations using the A* algorithm, created by different AI systems.",
       "link": "pathfinding",
-      "thumbnail": "images/pathfinding_thumb.png",
-      "category": "Tools"
-    },
-    {
-      "id": "planes",
-      "title": "Planes",
-      "description": "A artistic representation of an API of airplane arrivals to Minneapolis/Saint Paul airport (MSP), showcasing basic physics and graphics.",
-      "image": "images/airplane.png",
-      "link": "planes",
-      "thumbnail": "images/airplane_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "charge",
-      "title": "Charge",
-      "description": "An initial attempt to model capacitor 'charge' and 'discharge'",
-      "image": "images/charge.png",
-      "link": "charge",
-      "thumbnail": "images/charge_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "resume",
-      "title": "Resume MarkDown Interpreter",
-      "description": "A simple application that interprets a Markdown formatted resume and displays it in an HTML format.",
-      "image": "images/resume.png",
-      "link": "resume",
-      "thumbnail": "images/resume_thumb.png",
-      "category": "Tools"
-    },
-    {
-      "id": "sound-matrix",
-      "title": "Sound Matrix",
-      "description": "An interactive sound matrix where users can click on squares to generate tones with a grid-based interface.",
-      "image": "images/sounds.png",
-      "link": "sounds",
-      "thumbnail": "images/sounds_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "snake-game",
-      "title": "Snake Game",
-      "description": "A classic snake game where users control the snake to eat food and grow in length, avoiding collisions with itself.",
-      "image": "images/stribby-flock.png",
-      "link": "stribby-flock",
-      "thumbnail": "images/stribby-flock_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "sound-words",
-      "title": "Sound Word Generator",
-      "description": "A simple application that generates random words from a predefined list, useful for brainstorming or creative writing.",
-      "image": "images/words.png",
-      "link": "words",
-      "thumbnail": "images/words_thumb.png",
-      "category": "Tools"
-    },
-    {
-      "id": "waves",
-      "title": "Waveform Examples",
-      "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
-      "image": "images/waves.png",
-      "link": "waves",
-      "thumbnail": "images/waves_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "exlosion",
-      "title": "Explosion Module",
-      "description": "An example of an explosion simulation, showcasing basic collision physics and graphics.",
-      "image": "images/explosion.png",
-      "link": "explosion",
-      "thumbnail": "images/explosion_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "graph-math",
-      "title": "Graph-Math",
-      "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
-      "image": "images/graph-math.png",
-      "link": "graph-math",
-      "thumbnail": "images/graph-math_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "project17",
-      "title": "Irrrational Pi",
-      "description": "Animated Visualization of z(θ) = e^iθ + e^iπθ.",
-      "image": "images/irrational-pi.png",
-      "link": "irrational-pi",
-      "thumbnail": "images/irrational-pi_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "flocking",
-      "title": "Flocking Simulation",
-      "description": "A simulation of flocking behavior, where entities move together in a group, showcasing flocking physics.",
-      "image": "images/boids.png",
-      "link": "boids",
-      "thumbnail": "images/boids_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "capacitor-charge",
-      "title": "Capacitor Charge",
-      "description": "A simulation of capacitor charge and discharge, demonstrating basic electrical principles.",
-      "image": "images/charge.png",
-      "link": "charge",
-      "thumbnail": "images/charge_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "double-pendulum",
-      "title": "Double Pendulum",
-      "description": "A simulation of a double pendulum, showcasing chaotic motion and basic physics principles.",
-      "image": "images/double-pendulum.png",
-      "link": "double-pendulum",
-      "thumbnail": "images/double-pendulum_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "euler-identity",
-      "title": "Euler's Identity",
-      "description": "An animated visualization of Euler's Identity, showcasing the beauty of mathematics through animation.",
-      "image": "images/eulers-identity.png",
-      "link": "eulers-identity",
-      "thumbnail": "images/eulers-identity_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "fourier-transform",
-      "title": "Fourier Transform",
-      "description": "An animated visualization of the Fourier Transform, showcasing the transformation of signals from time domain to frequency domain.",
-      "image": "images/fourier-transform.png",
-      "link": "fourier-transform",
-      "thumbnail": "images/fourier-transform_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "lorenz-attractor",
-      "title": "Lorenz Attractor",
-      "description": "An animated visualization of the Lorenz Attractor, showcasing chaotic behavior in a three-dimensional space.",
-      "image": "images/lorenz-attractor.png",
-      "link": "lorenz-attractor",
-      "thumbnail": "images/lorenz-attractor_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "lissajous",
-      "title": "Lissajous Curve",
-      "description": "An animated visualization of the Lissajous Curve, showcasing complex harmonic motion.",
-      "image": "images/lissajous.png",
-      "link": "lissajous",
-      "thumbnail": "images/lissajous_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "mandelbrot",
-      "title": "Mandelbrot Set",
-      "description": "An staic visualization of the Mandelbrot Set, showcasing the beauty of fractals and complex numbers.",
-      "image": "images/mandelbrot.png",
-      "link": "mandelbrot",
-      "thumbnail": "images/mandelbrot_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "spriograph",
-      "title": "Spirograph",
-      "description": "An animated visualization of a Spirograph, showcasing intricate geometric patterns.",
-      "image": "images/spirograph.png",
-      "link": "spirograph",
-      "thumbnail": "images/spirograph_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "wave-interference",
-      "title": "Wave Interference",
-      "description": "An animated visualization of wave interference, showcasing the superposition of waves and their resulting patterns.",
-      "image": "images/wave-interference.png",
-      "link": "wave-interference",
-      "thumbnail": "images/wave-interference_thumb.png",
-      "category": "Mathematical Expressions"
-    },
-    {
-      "id": "solar-system",
-      "title": "Solar System",
-      "description": "An animated visualization of the solar system, simulating the orbits of planets and comets around the sun.",
-      "image": "images/solar-system.png",
-      "link": "solar-system",
-      "thumbnail": "images/solar-system_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "pendulum-wave",
-      "title": "Pendulum Wave",
-      "description": "An animated visualization of a pendulum wave, showcasing the synchronized motion of multiple pendulums.",
-      "image": "images/pendulum-wave.png",
-      "link": "pendulum-wave",
-      "thumbnail": "images/pendulum-wave_thumb.png",
-      "category": "Visualizations"
-    },
-    {
-      "id": "foerster",
-      "title": "Foerster Resonance",
-      "description": "An animated visualization of Foerster Resonance, showcasing energy transfer between molecules.",
-      "image": "images/foerster.png",
-      "link": "foerster",
-      "thumbnail": "images/foerster_thumb.png",
-      "category": "Mathematical Expressions"
+      "thumbnail": "images/pathfinding_thumb.png"
     },
     {
       "id": "align-center",
       "title": "Align Center",
+      "directory": "align-center",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Web Tools",
       "description": "A simple tool to center-align text or other elements within a given container.",
       "link": "align-center",
-      "thumbnail": "images/align-center_thumb.png",
-      "category": "Web Tools"
+      "thumbnail": "images/align-center_thumb.png"
+    },
+    {
+      "id": "ant-farm-simulator",
+      "title": "Ant Farm Simulator",
+      "directory": "ant-farm-simulator",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "ant-farm-simulator"
     },
     {
       "id": "asteroids",
       "title": "Asteroids",
+      "directory": "asteroids",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html",
+        "prompt.md"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Small Games",
       "description": "A classic arcade game where players control a spaceship to destroy asteroids and avoid collisions.",
       "link": "asteroids",
-      "thumbnail": "images/asteroids_thumb.png",
-      "category": "Small Games"
+      "thumbnail": "images/asteroids_thumb.png"
+    },
+    {
+      "id": "astro-claus",
+      "title": "Astro-Claus",
+      "directory": "astro-claus",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        ".DS_Store",
+        "README.md",
+        "game.html",
+        "index.html",
+        "intro.html",
+        "prize.html",
+        "prize.js",
+        "script.js",
+        "scrollingText.js",
+        "style.css"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript",
+        "CSS"
+      ],
+      "category": "Small Games",
+      "description": "Astro-Claus is a festive space-themed game where you navigate through a starry sky, collecting gifts and avoiding obstacles.",
+      "link": "/astro-claus/",
+      "thumbnail": "images/astro-claus_thumb.png",
+      "image": "images/astro-claus.png",
+      "type": "static"
+    },
+    {
+      "id": "aurora-borealis",
+      "title": "Aurora Borealis",
+      "directory": "aurora-borealis",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "aurora-borealis"
+    },
+    {
+      "id": "aurora-plasma",
+      "title": "Aurora Plasma",
+      "directory": "aurora-plasma",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "aurora-plasma"
+    },
+    {
+      "id": "boids",
+      "title": "Boids Simulation",
+      "directory": "boids",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive implementation of Craig Reynolds' Boids algorithm, demonstrating emergent flocking behavior through simple rules.",
+      "link": "boids",
+      "thumbnail": "images/boids_thumb.png"
+    },
+    {
+      "id": "bubble-chamber",
+      "title": "Bubble Chamber",
+      "directory": "bubble-chamber",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "bubble-chamber"
+    },
+    {
+      "id": "cat-app",
+      "title": "Cat Behavior Simulation",
+      "directory": "cat-app",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive simulation of feline behavior patterns in a home environment, visualizing how cats interact with their surroundings over time.",
+      "link": "cat-app"
+    },
+    {
+      "id": "snake",
+      "title": "Caterpillar Game",
+      "directory": "snake",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "body.png",
+        "bum.png",
+        "head.png",
+        "index.html",
+        "server.js"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Experiments",
+      "description": "A creative take on the classic snake game, featuring a segmented caterpillar with overlapping body parts and image-based rendering.",
+      "link": "snake"
+    },
+    {
+      "id": "charge",
+      "title": "Charge",
+      "directory": "charge",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An initial attempt to model capacitor 'charge' and 'discharge'",
+      "link": "charge",
+      "thumbnail": "images/charge_thumb.png",
+      "image": "images/charge.png"
     },
     {
       "id": "chart-explorer",
       "title": "Chart Explorer",
+      "directory": "chart-explorer",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "prompt.md"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Web Tools",
       "description": "An interactive tool to explore different types of charts and visualize data in various formats.",
       "link": "chart-explorer",
-      "thumbnail": "images/chart_thumb.png",
-      "category": "Web Tools"
+      "thumbnail": "images/chart_thumb.png"
     },
     {
-      "id": "d3",
-      "title": "D3 Visualizations",
-      "description": "A collection of interactive visualizations using D3.js, showcasing data in dynamic and engaging ways.",
-      "link": "d3-play",
-      "thumbnail": "images/d3_thumb.png",
-      "category": "Web Tools"
+      "id": "colors",
+      "title": "Color Theory Explorer",
+      "directory": "colors",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive visualization tool for learning about color theory and experimenting with different color harmonies on a dynamic color wheel.",
+      "link": "colors"
+    },
+    {
+      "id": "combustion",
+      "title": "Combustion",
+      "directory": "combustion",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "combustion"
+    },
+    {
+      "id": "combustion-chamber",
+      "title": "Combustion Chamber",
+      "directory": "combustion-chamber",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "combustion-chamber"
+    },
+    {
+      "id": "crossword",
+      "title": "Crossword",
+      "directory": "crossword",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "stories.json"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "crossword"
+    },
+    {
+      "id": "d3-play",
+      "title": "D3.js Visualization Playground",
+      "directory": "d3-play",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive exploration of data visualization techniques using the D3.js library.",
+      "link": "d3-play"
+    },
+    {
+      "id": "double-pendulum",
+      "title": "Double Pendulum",
+      "directory": "double-pendulum",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "A simulation of a double pendulum, showcasing chaotic motion and basic physics principles.",
+      "link": "double-pendulum",
+      "thumbnail": "images/double-pendulum_thumb.png",
+      "image": "images/double-pendulum.png"
+    },
+    {
+      "id": "drone-attack",
+      "title": "Drone Bomber Game",
+      "directory": "drone-attack",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A canvas-based scrolling game with a top-down view of a battlefield where players control a drone.",
+      "link": "drone-attack"
+    },
+    {
+      "id": "engine-performance",
+      "title": "Engine Performance",
+      "directory": "engine-performance",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "engine-performance"
+    },
+    {
+      "id": "eulers-identity",
+      "title": "Euler's Identity Visualizer",
+      "directory": "eulers-identity",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive mathematical visualization exploring the beautiful relationship in Euler's identity: e^(i�) + 1 = 0.",
+      "link": "eulers-identity",
+      "thumbnail": "images/eulers-identity_thumb.png"
+    },
+    {
+      "id": "test-practice",
+      "title": "Example AWS Practice Exam",
+      "directory": "test-practice",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "questions.json"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive practice test for the AWS Certified Cloud Practitioner exam with automated scoring and feedback.",
+      "link": "test-practice"
     },
     {
       "id": "flexbox",
       "title": "Flexbox Playground",
+      "directory": "flexbox",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Web Tools",
       "description": "A playground for experimenting with CSS Flexbox, allowing users to create flexible and responsive layouts.",
       "link": "flexbox-play",
-      "thumbnail": "images/flex_thumb.png",
-      "category": "Web Tools"
+      "thumbnail": "images/flex_thumb.png"
     },
     {
-      "id": "graphql",
-      "title": "GraphQL Playground",
-      "description": "A playground for experimenting with GraphQL queries and mutations, allowing users to interact with a GraphQL API.",
-      "link": "graphql-play",
-      "thumbnail": "images/graphql_thumb.png",
-      "category": "Web Tools"
+      "id": "flowing-pix",
+      "title": "Flowing Pixels",
+      "directory": "flowing-pix",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "An interactive art piece where pixels flow, creating a visual background for use in other contexts.",
+      "link": "flowing-pix",
+      "image": "images/pixel-flow.png",
+      "thumbnail": "images/pixel-flow_thumb.png"
     },
     {
-      "id": "gridout.v2",
-      "title": "Grid Out v2",
-      "description": "An enhanced version of a grid-based game where users can interact with colliding block in new ways.",
-      "link": "gridout.v2",
-      "thumbnail": "images/gridout_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "puzzle",
-      "title": "Puzzle Game",
-      "description": "A puzzle game where users can solve various puzzles by arranging pieces in the correct order.",
-      "link": "puzzle",
-      "thumbnail": "images/puzzle_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "sudoku",
-      "title": "Sudoku",
-      "description": "A classic Sudoku game where users can fill in numbers to complete the grid according to Sudoku rules.",
-      "link": "sudoku",
-      "thumbnail": "images/sudoku_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "tic-tac-toe",
-      "title": "Tic Tac Toe",
-      "description": "A simple Tic Tac Toe game where users can play against the computer or another player.",
-      "link": "tic-tac-toe",
-      "thumbnail": "images/tic-tac-toe_thumb.png",
-      "category": "Small Games"
-    },
-    {
-      "id": "two-js",
-      "title": "Two.js Library Explorer ",
-      "description": "An interactive playground for exploring the Two.js library, allowing users to create and manipulate 2D shapes and animations.",
-      "link": "two-play",
-      "thumbnail": "images/two-js_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "typography",
-      "title": "Typography Playground",
-      "description": "A playground for experimenting with different typography styles and layouts, allowing users to create visually appealing text designs.",
-      "link": "typography",
-      "thumbnail": "images/typography_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "webassembly-play",
-      "title": "WebAssembly Intro",
-      "description": "A playground for experimenting with WebAssembly, allowing users to run and test WebAssembly modules in the browser.",
-      "link": "webassembly-play",
-      "thumbnail": "images/webassembly_thumb.png",
-      "category": "Web Tools"
-    },
-    {
-      "id": "webgl-tanks",
-      "title": "WebGL Tanks",
-      "description": "A 3D tank battle game using WebGL, where players can control tanks and engage in battles in a virtual environment.",
-      "link": "webgl-tank-play",
-      "thumbnail": "images/webgl-tanks_thumb.png",
-      "category": "Small Games"
+      "id": "fluid-art-generator",
+      "title": "Fluid Art Generator",
+      "directory": "fluid-art-generator",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "fluid-art-generator"
     },
     {
       "id": "fm-radio",
       "title": "FM Radio",
+      "directory": "fm-radio",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
       "description": "A simple FM radio wave simulation",
       "link": "fm-radio",
-      "thumbnail": "images/fm-radio_thumb.png",
-      "category": "Visualizations"
+      "thumbnail": "images/fm-radio_thumb.png"
+    },
+    {
+      "id": "foerster",
+      "title": "Foerster Resonance",
+      "directory": "foerster",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An animated visualization of Foerster Resonance, showcasing energy transfer between molecules.",
+      "link": "foerster",
+      "thumbnail": "images/foerster_thumb.png",
+      "image": "images/foerster.png"
+    },
+    {
+      "id": "foucault-pendulum",
+      "title": "Foucault Pendulum",
+      "directory": "foucault-pendulum",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "math physics",
+      "link": "foucault-pendulum"
+    },
+    {
+      "id": "fourier-transform",
+      "title": "Fourier Transform",
+      "directory": "fourier-transform",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An animated visualization of the Fourier Transform, showcasing the transformation of signals from time domain to frequency domain.",
+      "link": "fourier-transform",
+      "thumbnail": "images/fourier-transform_thumb.png",
+      "image": "images/fourier-transform.png"
+    },
+    {
+      "id": "geojson",
+      "title": "GeoJSON",
+      "directory": "geojson",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        ".DS_Store",
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "A simple Leaflet application that visualizes GeoJSON data on a map, allowing users to view GeoJSON geographical information in a graphical format.",
+      "link": "geojson/leaflet",
+      "thumbnail": "images/geojson_thumb.png",
+      "image": "images/geojson.png"
+    },
+    {
+      "id": "graph-math",
+      "title": "Graph-Math",
+      "directory": "graph-math",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "A simple interface that allows users to play with nodes and edges (graph theory).",
+      "link": "graph-math",
+      "thumbnail": "images/graph-math_thumb.png",
+      "image": "images/graph-math.png"
+    },
+    {
+      "id": "graphql-explorer",
+      "title": "GraphQL - Exploring Countries",
+      "directory": "graphql-explorer",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "prompt.md"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive single-page application for exploring GraphQL queries against the public Countries API.",
+      "link": "graphql-explorer"
+    },
+    {
+      "id": "gridout",
+      "title": "Grid Out",
+      "directory": "gridout",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "grid.js",
+        "index.html",
+        "index_original.html",
+        "script.js"
+      ],
+      "technologies": [
+        "JavaScript",
+        "HTML"
+      ],
+      "category": "Small Games",
+      "description": "A grid-based game where the user can fidget with colliding squares",
+      "link": "gridout",
+      "thumbnail": "images/pixels_thumb.png",
+      "image": "images/pixels.png"
+    },
+    {
+      "id": "gridout.v2",
+      "title": "Grid Out v2",
+      "directory": "gridout.v2",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Small Games",
+      "description": "An enhanced version of a grid-based game where users can interact with colliding block in new ways.",
+      "link": "gridout.v2",
+      "thumbnail": "images/gridout_thumb.png"
+    },
+    {
+      "id": "spirograph",
+      "title": "Hypotrochoid (Spirograph) Visualization",
+      "directory": "spirograph",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive simulation of spirograph patterns through mathematical hypotrochoid curves.",
+      "link": "spirograph",
+      "thumbnail": "images/spirograph_thumb.png"
+    },
+    {
+      "id": "sounds",
+      "title": "Interactive Sound Buttons with Pitch Variation",
+      "directory": "sounds",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A musical exploration tool with color-coded sound buttons featuring progressively deeper pitch and brightness variations.",
+      "link": "sounds",
+      "thumbnail": "images/sounds_thumb.png"
+    },
+    {
+      "id": "internet-protocols",
+      "title": "Internet Protocols Learning Console",
+      "directory": "internet-protocols",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive learning resource for exploring internet protocols, HTTP/HTTPS concepts, and API testing tools with a clean, accessible interface.",
+      "link": "internet-protocols"
+    },
+    {
+      "id": "irrational-pi",
+      "title": "Irrational Pi Visualization",
+      "directory": "irrational-pi",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An animated visualization of the complex function z(�) = e^(i�) + e^(i��), showing beautiful patterns derived from �.",
+      "link": "irrational-pi",
+      "thumbnail": "images/irrational-pi_thumb.png"
+    },
+    {
+      "id": "jet-engine",
+      "title": "Jet Engine",
+      "directory": "jet-engine",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "jet-engine"
+    },
+    {
+      "id": "learning",
+      "title": "Learning",
+      "directory": "learning",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "common.css",
+        "common.js",
+        "index.html",
+        "project-template.html"
+      ],
+      "technologies": [
+        "CSS",
+        "JavaScript",
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "learning"
+    },
+    {
+      "id": "lightning",
+      "title": "Lightning",
+      "directory": "lightning",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "mountain-clouds-svg-simple.svg",
+        "mountain-clouds-svg.svg"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "lightning"
+    },
+    {
+      "id": "lightning-claude",
+      "title": "Lightning Claude",
+      "directory": "lightning-claude",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "mountain-clouds-svg.svg"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "lightning-claude"
+    },
+    {
+      "id": "lightning-js",
+      "title": "Lightning Js",
+      "directory": "lightning-js",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "lightning-js"
+    },
+    {
+      "id": "lightning-mithril",
+      "title": "Lightning Mithril",
+      "directory": "lightning-mithril",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "lightning-mithril"
+    },
+    {
+      "id": "lissajous",
+      "title": "Lissajous Curve",
+      "directory": "lissajous",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An animated visualization of the Lissajous Curve, showcasing complex harmonic motion.",
+      "link": "lissajous",
+      "thumbnail": "images/lissajous_thumb.png",
+      "image": "images/lissajous.png"
+    },
+    {
+      "id": "littleProblemSolver",
+      "title": "littlePathMan",
+      "directory": "littleProblemSolver",
+      "status": "incomplete",
+      "hasIndex": false,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "chat.json",
+        "package-lock.json",
+        "package.json",
+        "problems.json",
+        "projects.json",
+        "server.js",
+        "tasks.json",
+        "users.json"
+      ],
+      "technologies": [
+        "Node.js",
+        "JavaScript"
+      ],
+      "category": "Experiments",
+      "description": "A web application for problem solving, path planning, and step management with AI assistance.",
+      "link": "littleProblemSolver"
+    },
+    {
+      "id": "lorenz-attractor",
+      "title": "Lorenz Attractor",
+      "directory": "lorenz-attractor",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "An animated visualization of the Lorenz Attractor, showcasing chaotic behavior in a three-dimensional space.",
+      "link": "lorenz-attractor",
+      "thumbnail": "images/lorenz-attractor_thumb.png",
+      "image": "images/lorenz-attractor.png"
+    },
+    {
+      "id": "mandelbrot",
+      "title": "Mandelbrot Set",
+      "directory": "mandelbrot",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An staic visualization of the Mandelbrot Set, showcasing the beauty of fractals and complex numbers.",
+      "link": "mandelbrot",
+      "thumbnail": "images/mandelbrot_thumb.png",
+      "image": "images/mandelbrot.png"
+    },
+    {
+      "id": "littleBigSound",
+      "title": "Multi-Quadrant Explosion Simulation with Raga Tones",
+      "directory": "littleBigSound",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "raga.html",
+        "western.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive audio-visual experience combining particle explosions with musical elements from traditional ragas.",
+      "link": "littleBigSound"
+    },
+    {
+      "id": "geo-news",
+      "title": "News Events Map",
+      "directory": "geo-news",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "events.js",
+        "index.html",
+        "map.js"
+      ],
+      "technologies": [
+        "JavaScript",
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive geographic visualization of news events with filtering capabilities.",
+      "link": "geo-news"
+    },
+    {
+      "id": "ohms-law",
+      "title": "Ohm's Law Interactive Visualizer",
+      "directory": "ohms-law",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An advanced interactive visualization tool for exploring the relationships between voltage, current, resistance, and power in electrical circuits.",
+      "link": "ohms-law"
+    },
+    {
+      "id": "explosion",
+      "title": "Particle Explosion Effect Module",
+      "directory": "explosion",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        ".DS_Store",
+        "README.md",
+        "explosion-module.js",
+        "index.html",
+        "pixel.html"
+      ],
+      "technologies": [
+        "JavaScript",
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A reusable JavaScript module for creating dynamic particle explosion animations.",
+      "link": "explosion",
+      "thumbnail": "images/explosion_thumb.png"
+    },
+    {
+      "id": "pendulum-wave",
+      "title": "Pendulum Wave",
+      "directory": "pendulum-wave",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "An animated visualization of a pendulum wave, showcasing the synchronized motion of multiple pendulums.",
+      "link": "pendulum-wave",
+      "thumbnail": "images/pendulum-wave_thumb.png",
+      "image": "images/pendulum-wave.png"
+    },
+    {
+      "id": "physarum-simulation",
+      "title": "Physarum Simulation",
+      "directory": "physarum-simulation",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "physarum-simulation"
+    },
+    {
+      "id": "planes",
+      "title": "Planes",
+      "directory": "planes",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "CLAUDE.md",
+        "README.md",
+        "airports.json",
+        "index-v1.html",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "A artistic representation of an API of airplane arrivals to Minneapolis/Saint Paul airport (MSP), showcasing basic physics and graphics.",
+      "link": "planes",
+      "image": "images/airplane.png",
+      "thumbnail": "images/airplane_thumb.png"
+    },
+    {
+      "id": "plasma-physics",
+      "title": "Plasma Physics",
+      "directory": "plasma-physics",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "plasma-physics"
+    },
+    {
+      "id": "putt",
+      "title": "Putt Golf Game",
+      "directory": "putt",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A minimalist, physics-based mini golf simulation with simple but engaging gameplay mechanics.",
+      "link": "putt"
+    },
+    {
+      "id": "puzzle",
+      "title": "Puzzle Game",
+      "directory": "puzzle",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Small Games",
+      "description": "A puzzle game where users can solve various puzzles by arranging pieces in the correct order.",
+      "link": "puzzle",
+      "thumbnail": "images/puzzle_thumb.png"
+    },
+    {
+      "id": "reaction-diffusion",
+      "title": "Reaction Diffusion",
+      "directory": "reaction-diffusion",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "reaction-diffusion"
+    },
+    {
+      "id": "regex-explorer",
+      "title": "Regex Explorer",
+      "directory": "regex-explorer",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "parsing-html-using-regex.jpg"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive tool for exploring, testing, and understanding regular expressions with practical examples.",
+      "link": "regex-explorer"
+    },
+    {
+      "id": "tracy-project",
+      "title": "Responsive Thumbnails with Arrows",
+      "directory": "tracy-project",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive thumbnail gallery demonstration with SVG arrows connecting thumbnails to a central element, maintaining responsive design at different screen sizes.",
+      "link": "tracy-project"
+    },
+    {
+      "id": "resume",
+      "title": "Resume MarkDown Interpreter",
+      "directory": "resume",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html",
+        "resume.md"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Tools",
+      "description": "A simple application that interprets a Markdown formatted resume and displays it in an HTML format.",
+      "link": "resume",
+      "thumbnail": "images/resume_thumb.png",
+      "image": "images/resume.png"
+    },
+    {
+      "id": "retro-racer",
+      "title": "Retro Racer - Best of 11",
+      "directory": "retro-racer",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A retro-styled light cycle racing game featuring player versus computer in a best-of-11 series with progressive difficulty.",
+      "link": "retro-racer",
+      "thumbnail": "images/retro-racer_thumb.png"
+    },
+    {
+      "id": "radio",
+      "title": "Simple Sound Player",
+      "directory": "radio",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A straightforward web-based sound player for looping and testing audio samples.",
+      "link": "radio"
     },
     {
       "id": "smith-chart",
       "title": "Smith Chart",
+      "directory": "smith-chart",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
       "description": "A visualization of the Smith Chart, used in electrical engineering to represent complex impedance.",
       "link": "smith-chart",
-      "thumbnail": "images/smith-chart_thumb.png",
-      "category": "Visualizations"
-    }
-  ],
-  "not-ready": [
-    {
-      "id": "color-picker",
-      "title": "Color Picker",
-      "description": "A simple tool to select and generate color codes in various formats (RGB, HEX, HSL).",
-      "link": "color-picker",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Web Tools"
+      "thumbnail": "images/smith-chart_thumb.png"
     },
     {
-      "id": "crossword",
-      "title": "Crossword Puzzle",
-      "description": "A simple crossword puzzle game where users can fill in words based on given clues.",
-      "link": "crossword",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
+      "id": "solar-system",
+      "title": "Solar System",
+      "directory": "solar-system",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Visualizations",
+      "description": "An animated visualization of the solar system, simulating the orbits of planets and comets around the sun.",
+      "link": "solar-system",
+      "thumbnail": "images/solar-system_thumb.png",
+      "image": "images/solar-system.png"
     },
     {
-      "id": "drone-attack",
-      "title": "Drone Attack",
-      "description": "A BAD game where players control a drone to navigate through obstacles and complete missions.",
-      "link": "drone-attack",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Small Games"
+      "id": "sound-words",
+      "title": "Sound Word Generator",
+      "directory": "sound-words",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        ".DS_Store",
+        "README.md",
+        "index.html",
+        "random-words.js",
+        "words.json"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Tools",
+      "description": "A simple application that generates random words from a predefined list, useful for brainstorming or creative writing.",
+      "link": "words",
+      "image": "images/words.png",
+      "thumbnail": "images/words_thumb.png"
+    },
+    {
+      "id": "space-sounds",
+      "title": "Space-Themed 8-Bit Music Generator",
+      "directory": "space-sounds",
+      "status": "incomplete",
+      "hasIndex": false,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "sound.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A simple web application for generating and playing retro 8-bit style music themes for space games.",
+      "link": "space-sounds"
+    },
+    {
+      "id": "dashboard",
+      "title": "Spaceship Dashboard",
+      "directory": "dashboard",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html",
+        "top-console.js"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Experiments",
+      "description": "A visual simulation of spaceship control panels using multiple canvas elements and dynamic visualizations.",
+      "link": "dashboard"
+    },
+    {
+      "id": "street-vehicles",
+      "title": "Street Vehicles",
+      "directory": "street-vehicles",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "street-vehicles"
+    },
+    {
+      "id": "street-vehicles-roads",
+      "title": "Street Vehicles Roads",
+      "directory": "street-vehicles-roads",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "figure-8-road.png",
+        "index.html",
+        "intersection.png"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "street-vehicles-roads"
+    },
+    {
+      "id": "sudoku",
+      "title": "Sudoku",
+      "directory": "sudoku",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Small Games",
+      "description": "A classic Sudoku game where users can fill in numbers to complete the grid according to Sudoku rules.",
+      "link": "sudoku",
+      "thumbnail": "images/sudoku_thumb.png"
+    },
+    {
+      "id": "tailwind",
+      "title": "Tailwind",
+      "directory": "tailwind",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "tailwind"
+    },
+    {
+      "id": "webgl-tank",
+      "title": "Tank Game with Opposing Forces",
+      "directory": "webgl-tank",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "A 3D tank battle game with bunker defense, mortar strikes, and health management built using Three.js.",
+      "link": "webgl-tank"
+    },
+    {
+      "id": "thrust-vectoring",
+      "title": "Thrust Vectoring",
+      "directory": "thrust-vectoring",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "thrust-vectoring"
+    },
+    {
+      "id": "tic-tac-toe",
+      "title": "Tic Tac Toe",
+      "directory": "tic-tac-toe",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Small Games",
+      "description": "A simple Tic Tac Toe game where users can play against the computer or another player.",
+      "link": "tic-tac-toe",
+      "thumbnail": "images/tic-tac-toe_thumb.png"
     },
     {
       "id": "touch-designer-output",
-      "title": "Touch Designer Output",
-      "description": "A simple interface to display output from Touch Designer, useful for visual artists and designers.",
-      "link": "touch-designer-output",
-      "thumbnail": "images/some_thumb.png",
-      "category": "Media"
+      "title": "TouchDesigner Projects",
+      "directory": "touch-designer-output",
+      "status": "incomplete",
+      "hasIndex": false,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "first-toe-touch.toe",
+        "solar-render.toe"
+      ],
+      "technologies": [],
+      "category": "Experiments",
+      "description": "A collection of TouchDesigner (.toe) project files showcasing various visual effects and simulations.",
+      "link": "touch-designer-output"
+    },
+    {
+      "id": "turbocharger",
+      "title": "Turbocharger",
+      "directory": "turbocharger",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "turbocharger"
+    },
+    {
+      "id": "two-js",
+      "title": "Two.js Library Explorer ",
+      "directory": "two-js",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Web Tools",
+      "description": "An interactive playground for exploring the Two.js library, allowing users to create and manipulate 2D shapes and animations.",
+      "link": "two-play",
+      "thumbnail": "images/two-js_thumb.png"
+    },
+    {
+      "id": "typescript-basics",
+      "title": "TypeScript Basics Interactive Guide",
+      "directory": "typescript-basics",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive learning tool for TypeScript fundamentals with interactive code snippets and detailed explanations.",
+      "link": "typescript-basics"
+    },
+    {
+      "id": "typography",
+      "title": "Typography Playground",
+      "directory": "typography",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Web Tools",
+      "description": "A playground for experimenting with different typography styles and layouts, allowing users to create visually appealing text designs.",
+      "link": "typography",
+      "thumbnail": "images/typography_thumb.png"
+    },
+    {
+      "id": "wave-interference",
+      "title": "Wave Interference",
+      "directory": "wave-interference",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "An animated visualization of wave interference, showcasing the superposition of waves and their resulting patterns.",
+      "link": "wave-interference",
+      "thumbnail": "images/wave-interference_thumb.png",
+      "image": "images/wave-interference.png"
+    },
+    {
+      "id": "waves",
+      "title": "Waveform Examples",
+      "directory": "waves",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html",
+        "waves.js"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Mathematical Expressions",
+      "description": "A collection of waveform examples, showcasing different types of waveforms and their properties.",
+      "link": "waves",
+      "thumbnail": "images/waves_thumb.png",
+      "image": "images/waves.png"
+    },
+    {
+      "id": "webassembly",
+      "title": "WebAssembly Introduction",
+      "directory": "webassembly",
+      "status": "ready",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": true,
+      "files": [
+        "README.md",
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "An interactive demonstration of WebAssembly fundamentals, showcasing how to load and execute WASM code from JavaScript.",
+      "link": "webassembly",
+      "thumbnail": "images/webassembly_thumb.png"
+    },
+    {
+      "id": "wind",
+      "title": "Wind",
+      "directory": "wind",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "script.js",
+        "test.png"
+      ],
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "wind"
+    },
+    {
+      "id": "wirtz-pump",
+      "title": "Wirtz Pump",
+      "directory": "wirtz-pump",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "wirtz-pump"
     }
   ]
 }

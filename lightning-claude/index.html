@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Lightning Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #controlPanel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            width: 250px;
+            z-index: 100;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .value-display {
+            text-align: right;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="lightningCanvas"></canvas>
+    
+    <div id="controlPanel">
+        <h3 style="margin-top: 0; text-align: center;">Lightning Controls</h3>
+        
+        <div class="slider-container">
+            <label for="intensitySlider">Intensity</label>
+            <input type="range" id="intensitySlider" min="1" max="10" value="5" step="1">
+            <div class="value-display"><span id="intensityValue">5</span> bolts</div>
+        </div>
+        
+        <div class="slider-container">
+            <label for="frequencySlider">Frequency</label>
+            <input type="range" id="frequencySlider" min="1000" max="7000" value="3500" step="100">
+            <div class="value-display"><span id="frequencyValue">3500</span> ms</div>
+        </div>
+        
+        <div class="slider-container">
+            <label for="complexitySlider">Complexity</label>
+            <input type="range" id="complexitySlider" min="20" max="150" value="80" step="5">
+            <div class="value-display"><span id="complexityValue">80</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let canvas, ctx;
+        let backgroundSvg = new Image();
+        let lightningIntensity = 5;    // Number of bolts per burst
+        let lightningFrequency = 3500; // Delay between auto lightning events in ms
+        let lightningComplexity = 80;  // Initial displacement for fractal algorithm
+        let canvasWidth, canvasHeight;
+        let fadeAlpha = 0;             // Current alpha for background fade effect
+        let autoLightningTimer;        // Timer for auto lightning events
+        let cloudRegionHeight;         // Height of the cloud region (top 40% of canvas)
+        let isBackgroundLoaded = false;
+        let lightningCanvas, lightningCtx; // Separate canvas for lightning
+
+        // Initialize canvas and set up event listeners
+        function init() {
+            // Main canvas setup
+            canvas = document.getElementById('lightningCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Create a separate canvas for lightning (not added to DOM)
+            lightningCanvas = document.createElement('canvas');
+            lightningCtx = lightningCanvas.getContext('2d');
+            
+            // Load background SVG
+            backgroundSvg.onload = function() {
+                isBackgroundLoaded = true;
+                console.log("Background SVG loaded successfully");
+            };
+            backgroundSvg.onerror = function() {
+                console.error("Failed to load background SVG");
+                // Create a fallback background
+                createFallbackBackground();
+            };
+            backgroundSvg.src = 'mountain-clouds-svg.svg';
+            
+            // Set up event listeners
+            window.addEventListener('resize', resizeCanvas);
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Set up control panel
+            document.getElementById('intensitySlider').addEventListener('input', function() {
+                lightningIntensity = parseInt(this.value);
+                document.getElementById('intensityValue').textContent = lightningIntensity;
+            });
+            
+            document.getElementById('frequencySlider').addEventListener('input', function() {
+                lightningFrequency = parseInt(this.value);
+                document.getElementById('frequencyValue').textContent = lightningFrequency;
+                
+                // Reset auto lightning timer with new frequency
+                clearTimeout(autoLightningTimer);
+                scheduleAutoLightning();
+            });
+            
+            document.getElementById('complexitySlider').addEventListener('input', function() {
+                lightningComplexity = parseInt(this.value);
+                document.getElementById('complexityValue').textContent = lightningComplexity;
+            });
+            
+            // Initial canvas setup
+            resizeCanvas();
+            
+            // Start animation loop
+            animate();
+            
+            // Start auto lightning
+            scheduleAutoLightning();
+        }
+
+        // Create a fallback background if SVG fails to load
+        function createFallbackBackground() {
+            console.log("Creating fallback background");
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 800;
+            tempCanvas.height = 600;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Create gradient sky
+            const skyGradient = tempCtx.createLinearGradient(0, 0, 0, 600);
+            skyGradient.addColorStop(0, '#1a2a40');
+            skyGradient.addColorStop(0.6, '#4a6ea9');
+            tempCtx.fillStyle = skyGradient;
+            tempCtx.fillRect(0, 0, 800, 600);
+            
+            // Draw some mountains
+            tempCtx.fillStyle = '#0a0a0a';
+            tempCtx.beginPath();
+            tempCtx.moveTo(0, 600);
+            tempCtx.lineTo(0, 400);
+            tempCtx.lineTo(200, 350);
+            tempCtx.lineTo(400, 300);
+            tempCtx.lineTo(600, 350);
+            tempCtx.lineTo(800, 380);
+            tempCtx.lineTo(800, 600);
+            tempCtx.fill();
+            
+            // Draw a second mountain layer
+            tempCtx.fillStyle = '#1a1a1a';
+            tempCtx.beginPath();
+            tempCtx.moveTo(0, 600);
+            tempCtx.lineTo(0, 500);
+            tempCtx.lineTo(200, 480);
+            tempCtx.lineTo(400, 470);
+            tempCtx.lineTo(600, 490);
+            tempCtx.lineTo(800, 480);
+            tempCtx.lineTo(800, 600);
+            tempCtx.fill();
+            
+            // Convert to image
+            const dataURL = tempCanvas.toDataURL();
+            backgroundSvg = new Image();
+            backgroundSvg.onload = function() {
+                isBackgroundLoaded = true;
+            };
+            backgroundSvg.src = dataURL;
+        }
+        
+        // Resize canvas to fill the window
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            // Also resize lightning canvas
+            lightningCanvas.width = canvasWidth;
+            lightningCanvas.height = canvasHeight;
+            
+            // Recalculate cloud region height
+            cloudRegionHeight = canvasHeight * 0.4;
+        }
+        
+        // Handle canvas click events
+        function handleCanvasClick(e) {
+            // Calculate click position
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Generate lightning burst from click position, but constrained to cloud region
+            const lightningOriginY = Math.min(y, cloudRegionHeight);
+            createLightningBurst(x, lightningOriginY);
+        }
+        
+        // Create a burst of lightning bolts
+        function createLightningBurst(x, y) {
+            console.log(`Creating lightning burst at (${x}, ${y})`);
+            
+            // Reset fade effect
+            fadeAlpha = 1.0;
+            
+            // Clear the lightning canvas
+            lightningCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            // Generate multiple lightning bolts based on intensity
+            for (let i = 0; i < lightningIntensity; i++) {
+                // Determine endpoint - random position on one of the canvas edges
+                let endX, endY;
+                const edge = Math.floor(Math.random() * 3); // 0: bottom, 1: left, 2: right
+                
+                switch (edge) {
+                    case 0: // Bottom edge
+                        endX = Math.random() * canvasWidth;
+                        endY = canvasHeight;
+                        break;
+                    case 1: // Left edge
+                        endX = 0;
+                        endY = cloudRegionHeight + Math.random() * (canvasHeight - cloudRegionHeight);
+                        break;
+                    case 2: // Right edge
+                        endX = canvasWidth;
+                        endY = cloudRegionHeight + Math.random() * (canvasHeight - cloudRegionHeight);
+                        break;
+                }
+                
+                // Draw lightning from origin to endpoint
+                drawLightningBolt(x, y, endX, endY, lightningComplexity, 0);
+            }
+        }
+        
+        // Recursively draw a lightning bolt using fractal algorithm
+        function drawLightningBolt(x1, y1, x2, y2, displacement, detail) {
+            if (displacement < 2) {
+                // Base case: draw straight line segment
+                lightningCtx.beginPath();
+                lightningCtx.moveTo(x1, y1);
+                lightningCtx.lineTo(x2, y2);
+                
+                // Determine stroke color and width based on detail level
+                const brightness = Math.floor(200 + Math.random() * 55); // Near-white
+                lightningCtx.strokeStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+                
+                // Thicker lines for main branches, thinner for details
+                const maxLineWidth = 3 - (detail * 0.2);
+                lightningCtx.lineWidth = Math.max(0.5, maxLineWidth);
+                
+                lightningCtx.stroke();
+                return;
+            }
+            
+            // Calculate midpoint
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            
+            // Displace midpoint perpendicular to the line
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            // Calculate perpendicular displacement vector
+            const perpX = -dy / length;
+            const perpY = dx / length;
+            
+            // Apply random displacement along perpendicular vector
+            const randDisp = (Math.random() - 0.5) * displacement;
+            const midX2 = midX + perpX * randDisp;
+            const midY2 = midY + perpY * randDisp;
+            
+            // Add some random forking for complex lightning
+            if (detail < 3 && displacement > 10 && Math.random() < 0.35) {
+                // Create a fork in the lightning
+                const forkX = midX2 + (Math.random() - 0.5) * displacement;
+                const forkY = midY2 + (Math.random() - 0.5) * displacement;
+                drawLightningBolt(midX2, midY2, forkX, forkY, displacement * 0.6, detail + 1);
+            }
+            
+            // Recursive calls for continued segments
+            drawLightningBolt(x1, y1, midX2, midY2, displacement * 0.5, detail + 1);
+            drawLightningBolt(midX2, midY2, x2, y2, displacement * 0.5, detail + 1);
+        }
+        
+        // Schedule random lightning events
+        function scheduleAutoLightning() {
+            // Random delay within 50% of the set frequency
+            const randDelay = lightningFrequency * (0.75 + Math.random() * 0.5);
+            
+            autoLightningTimer = setTimeout(() => {
+                // Generate lightning at a random position in the cloud region
+                const randX = Math.random() * canvasWidth;
+                const randY = Math.random() * cloudRegionHeight;
+                createLightningBurst(randX, randY);
+                
+                // Schedule next lightning
+                scheduleAutoLightning();
+            }, randDelay);
+        }
+        
+        // Main animation loop
+        function animate() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            // If we have a recent lightning event, draw background with fading effect
+            if (fadeAlpha > 0) {
+                if (isBackgroundLoaded) {
+                    // Draw background SVG with current fade alpha
+                    ctx.globalAlpha = fadeAlpha;
+                    ctx.drawImage(backgroundSvg, 0, 0, canvasWidth, canvasHeight);
+                    
+                    // Draw lightning on top of background
+                    ctx.drawImage(lightningCanvas, 0, 0);
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    // If background isn't loaded yet, still draw the lightning
+                    ctx.globalAlpha = fadeAlpha;
+                    ctx.drawImage(lightningCanvas, 0, 0);
+                    ctx.globalAlpha = 1.0;
+                }
+                
+                // Decrease fade alpha for next frame (faster fade)
+                fadeAlpha -= 0.05;
+            }
+            
+            // Request next animation frame
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>

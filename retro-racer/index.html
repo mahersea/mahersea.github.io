@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Retro Racer - Best of 11</title>
+  <!-- 80's reminiscent open source font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      overflow: hidden;
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      font-size: 36px;
+      color: #fff;
+      z-index: 2;
+    }
+    #message {
+      position: absolute;
+      top: 80px;
+      width: 100%;
+      font-size: 36px;
+      color: #fff;
+      z-index: 2;
+    }
+    #restart {
+      position: absolute;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      padding: 12px 24px;
+      background-color: #ff0099;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      z-index: 2;
+      display: none;
+    }
+    canvas {
+      display: block;
+      background-color: #111;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Player: 0 | Computer: 0</div>
+  <div id="message"></div>
+  <button id="restart">Restart</button>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const messageEl = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+
+    // Full screen canvas
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols = Math.floor(canvas.width / gridSize);
+      rows = Math.floor(canvas.height / gridSize);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Game settings
+    let gridSize = 20;
+    let cols, rows;
+    resizeCanvas();
+    let fps = 10; // will update with level progress
+    let gameInterval;
+    let gameOver = false;
+    let pauseTime = 2000; // pause 2 seconds between rounds
+
+    // Score and series settings
+    let gameCount = 0;
+    let playerWins = 0;
+    let computerWins = 0;
+    const totalGames = 11;
+
+    // Color and speed settings (start and finish)
+    const initialPlayerColor = "#00ffff";   // neon cyan
+    const finalPlayerColor   = "#ff6600";     // orange
+    const initialComputerColor = "#ff0099";   // neon pink
+    const finalComputerColor   = "#6600ff";    // violet
+    const initialFps = 10;
+    const finalFps = 20;
+
+    // Racer definitions. Colors will be updated at the start of each round.
+    const player = {
+      x: Math.floor(cols * 0.25),
+      y: Math.floor(rows / 2),
+      dir: { x: 1, y: 0 },
+      color: initialPlayerColor,
+      trail: []
+    };
+
+    const computer = {
+      x: Math.floor(cols * 0.75),
+      y: Math.floor(rows / 2),
+      dir: { x: -1, y: 0 },
+      color: initialComputerColor,
+      trail: []
+    };
+
+    // Helper: Linear interpolation between two hex colors.
+    function interpolateColor(hex1, hex2, factor) {
+      factor = Math.min(Math.max(factor, 0), 1);
+      const rgb1 = hexToRgb(hex1);
+      const rgb2 = hexToRgb(hex2);
+      const r = Math.round(rgb1.r + factor * (rgb2.r - rgb1.r));
+      const g = Math.round(rgb1.g + factor * (rgb2.g - rgb1.g));
+      const b = Math.round(rgb1.b + factor * (rgb2.b - rgb1.b));
+      return rgbToHex(r, g, b);
+    }
+
+    // Helper: Convert hex string to {r, g, b}
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      const bigint = parseInt(hex, 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+      };
+    }
+
+    // Helper: Convert r,g,b values to hex string
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      }).join('');
+    }
+
+    // Update level settings: colors and speed based on current round.
+    function updateLevelSettings() {
+      let level = gameCount + 1;
+      let factor = (level - 1) / (totalGames - 1);  // factor 0 for level 1, 1 for final level
+      player.color = interpolateColor(initialPlayerColor, finalPlayerColor, factor);
+      computer.color = interpolateColor(initialComputerColor, finalComputerColor, factor);
+      fps = initialFps + (finalFps - initialFps) * factor;
+    }
+
+    // Map grid position to canvas coordinate (center of cell)
+    function mapToCanvas(point) {
+      return {
+        x: point.x * gridSize + gridSize / 2,
+        y: point.y * gridSize + gridSize / 2
+      };
+    }
+
+    // Listen for key events for player control
+    document.addEventListener("keydown", (e) => {
+      if (gameOver) return;
+      switch (e.key) {
+        case "ArrowUp":
+          if (player.dir.y === 1) break;
+          player.dir = { x: 0, y: -1 };
+          break;
+        case "ArrowDown":
+          if (player.dir.y === -1) break;
+          player.dir = { x: 0, y: 1 };
+          break;
+        case "ArrowLeft":
+          if (player.dir.x === 1) break;
+          player.dir = { x: -1, y: 0 };
+          break;
+        case "ArrowRight":
+          if (player.dir.x === -1) break;
+          player.dir = { x: 1, y: 0 };
+          break;
+      }
+    });
+
+    // Check collision with trails only (no wall collisions due to wrap)
+    function checkCollision(entity) {
+      for (let pos of player.trail.concat(computer.trail)) {
+        if (entity.x === pos.x && entity.y === pos.y) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Look ahead a few steps in a given direction to see if the path is safe.
+    function isSafeDirection(direction, steps = 3) {
+      let x = computer.x;
+      let y = computer.y;
+      for (let i = 0; i < steps; i++) {
+        x = (x + direction.x + cols) % cols;
+        y = (y + direction.y + rows) % rows;
+        // Check against both trails.
+        if (player.trail.some(pos => pos.x === x && pos.y === y) ||
+            computer.trail.some(pos => pos.x === x && pos.y === y)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Enhanced computer movement with lookahead for smarter decisions.
+    function updateComputerDirection() {
+      const turnChance = 0.05; // base chance to consider turning
+      // If the current path is unsafe, force a turn.
+      if (!isSafeDirection(computer.dir)) {
+        let directions = [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 }
+        ];
+        // Remove reverse direction.
+        directions = directions.filter(d => !(d.x === -computer.dir.x && d.y === -computer.dir.y));
+        // Filter safe directions.
+        const safeDirs = directions.filter(d => isSafeDirection(d));
+        if (safeDirs.length > 0) {
+          computer.dir = safeDirs[Math.floor(Math.random() * safeDirs.length)];
+        } else {
+          // If no safe move is available, pick one among valid directions.
+          const validDirs = directions;
+          computer.dir = validDirs[Math.floor(Math.random() * validDirs.length)];
+        }
+      } else if (Math.random() < turnChance) {
+        // Occasionally consider a turn even if current path is safe.
+        let directions = [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 }
+        ];
+        directions = directions.filter(d => !(d.x === -computer.dir.x && d.y === -computer.dir.y));
+        const safeDirs = directions.filter(d => isSafeDirection(d));
+        if (safeDirs.length > 0) {
+          computer.dir = safeDirs[Math.floor(Math.random() * safeDirs.length)];
+        }
+      }
+    }
+
+    // Draw vehicle with fade effect (trail and current position)
+    function drawVehicleWithTrail(currentGridPos, trail, color) {
+      const currentPoint = mapToCanvas(currentGridPos);
+      trail.forEach((pt, index) => {
+        const canvasPt = mapToCanvas(pt);
+        const fadeFactor = (index / 2) / trail.length;
+        const radius = gridSize;
+        const gradient = ctx.createRadialGradient(
+          canvasPt.x, canvasPt.y, 0,
+          canvasPt.x, canvasPt.y, radius
+        );
+        const rgb = hexToRgb(color);
+        gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${1 - fadeFactor})`);
+        gradient.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.5 * (1 - fadeFactor)})`);
+        gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(canvasPt.x, canvasPt.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      const radius = gridSize;
+      const gradient = ctx.createRadialGradient(
+        currentPoint.x, currentPoint.y, 0,
+        currentPoint.x, currentPoint.y, radius
+      );
+      const rgb = hexToRgb(color);
+      gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)`);
+      gradient.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.5)`);
+      gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(currentPoint.x, currentPoint.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(currentPoint.x, currentPoint.y, gridSize / 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Main game update loop with screen wrapping
+    function update() {
+      if (gameOver) return;
+      
+      player.trail.push({ x: player.x, y: player.y });
+      computer.trail.push({ x: computer.x, y: computer.y });
+      
+      player.x = (player.x + player.dir.x + cols) % cols;
+      player.y = (player.y + player.dir.y + rows) % rows;
+      
+      updateComputerDirection();
+      computer.x = (computer.x + computer.dir.x + cols) % cols;
+      computer.y = (computer.y + computer.dir.y + rows) % rows;
+      
+      if (checkCollision(player)) {
+        endRound("Game Over! You crashed.", false);
+      } else if (checkCollision(computer)) {
+        endRound("You win! Computer crashed.", true);
+      }
+      draw();
+    }
+
+    // Draw the entire scene
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawVehicleWithTrail(player, player.trail, player.color);
+      drawVehicleWithTrail(computer, computer.trail, computer.color);
+    }
+
+    // End round, update score, and either restart round or series
+    function endRound(message, playerWon) {
+      clearInterval(gameInterval);
+      gameOver = true;
+      gameCount++;
+      if (playerWon) {
+        playerWins++;
+      } else {
+        computerWins++;
+      }
+      messageEl.textContent = message;
+      scoreEl.textContent = `Player: ${playerWins} | Computer: ${computerWins}`;
+      
+      setTimeout(() => {
+        if (gameCount < totalGames) {
+          resetRound();
+          messageEl.textContent = "";
+          gameOver = false;
+          gameInterval = setInterval(update, 1000 / fps);
+        } else {
+          restartButton.style.display = "block";
+        }
+      }, pauseTime);
+    }
+
+    // Reset for a new round. Update colors and speed based on current round.
+    function resetRound() {
+      updateLevelSettings();
+      player.x = Math.floor(cols * 0.25);
+      player.y = Math.floor(rows / 2);
+      player.dir = { x: 1, y: 0 };
+      player.trail = [];
+      
+      computer.x = Math.floor(cols * 0.75);
+      computer.y = Math.floor(rows / 2);
+      computer.dir = { x: -1, y: 0 };
+      computer.trail = [];
+    }
+
+    // Restart entire series
+    restartButton.addEventListener("click", () => {
+      gameCount = 0;
+      playerWins = 0;
+      computerWins = 0;
+      scoreEl.textContent = `Player: ${playerWins} | Computer: ${computerWins}`;
+      messageEl.textContent = "";
+      restartButton.style.display = "none";
+      resetRound();
+      gameOver = false;
+      gameInterval = setInterval(update, 1000 / fps);
+    });
+
+    // Start game loop
+    gameInterval = setInterval(update, 1000 / fps);
+  </script>
+</body>
+</html>

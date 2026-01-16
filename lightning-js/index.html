@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic Lightning Bolt</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0a0a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            border: 1px solid #333;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+        button {
+            background: #4a4a9a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #5a5aaa;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="lightningCanvas"></canvas>
+    <div class="controls">
+        <button id="strikeBtn">Strike Lightning</button>
+        <button id="toggleAutoBtn">Toggle Auto Strike</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('lightningCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth * 0.9;
+        canvas.height = window.innerHeight * 0.8;
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth * 0.9;
+            canvas.height = window.innerHeight * 0.8;
+        });
+
+        // Lightning configuration
+        const config = {
+            mainBoltWidth: 3,
+            boltColor: '#e0f6ff',
+            glowColor: 'rgba(170, 220, 255, 0.25)',
+            branchProbability: 0.3,
+            branchReduction: 0.6,
+            jaggedness: 0.4,
+            autoStrikeInterval: null,
+            fadeSpeed: 0.07,
+            minBranchDeviation: 0.2,
+            maxBranchDeviation: 0.8
+        };
+
+        // Active lightning bolts
+        let lightnings = [];
+
+        // Creates a lightning path
+        function createLightningPath(startX, startY, endX, endY, width, branchLevel = 0, isMainBolt = true) {
+            if (width < 0.5) return [];
+
+            const segments = Math.floor(Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2) / 20);
+            const points = [];
+            
+            points.push({ x: startX, y: startY, width });
+            
+            let prevX = startX;
+            let prevY = startY;
+            
+            // Create jagged path for main bolt
+            for (let i = 1; i < segments; i++) {
+                const ratio = i / segments;
+                
+                // Interpolate position
+                let x = startX + (endX - startX) * ratio;
+                let y = startY + (endY - startY) * ratio;
+                
+                // Add randomness for jaggedness
+                const jaggedness = config.jaggedness * (1 - branchLevel * 0.3) * Math.min(50, Math.abs(endX - startX) / segments);
+                x += (Math.random() * 2 - 1) * jaggedness;
+                y += (Math.random() * 2 - 1) * jaggedness * 0.5;
+                
+                points.push({ x, y, width });
+                
+                // Generate branches
+                if (
+                    branchLevel < 3 && 
+                    i > 1 && 
+                    i < segments - 1 && 
+                    Math.random() < config.branchProbability / (branchLevel + 1)
+                ) {
+                    const branchDirection = Math.random() > 0.5 ? 1 : -1;
+                    const branchDeviation = (config.minBranchDeviation + 
+                        Math.random() * (config.maxBranchDeviation - config.minBranchDeviation)) * 
+                        branchDirection;
+                    
+                    const branchLength = (0.3 + Math.random() * 0.5) * (segments - i) * 20;
+                    
+                    // Calculate direction vector of main bolt
+                    const dx = endX - startX;
+                    const dy = endY - startY;
+                    
+                    // Calculate perpendicular vector
+                    const perpX = -dy;
+                    const perpY = dx;
+                    
+                    // Normalize the perpendicular vector
+                    const perpLength = Math.sqrt(perpX * perpX + perpY * perpY);
+                    const normPerpX = perpX / perpLength;
+                    const normPerpY = perpY / perpLength;
+                    
+                    // Create branch end point
+                    const branchEndX = x + dx / segments * branchLength * 0.7 + normPerpX * branchLength * branchDeviation;
+                    const branchEndY = y + dy / segments * branchLength * 0.7 + normPerpY * branchLength * branchDeviation;
+                    
+                    const branchPath = createLightningPath(
+                        x, y, 
+                        branchEndX, branchEndY,
+                        width * config.branchReduction,
+                        branchLevel + 1,
+                        false
+                    );
+                    
+                    points.push(...branchPath);
+                }
+                
+                prevX = x;
+                prevY = y;
+            }
+            
+            // Add endpoint
+            points.push({ x: endX, y: endY, width: isMainBolt ? width : width * 0.7 });
+            
+            return points;
+        }
+
+        // Create a new lightning bolt
+        function createLightning() {
+            const startX = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+            const startY = 0;
+            const endX = startX + (Math.random() * 2 - 1) * canvas.width * 0.3;
+            const endY = canvas.height * (0.7 + Math.random() * 0.3);
+            
+            const points = createLightningPath(startX, startY, endX, endY, config.mainBoltWidth);
+            
+            return {
+                points,
+                opacity: 1,
+                flash: 1
+            };
+        }
+
+        // Draw lightning bolt
+        function drawLightning(lightning) {
+            const { points, opacity, flash } = lightning;
+            
+            // Draw glow effect
+            ctx.save();
+            ctx.globalAlpha = opacity * 0.8;
+            ctx.shadowColor = config.boltColor;
+            ctx.shadowBlur = 15;
+            
+            for (let i = 0; i < points.length - 1; i++) {
+                const point = points[i];
+                const nextPoint = points[i + 1];
+                
+                // Skip disconnected segments (these are branches)
+                if (Math.abs(point.x - nextPoint.x) > 100 || Math.abs(point.y - nextPoint.y) > 100) {
+                    continue;
+                }
+                
+                ctx.beginPath();
+                ctx.strokeStyle = config.glowColor;
+                ctx.lineWidth = point.width * 6 * flash;
+                ctx.moveTo(point.x, point.y);
+                ctx.lineTo(nextPoint.x, nextPoint.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // Draw core bolt
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            
+            for (let i = 0; i < points.length - 1; i++) {
+                const point = points[i];
+                const nextPoint = points[i + 1];
+                
+                // Skip disconnected segments
+                if (Math.abs(point.x - nextPoint.x) > 100 || Math.abs(point.y - nextPoint.y) > 100) {
+                    continue;
+                }
+                
+                ctx.beginPath();
+                ctx.strokeStyle = config.boltColor;
+                ctx.lineWidth = point.width * flash;
+                ctx.moveTo(point.x, point.y);
+                ctx.lineTo(nextPoint.x, nextPoint.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // Draw brightest core
+            ctx.save();
+            ctx.globalAlpha = opacity * flash;
+            
+            for (let i = 0; i < points.length - 1; i++) {
+                const point = points[i];
+                const nextPoint = points[i + 1];
+                
+                // Skip disconnected segments
+                if (Math.abs(point.x - nextPoint.x) > 100 || Math.abs(point.y - nextPoint.y) > 100) {
+                    continue;
+                }
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = point.width * 0.5 * flash;
+                ctx.moveTo(point.x, point.y);
+                ctx.lineTo(nextPoint.x, nextPoint.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Animation loop
+        function animate() {
+            // Clear canvas with a slight fade effect
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw and update each lightning bolt
+            for (let i = 0; i < lightnings.length; i++) {
+                const lightning = lightnings[i];
+                
+                drawLightning(lightning);
+                
+                // Fade out lightning
+                lightning.opacity -= config.fadeSpeed;
+                lightning.flash *= 0.9;
+                
+                // Remove faded bolts
+                if (lightning.opacity <= 0) {
+                    lightnings.splice(i, 1);
+                    i--;
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Create a lightning strike
+        function strikeLightning() {
+            const numBolts = Math.floor(Math.random() * 3) + 1;
+            
+            for (let i = 0; i < numBolts; i++) {
+                setTimeout(() => {
+                    lightnings.push(createLightning());
+                }, i * 100);
+            }
+        }
+
+        // UI Controls
+        document.getElementById('strikeBtn').addEventListener('click', strikeLightning);
+        
+        document.getElementById('toggleAutoBtn').addEventListener('click', () => {
+            if (config.autoStrikeInterval) {
+                clearInterval(config.autoStrikeInterval);
+                config.autoStrikeInterval = null;
+            } else {
+                config.autoStrikeInterval = setInterval(() => {
+                    if (Math.random() < 0.7) strikeLightning();
+                }, 2000);
+            }
+        });
+
+        // Initial strike
+        strikeLightning();
+        
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Canvas Mouse Calibration & Trail</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    #info {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <div><strong>Canvas Mouse Tool</strong></div>
+    <div>Mode: <span id="modeLabel">Pixel (calibration)</span></div>
+    <div>Press <kbd>T</kbd> to toggle: Pixel / Trail</div>
+    <div>Move mouse over canvas (or run your OS script)</div>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const modeLabel = document.getElementById('modeLabel');
+
+    let trailMode = false; // false = single-dot calibration, true = trail
+
+    const dpr = window.devicePixelRatio || 1;
+
+    // Trail configuration
+    const MAX_POINTS = 25;         // length of the trail
+    const MAX_RADIUS = 20;         // newest dot radius
+    const MIN_RADIUS = 3;          // oldest dot radius
+    const points = [];             // stores recent mouse positions
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+      clearCanvas();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawDot(x, y, radius, color) {
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    function render() {
+      clearCanvas();
+
+      if (points.length === 0) return;
+
+      if (!trailMode) {
+        // Calibration mode: single big bright orange dot
+        const p = points[0];
+        drawDot(p.x, p.y, MAX_RADIUS, 'rgb(255,160,0)'); // bright orange
+        return;
+      }
+
+      // Trail mode: newest -> biggest & orange, older -> smaller & redder
+      const n = points.length;
+      for (let i = 0; i < n; i++) {
+        const p = points[i];
+
+        // t = 0 for newest, 1 for oldest
+        const t = n === 1 ? 0 : i / (n - 1);
+
+        // Radius shrinks from MAX_RADIUS (newest) to MIN_RADIUS (oldest)
+        const radius = MAX_RADIUS - t * (MAX_RADIUS - MIN_RADIUS);
+
+        // Color transitions from bright orange (255,160,0) to red (255,0,0)
+        const r = 255;
+        const g = Math.round(160 * (1 - t)); // 160 -> 0
+        const b = 0;
+        const color = `rgb(${r},${g},${b})`;
+
+        drawDot(p.x, p.y, radius, color);
+      }
+    }
+
+    canvas.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      // Add newest point at front
+      points.unshift({ x, y });
+      // Trim trail
+      if (points.length > MAX_POINTS) {
+        points.pop();
+      }
+
+      render();
+    });
+
+    // Toggle between calibration and trail modes
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 't' || event.key === 'T') {
+        trailMode = !trailMode;
+        modeLabel.textContent = trailMode
+          ? 'Trail (orange → red decay)'
+          : 'Pixel (calibration)';
+
+        // On mode switch, just re-render current state
+        render();
+      }
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Countries GraphQL Playground</title>
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    #controlPanel {
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      margin-bottom: 10px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--primary3);
+    }
+    #runQuery {
+      margin-bottom: 20px;
+    }
+    #queryResult {
+      background: var(--primary5);
+      padding: 10px;
+      border: 1px solid var(--primary3);
+      max-height: 300px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    #documentation {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid var(--primary2);
+      background: var(--primary5);
+    }
+    #quickLinks {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid var(--primary2);
+      background: var(--primary5);
+    }
+    #quickLinks ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #quickLinks li {
+      margin-bottom: 8px;
+    }
+    #quickLinks a {
+      color: var(--primary1);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    #quickLinks a:hover {
+      text-decoration: underline;
+    }
+    #myCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: -1;
+    }
+    code {
+      background-color: rgba(0,0,0,0.1);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Dark/Light toggle -->
+  <div id="themeToggleContainer">
+    <label class="switch">
+      <input type="checkbox" id="themeToggleSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <h1>Countries GraphQL Playground</h1>
+  <button id="toggleCanvas">Show/Hide Canvas</button>
+
+  <div id="controlPanel">
+    <p>This playground is integrated with the public Countries API (<a href="https://countries.trevorblades.com/" target="_blank">https://countries.trevorblades.com/</a>).</p>
+    <p>You can try out GraphQL queries against real-world country data. Some example queries:</p>
+    <ul>
+      <li>
+        <code>{ countries { code, name, emoji } }</code>
+      </li>
+      <li>
+        <code>{ country(code: "BR") { name, native, capital, currency, languages { code, name } } }</code>
+      </li>
+    </ul>
+    <p>
+      <strong>Search and Filter Tips:</strong>  
+      While the Countries API doesn't support free-text search out of the box, you can filter results using the schema's fields. For example, use the <code>country(code: "XX")</code> query to retrieve details for a specific country.
+    </p>
+    <textarea id="queryInput" placeholder="Enter your GraphQL query here...">{ countries { code, name, emoji } }</textarea>
+    <br />
+    <button id="runQuery">Run Query</button>
+
+    <!-- Quick Links Section -->
+    <div id="quickLinks">
+      <h3>Quick Links</h3>
+      <ul>
+        <li>
+          <a href="#" onclick='loadAndRun("{ countries { code, name, emoji } }"); return false;'>
+            List All Countries
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ country(code: \"BR\") { name, native, capital, currency, languages { code, name } } }"); return false;'>
+            Get Country: Brazil
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ country(code: \"US\") { code, name, native, capital, currency, languages { code, name } } }"); return false;'>
+            Get Country: USA
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ continents { code, name, countries { code, name } } }"); return false;'>
+            List Continents & Countries
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ continent(code: \"EU\") { name, countries { code, name } } }"); return false;'>
+            Get Continent: Europe
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ languages { code, name } }"); return false;'>
+            List All Languages
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick='loadAndRun("{ language(code: \"en\") { name, native, rtl } }"); return false;'>
+            Get Language: English
+          </a>
+        </li>
+      </ul>
+    </div>
+    <!-- End Quick Links Section -->
+
+  </div>
+  <div id="queryResult"></div>
+
+  <div id="documentation">
+    <h3>Additional Documentation</h3>
+    <p>
+      The Countries API provides data on countries, continents, and languages. Learn more about the available queries and schema by visiting the API documentation. For example:
+    </p>
+    <ul>
+      <li>
+        <strong>List all countries:</strong>  
+        <code>{ countries { code, name, emoji } }</code>
+      </li>
+      <li>
+        <strong>Get a specific country:</strong>  
+        <code>{ country(code: "US") { name, native, capital, currency, languages { name } } }</code>
+      </li>
+      <li>
+        <strong>List continents and their countries:</strong>  
+        <code>{ continents { code, name, countries { name } } }</code>
+      </li>
+    </ul>
+    <p>
+      This playground demonstrates how to interact with a live GraphQL endpoint, use query parameters, and view real responses. For full details on search and filter syntax, refer to the API's documentation and experiment with different queries.
+    </p>
+  </div>
+
+  <canvas id="myCanvas"></canvas>
+  
+  <a href="../" class="back-link">Back to Learning Projects</a>
+  
+  <script src="../common.js"></script>
+  <script>
+    // Function to load a query into the textarea and trigger the runQuery button
+    function loadAndRun(query) {
+      const queryInput = document.getElementById('queryInput');
+      const runQuery = document.getElementById('runQuery');
+      queryInput.value = query;
+      runQuery.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleCanvas = document.getElementById('toggleCanvas');
+      const canvas = document.getElementById('myCanvas');
+      const runQuery = document.getElementById('runQuery');
+      const queryInput = document.getElementById('queryInput');
+      const queryResult = document.getElementById('queryResult');
+      
+      const COUNTRIES_API = "https://countries.trevorblades.com/";
+
+      // Toggle canvas visibility and draw a message
+      toggleCanvas.addEventListener('click', function() {
+        if (canvas.style.display === 'none' || canvas.style.display === '') {
+          canvas.style.display = 'block';
+          drawCanvas();
+        } else {
+          canvas.style.display = 'none';
+        }
+      });
+
+      // Run the GraphQL query by calling the Countries API
+      runQuery.addEventListener('click', async function() {
+        const query = queryInput.value;
+        queryResult.textContent = "Loading...";
+        try {
+          const response = await fetch(COUNTRIES_API, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ query })
+          });
+          const json = await response.json();
+          queryResult.textContent = JSON.stringify(json, null, 2);
+        } catch (error) {
+          queryResult.textContent = "Error: " + error;
+        }
+      });
+
+      // Draw a simple message on the canvas
+      function drawCanvas() {
+        if (canvas.getContext) {
+          const ctx = canvas.getContext('2d');
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.font = '48px sans-serif';
+          const isDarkMode = document.body.classList.contains('dark-mode');
+          ctx.fillStyle = isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+          ctx.textAlign = 'center';
+          ctx.fillText('Canvas Active', canvas.width / 2, canvas.height / 2);
+        }
+      }
+
+      // Redraw canvas on window resize if visible
+      window.addEventListener('resize', function() {
+        if (canvas.style.display === 'block') {
+          drawCanvas();
+        }
+      });
+      
+      // Redraw canvas when theme changes
+      document.getElementById('themeToggleSwitch').addEventListener('change', function() {
+        if (canvas.style.display === 'block') {
+          drawCanvas();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
