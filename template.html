@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sean Maher - Portfolio</title>
+  <style>
+    #hero-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }   
+
+    #hero {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 800px;
+    }
+    .hero-content p {
+      text-align: left;
+    }
+    .full-text {
+      text-align: left;
+      margin: 20px;
+      font-size: 16px;
+      max-width: 800px;
+    }
+
+    a {
+      color: rgb(152, 47, 42);
+      text-decoration: none;
+    }
+
+    .filter-controls {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .topic-filter {
+      display: inline-block;
+    }
+
+    .topic-filter label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .topic-filter select {
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      min-width: 200px;
+    }
+
+    .topic-icon {
+      margin-right: 5px;
+      font-size: 1.2em;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    function showMe(){
+      var moreText = document.getElementById("more-about-me");
+      if (moreText.style.display === "none") {
+        moreText.style.display = "block";
+      } else {
+        moreText.style.display = "none";
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Header -->
+  <header id="header">
+    <div class="container header-container">
+	  <iframe src="cube/index.html" width="200px" height="200px" style="border:none;"></iframe>
+      <div class="logo">mahersea.github.io</div>
+      <nav>
+        <ul>
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="/topic-manager/" class="admin-link">Manage Topics</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section with Animated Background -->
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Code Playground</h1>
+      <p>A showcase of web tools, language reference, math formula visualizations, interactive simulators, 
+        generative art and various game concepts. Designed with HTML/CSS/JavaScript 
+        for modular and component use. These are all open source "seed" projects meant to be grown and maintained.
+      </p>
+    </div>
+  </section>
+
+<!-- Projects Section -->
+<section id="math-projects">
+</section>
+
+  <!-- Project Detail Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <div class="modal-body">
+        <!-- Dynamically inserted content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- About Section -->
+  <section id="about">
+    <div class="container">
+      <h2>About Me</h2>
+      <p class="full-text">
+        I'm a passionate web developer with a knack for solving real-world problems. 
+		I strive to improve my skills with play&mdash;the results of which return sleek, interactive designs and clean code.
+      </p>
+		<br>
+      <p class="full-text"> 
+		This portfolio showcases a selection of active projects, that may or may not be
+		functional at any given moment in time.
+      </p>
+      <br><br>
+      <p class="full-text"><a id="me"></a><strong><a href="#me" onclick="showMe()">More about me</a></strong></p>
+      <p class="full-text" id="more-about-me" style="display:none;">
+        I was born in San Francisco and shaped by a diverse set of experiences. I am a seasoned software engineer and wanna-be data journalist. 
+        Growing up, I explored the rugged coast of Mendocino with my crusty pipe-smoking English uncle, and sailed with him to Hawaii on a 1926 Alden Sloop. 
+        Later, I contributed to the founding of Michigan State University’s first water polo team. 
+        With a background in cartography, geography, mathematics, and technology, my career spans pioneering roles in software development—from supporting
+        GM's manufacturing web applications to leading the digital transformation of a mail-order business into an e-commerce powerhouse.
+        Currently, I am a key contributor at a major regional newspaper, specializing in full-stack development with an interest in data-driven journalism, 
+        where I combine my technical expertise and passion for truth and accuracy in digital  media.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact">
+    <div class="container">
+      <h2>Contact</h2>
+      <p>Email: mahersea at the usual gmail dot com domain</p>
+      <p>
+        Connect with me on 
+        <a href="https://www.linkedin.com/in/sean-maher-8752894/" target="_blank">linkedin</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 MyPortfolio. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
