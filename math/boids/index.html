@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Flocking Behavior with Dynamic Colors</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #fff;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    .controls label, .controls input, .controls span {
+      margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      margin: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Flocking Behavior with Dynamic Colors</h1>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <div class="controls">
+    <label for="boidCount">Number of Boids: </label>
+    <input type="range" id="boidCount" min="10" max="200" value="100">
+    <span id="boidCountVal">100</span><br>
+    <label for="separation">Separation Weight: </label>
+    <input type="range" id="separation" min="0" max="5" step="0.1" value="1.5">
+    <span id="separationVal">1.5</span><br>
+    <label for="alignment">Alignment Weight: </label>
+    <input type="range" id="alignment" min="0" max="5" step="0.1" value="1.0">
+    <span id="alignmentVal">1.0</span><br>
+    <label for="cohesion">Cohesion Weight: </label>
+    <input type="range" id="cohesion" min="0" max="5" step="0.1" value="1.0">
+    <span id="cohesionVal">1.0</span><br>
+    <button id="resetBtn">Reset Flock</button>
+    <button id="pauseBtn">Pause</button>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Control elements
+    const boidCountSlider = document.getElementById('boidCount');
+    const boidCountVal = document.getElementById('boidCountVal');
+    const separationSlider = document.getElementById('separation');
+    const separationVal = document.getElementById('separationVal');
+    const alignmentSlider = document.getElementById('alignment');
+    const alignmentVal = document.getElementById('alignmentVal');
+    const cohesionSlider = document.getElementById('cohesion');
+    const cohesionVal = document.getElementById('cohesionVal');
+    const resetBtn = document.getElementById('resetBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    // Flocking parameters (weights)
+    let separationWeight = parseFloat(separationSlider.value);
+    let alignmentWeight = parseFloat(alignmentSlider.value);
+    let cohesionWeight = parseFloat(cohesionSlider.value);
+    let boidCount = parseInt(boidCountSlider.value);
+
+    // Update control displays
+    boidCountVal.textContent = boidCountSlider.value;
+    separationVal.textContent = separationSlider.value;
+    alignmentVal.textContent = alignmentSlider.value;
+    cohesionVal.textContent = cohesionSlider.value;
+
+    let isAnimating = true;
+    let animationId;
+    let boids = [];
+
+    // Utility function: Euclidean distance between two points.
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    // Boid class with dynamic color.
+    class Boid {
+      constructor() {
+        this.position = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+        const angle = Math.random() * 2 * Math.PI;
+        this.velocity = { x: Math.cos(angle), y: Math.sin(angle) };
+        this.acceleration = { x: 0, y: 0 };
+        this.maxSpeed = 2;
+        this.maxForce = 0.05;
+        // Each boid starts with a random hue (0-360 degrees).
+        this.hue = Math.random() * 360;
+      }
+      applyForce(force) {
+        this.acceleration.x += force.x;
+        this.acceleration.y += force.y;
+      }
+      // Flocking rules: separation, alignment, and cohesion.
+      flock(boids) {
+        let sep = this.separate(boids);
+        let ali = this.align(boids);
+        let coh = this.cohesion(boids);
+
+        // Weight the forces.
+        sep.x *= separationWeight;
+        sep.y *= separationWeight;
+        ali.x *= alignmentWeight;
+        ali.y *= alignmentWeight;
+        coh.x *= cohesionWeight;
+        coh.y *= cohesionWeight;
+
+        this.applyForce(sep);
+        this.applyForce(ali);
+        this.applyForce(coh);
+      }
+      // Update the boid's color by blending its hue toward the average hue of neighbors.
+      updateColor(boids) {
+        const neighborDist = 50;
+        let sumHue = 0;
+        let count = 0;
+        for (let other of boids) {
+          const d = distance(this.position, other.position);
+          if (d > 0 && d < neighborDist) {
+            sumHue += other.hue;
+            count++;
+          }
+        }
+        if (count > 0) {
+          let avgHue = sumHue / count;
+          // Blend the hue gradually (adjust blending factor as desired).
+          this.hue += 0.05 * (avgHue - this.hue);
+          // Keep hue in [0, 360].
+          if (this.hue < 0) this.hue += 360;
+          if (this.hue > 360) this.hue -= 360;
+        }
+      }
+      // Update position and velocity.
+      update() {
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+        const speed = Math.hypot(this.velocity.x, this.velocity.y);
+        if (speed > this.maxSpeed) {
+          this.velocity.x = (this.velocity.x / speed) * this.maxSpeed;
+          this.velocity.y = (this.velocity.y / speed) * this.maxSpeed;
+        }
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+        // Reset acceleration.
+        this.acceleration.x = 0;
+        this.acceleration.y = 0;
+        this.edges();
+      }
+      // Wrap around the canvas edges.
+      edges() {
+        if (this.position.x < 0) this.position.x = canvas.width;
+        if (this.position.x > canvas.width) this.position.x = 0;
+        if (this.position.y < 0) this.position.y = canvas.height;
+        if (this.position.y > canvas.height) this.position.y = 0;
+      }
+      // Separation: steer away from nearby boids.
+      separate(boids) {
+        const desiredSeparation = 25;
+        let steer = { x: 0, y: 0 };
+        let count = 0;
+        for (let other of boids) {
+          const d = distance(this.position, other.position);
+          if (d > 0 && d < desiredSeparation) {
+            let diff = { x: this.position.x - other.position.x, y: this.position.y - other.position.y };
+            const mag = Math.hypot(diff.x, diff.y);
+            diff.x /= mag;
+            diff.y /= mag;
+            diff.x /= d;
+            diff.y /= d;
+            steer.x += diff.x;
+            steer.y += diff.y;
+            count++;
+          }
+        }
+        if (count > 0) {
+          steer.x /= count;
+          steer.y /= count;
+        }
+        const mag = Math.hypot(steer.x, steer.y);
+        if (mag > 0) {
+          steer.x = (steer.x / mag) * this.maxSpeed - this.velocity.x;
+          steer.y = (steer.y / mag) * this.maxSpeed - this.velocity.y;
+          const steerMag = Math.hypot(steer.x, steer.y);
+          if (steerMag > this.maxForce) {
+            steer.x = (steer.x / steerMag) * this.maxForce;
+            steer.y = (steer.y / steerMag) * this.maxForce;
+          }
+        }
+        return steer;
+      }
+      // Alignment: steer towards the average velocity of neighbors.
+      align(boids) {
+        const neighborDist = 50;
+        let sum = { x: 0, y: 0 };
+        let count = 0;
+        for (let other of boids) {
+          const d = distance(this.position, other.position);
+          if (d > 0 && d < neighborDist) {
+            sum.x += other.velocity.x;
+            sum.y += other.velocity.y;
+            count++;
+          }
+        }
+        if (count > 0) {
+          sum.x /= count;
+          sum.y /= count;
+          const mag = Math.hypot(sum.x, sum.y);
+          sum.x = (sum.x / mag) * this.maxSpeed;
+          sum.y = (sum.y / mag) * this.maxSpeed;
+          let steer = { x: sum.x - this.velocity.x, y: sum.y - this.velocity.y };
+          const steerMag = Math.hypot(steer.x, steer.y);
+          if (steerMag > this.maxForce) {
+            steer.x = (steer.x / steerMag) * this.maxForce;
+            steer.y = (steer.y / steerMag) * this.maxForce;
+          }
+          return steer;
+        } else {
+          return { x: 0, y: 0 };
+        }
+      }
+      // Cohesion: steer towards the average position of neighbors.
+      cohesion(boids) {
+        const neighborDist = 50;
+        let sum = { x: 0, y: 0 };
+        let count = 0;
+        for (let other of boids) {
+          const d = distance(this.position, other.position);
+          if (d > 0 && d < neighborDist) {
+            sum.x += other.position.x;
+            sum.y += other.position.y;
+            count++;
+          }
+        }
+        if (count > 0) {
+          sum.x /= count;
+          sum.y /= count;
+          return this.seek(sum);
+        } else {
+          return { x: 0, y: 0 };
+        }
+      }
+      // A steering method towards a target.
+      seek(target) {
+        let desired = { x: target.x - this.position.x, y: target.y - this.position.y };
+        const d = Math.hypot(desired.x, desired.y);
+        if (d > 0) {
+          desired.x = (desired.x / d) * this.maxSpeed;
+          desired.y = (desired.y / d) * this.maxSpeed;
+          let steer = { x: desired.x - this.velocity.x, y: desired.y - this.velocity.y };
+          const steerMag = Math.hypot(steer.x, steer.y);
+          if (steerMag > this.maxForce) {
+            steer.x = (steer.x / steerMag) * this.maxForce;
+            steer.y = (steer.y / steerMag) * this.maxForce;
+          }
+          return steer;
+        }
+        return { x: 0, y: 0 };
+      }
+      // Render the boid as a triangle with its dynamic color.
+      render() {
+        const angle = Math.atan2(this.velocity.y, this.velocity.x);
+        ctx.save();
+        ctx.translate(this.position.x, this.position.y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-10, 5);
+        ctx.lineTo(-10, -5);
+        ctx.closePath();
+        ctx.fillStyle = `hsl(${this.hue.toFixed(0)}, 100%, 50%)`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Initialize flock with the current boid count.
+    function initFlock() {
+      boids = [];
+      for (let i = 0; i < boidCount; i++) {
+        boids.push(new Boid());
+      }
+    }
+
+    // Update parameters on control input.
+    boidCountSlider.addEventListener('input', () => {
+      boidCount = parseInt(boidCountSlider.value);
+      boidCountVal.textContent = boidCount;
+      initFlock();
+    });
+    separationSlider.addEventListener('input', () => {
+      separationWeight = parseFloat(separationSlider.value);
+      separationVal.textContent = separationSlider.value;
+    });
+    alignmentSlider.addEventListener('input', () => {
+      alignmentWeight = parseFloat(alignmentSlider.value);
+      alignmentVal.textContent = alignmentSlider.value;
+    });
+    cohesionSlider.addEventListener('input', () => {
+      cohesionWeight = parseFloat(cohesionSlider.value);
+      cohesionVal.textContent = cohesionSlider.value;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      initFlock();
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+
+    // Animation loop: update flock, including dynamic colors.
+    function animate() {
+      if (!isAnimating) return;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let boid of boids) {
+        boid.flock(boids);
+        // Update the boid's color based on nearby neighbors.
+        boid.updateColor(boids);
+        boid.update();
+        boid.render();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    initFlock();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hypotrochoid (Spirograph) Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 1px solid #fff;
+    }
+    .controls {
+      margin: 10px auto;
+    }
+    .controls label, .controls input, .controls span {
+      margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      margin: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hypotrochoid (Spirograph) Visualization</h1>
+  <div class="controls">
+    <label for="RSlider">R (Outer Radius): </label>
+    <input type="range" id="RSlider" min="50" max="300" value="150">
+    <span id="RValue">150</span>
+    <br>
+    <label for="rSlider">r (Inner Radius): </label>
+    <input type="range" id="rSlider" min="10" max="150" value="50">
+    <span id="rValue">50</span>
+    <br>
+    <label for="dSlider">d (Distance): </label>
+    <input type="range" id="dSlider" min="10" max="150" value="75">
+    <span id="dValue">75</span>
+    <br>
+    <label for="speedSlider">Speed: </label>
+    <input type="range" id="speedSlider" min="1" max="100" value="10">
+    <span id="speedValue">0.010</span>
+    <br>
+    <button id="pauseBtn">Pause</button>
+    <label for="fadeCheck">Fade Trail: </label>
+    <input type="checkbox" id="fadeCheck">
+  </div>
+  <canvas id="canvas" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Get controls
+    const RSlider = document.getElementById('RSlider');
+    const rSlider = document.getElementById('rSlider');
+    const dSlider = document.getElementById('dSlider');
+    const speedSlider = document.getElementById('speedSlider');
+    const fadeCheck = document.getElementById('fadeCheck');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    const RValue = document.getElementById('RValue');
+    const rValue = document.getElementById('rValue');
+    const dValue = document.getElementById('dValue');
+    const speedValue = document.getElementById('speedValue');
+
+    // Parameters for hypotrochoid
+    let R = parseFloat(RSlider.value);
+    let r = parseFloat(rSlider.value);
+    let d = parseFloat(dSlider.value);
+    let speed = speedSlider.value / 1000; // Increment for theta
+
+    RValue.textContent = R;
+    rValue.textContent = r;
+    dValue.textContent = d;
+    speedValue.textContent = speed.toFixed(3);
+
+    // Update parameters on slider change
+    RSlider.addEventListener('input', () => {
+      R = parseFloat(RSlider.value);
+      RValue.textContent = R;
+      resetDrawing();
+    });
+    rSlider.addEventListener('input', () => {
+      r = parseFloat(rSlider.value);
+      rValue.textContent = r;
+      resetDrawing();
+    });
+    dSlider.addEventListener('input', () => {
+      d = parseFloat(dSlider.value);
+      dValue.textContent = d;
+      resetDrawing();
+    });
+    speedSlider.addEventListener('input', () => {
+      speed = speedSlider.value / 1000;
+      speedValue.textContent = speed.toFixed(3);
+    });
+
+    // Animation controls
+    let isAnimating = true;
+    pauseBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
+      if (isAnimating) animate();
+      else cancelAnimationFrame(animationId);
+    });
+
+    // Clear and reset drawing
+    let theta = 0;
+    let animationId;
+    function clearCanvas() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    function resetDrawing() {
+      theta = 0;
+      clearCanvas();
+    }
+    clearCanvas();
+
+    // Animation loop for the hypotrochoid
+    function animate() {
+      if (!isAnimating) return;
+
+      // Apply fading effect if enabled
+      if (fadeCheck.checked) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      // Compute hypotrochoid coordinates:
+      // x(theta) = (R - r)*cos(theta) + d*cos(((R - r)/r)*theta)
+      // y(theta) = (R - r)*sin(theta) - d*sin(((R - r)/r)*theta)
+      const x = (R - r) * Math.cos(theta) + d * Math.cos(((R - r) / r) * theta);
+      const y = (R - r) * Math.sin(theta) - d * Math.sin(((R - r) / r) * theta);
+      
+      // Map to canvas coordinates (centered)
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const canvasX = cx + x;
+      const canvasY = cy + y;
+      
+      // Draw the point with a dynamic color based on theta
+      ctx.fillStyle = `hsla(${(theta * 50) % 360}, 100%, 70%, 1)`;
+      ctx.beginPath();
+      ctx.arc(canvasX, canvasY, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Increment theta
+      theta += speed;
+      
+      animationId = requestAnimationFrame(animate);
+    }
+    
+    animate();
+  </script>
+</body>
+</html>

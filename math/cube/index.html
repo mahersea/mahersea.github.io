@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Interactive Cube with Nodes and Vectors</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <script>
+        // Scene, camera, and renderer setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create a cube with muted colors for each face
+        const geometry = new THREE.BoxGeometry();
+        const materials = [
+            new THREE.MeshBasicMaterial({ color: 0x1f0000 }), // Dark Red
+            new THREE.MeshBasicMaterial({ color: 0x1f3f1f }), // Dark Green
+            new THREE.MeshBasicMaterial({ color: 0x1f1f3f }), // Dark Blue
+            new THREE.MeshBasicMaterial({ color: 0x1f1f00 }), // Dark Yellow
+            new THREE.MeshBasicMaterial({ color: 0x1f1f1f }), // Dark Magenta
+            new THREE.MeshBasicMaterial({ color: 0x1f3f3f })  // Dark Cyan
+        ];
+        const cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // Create a container for the nodes and vectors that will move with the cube
+        const cubeSystem = new THREE.Group();
+        scene.add(cubeSystem);
+        cubeSystem.add(cube);
+
+        // Create 6 nodes at fixed positions around the cube
+        const nodeGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+        const nodeMaterials = [
+            new THREE.MeshBasicMaterial({ color: 0x8F1A1A }), // Medium Red
+            new THREE.MeshBasicMaterial({ color: 0x299F29 }), // Medium Green
+            new THREE.MeshBasicMaterial({ color: 0x29299F }), // Medium Blue
+            new THREE.MeshBasicMaterial({ color: 0x8F8F1A }), // Medium Yellow
+            new THREE.MeshBasicMaterial({ color: 0x8F298F }), // Medium Magenta
+            new THREE.MeshBasicMaterial({ color: 0x299F9F })  // Medium Cyan
+        ];
+        
+        const nodes = [];
+
+        let t = 2;
+        
+        const nodePositions = [
+            new THREE.Vector3(t, 0, 0),   // Right node
+            new THREE.Vector3(-t, 0, 0),  // Left node
+            new THREE.Vector3(0, t, 0),   // Top node
+            new THREE.Vector3(0, -t, 0),  // Bottom node
+            new THREE.Vector3(0, 0, t),   // Front node
+            new THREE.Vector3(0, 0, -t)   // Back node
+        ];
+            
+        // Create nodes and add to cubeSystem
+        for (let i = 0; i < 6; i++) {
+            const node = new THREE.Mesh(nodeGeometry, nodeMaterials[i]);
+            node.position.copy(nodePositions[i]);
+            cubeSystem.add(node);
+            nodes.push(node);
+            t = t + Math.sin(t);
+        }
+
+        // Create line materials for vectors
+        const lineMaterials = [
+            new THREE.LineBasicMaterial({ color: 0xff3333 }), // Red
+            new THREE.LineBasicMaterial({ color: 0x33ff33 }), // Green
+            new THREE.LineBasicMaterial({ color: 0x3333ff }), // Blue
+            new THREE.LineBasicMaterial({ color: 0xffff33 }), // Yellow
+            new THREE.LineBasicMaterial({ color: 0xff33ff }), // Magenta
+            new THREE.LineBasicMaterial({ color: 0x33ffff })  // Cyan
+        ];
+
+        // Create lines for vectors
+        const lines = [];
+        for (let i = 0; i < 6; i++) {
+            const lineGeometry = new THREE.BufferGeometry();
+            // Points from node to center (0,0,0 in cube's local space)
+            const points = [
+                nodePositions[i],
+                new THREE.Vector3(0, 0, 0)
+            ];
+            lineGeometry.setFromPoints(points);
+            const line = new THREE.Line(lineGeometry, lineMaterials[i]);
+            cubeSystem.add(line);
+            lines.push(line);
+        }
+
+        // Position the camera
+        camera.position.z = 7; // Moved camera back to see all nodes
+
+        // Mouse controls
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate the entire system instead of just the cube
+            cubeSystem.rotation.x += (mouseY * 0.01);
+            cubeSystem.rotation.y += (mouseX * 0.01);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Add orbit controls to allow zoom and pan
+        function createOrbitControls() {
+            // Simple orbit control implementation
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            let cameraDistance = 7;
+            let cameraRotation = { x: 0, y: 0 };
+
+            document.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+
+                if (e.buttons === 1) { // Left mouse button: orbit
+                    cameraRotation.x += deltaMove.y * 0.01;
+                    cameraRotation.y += deltaMove.x * 0.01;
+                    
+                    // Limit vertical rotation
+                    cameraRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, cameraRotation.x));
+                    
+                    // Calculate camera position
+                    camera.position.x = cameraDistance * Math.sin(cameraRotation.y) * Math.cos(cameraRotation.x);
+                    camera.position.y = cameraDistance * Math.sin(cameraRotation.x);
+                    camera.position.z = cameraDistance * Math.cos(cameraRotation.y) * Math.cos(cameraRotation.x);
+                    
+                    camera.lookAt(0, 0, 0);
+                }
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            // Zoom with mouse wheel
+            document.addEventListener('wheel', (e) => {
+                const zoomSpeed = 0.1;
+                cameraDistance += e.deltaY * zoomSpeed * 0.01;
+                
+                // Limit zoom
+                cameraDistance = Math.max(2, Math.min(20, cameraDistance));
+                
+                // Update camera position
+                camera.position.x = cameraDistance * Math.sin(cameraRotation.y) * Math.cos(cameraRotation.x);
+                camera.position.y = cameraDistance * Math.sin(cameraRotation.x);
+                camera.position.z = cameraDistance * Math.cos(cameraRotation.y) * Math.cos(cameraRotation.x);
+            });
+        }
+
+        // Create orbit controls
+        createOrbitControls();
+
+        // Add a small sphere to visualize the center of the cube
+        const centerSphereGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const centerSphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const centerSphere = new THREE.Mesh(centerSphereGeometry, centerSphereMaterial);
+        cubeSystem.add(centerSphere);
+
+        // Start the animation
+        animate();
+    </script>
+</body>
+</html>
