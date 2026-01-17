@@ -1,11 +1,11 @@
 {
-  "lastUpdated": "2026-01-17T03:17:06.539Z",
+  "lastUpdated": "2026-01-17T03:54:25.706Z",
   "totalProjects": 93,
   "summary": {
     "byStatus": {
       "ready": 35,
-      "needs-thumbnail": 49,
-      "incomplete": 4,
+      "needs-thumbnail": 50,
+      "incomplete": 3,
       "needs-docs": 5
     },
     "byCategory": {
@@ -1137,13 +1137,14 @@
       "id": "littleBigSound",
       "title": "Multi-Quadrant Explosion Simulation with Raga Tones",
       "directory": "littleBigSound",
-      "status": "incomplete",
-      "hasIndex": false,
+      "status": "needs-thumbnail",
+      "hasIndex": true,
       "hasReadme": true,
       "hasThumbnail": false,
       "files": [
         "PROMPT.md",
-        "README.md"
+        "README.md",
+        "index.html"
       ],
       "technologies": [
         "HTML"
