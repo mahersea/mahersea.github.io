@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>littleBigSound (TrackPort) - Cross-Platform Music Sharing</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding: 60px 20px 40px;
+      border-bottom: 2px solid #333;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg,
+        hsl(0, 100%, 70%),
+        hsl(60, 100%, 70%),
+        hsl(120, 100%, 70%),
+        hsl(180, 100%, 70%),
+        hsl(240, 100%, 70%),
+        hsl(300, 100%, 70%),
+        hsl(360, 100%, 70%)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: hueRotate 10s linear infinite;
+      background-size: 200% 100%;
+    }
+
+    @keyframes hueRotate {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .subtitle {
+      font-size: 1.4em;
+      color: hsl(180, 100%, 70%);
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      font-size: 1.1em;
+      color: #aaa;
+    }
+
+    .status-badges {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px 0;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+        hsla(200, 100%, 50%, 0.1),
+        hsla(280, 100%, 50%, 0.1),
+        hsla(340, 100%, 50%, 0.1)
+      );
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: hsl(180, 100%, 70%);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px hsla(180, 100%, 70%, 0.3);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #fff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card p {
+      color: #aaa;
+      font-size: 0.95em;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tag {
+      background: #222;
+      border: 1px solid hsla(280, 100%, 70%, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: hsl(280, 100%, 80%);
+    }
+
+    .category {
+      margin: 60px 0;
+    }
+
+    .category h2 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #fff;
+      border-left: 4px solid hsl(280, 100%, 70%);
+      padding-left: 15px;
+    }
+
+    .category:nth-child(2) h2 { border-left-color: hsl(0, 100%, 70%); }
+    .category:nth-child(3) h2 { border-left-color: hsl(60, 100%, 70%); }
+    .category:nth-child(4) h2 { border-left-color: hsl(120, 100%, 70%); }
+    .category:nth-child(5) h2 { border-left-color: hsl(180, 100%, 70%); }
+    .category:nth-child(6) h2 { border-left-color: hsl(240, 100%, 70%); }
+    .category:nth-child(7) h2 { border-left-color: hsl(300, 100%, 70%); }
+
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      padding: 20px 0;
+    }
+
+    .platform-badge {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 15px;
+      text-align: center;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+    }
+
+    .platform-badge:hover {
+      border-color: hsl(180, 100%, 70%);
+      background: #1a1a1a;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #222;
+      border: 1px solid hsl(180, 100%, 70%);
+      border-radius: 6px;
+      color: hsl(180, 100%, 70%);
+      text-decoration: none;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      background: hsla(180, 100%, 70%, 0.1);
+      box-shadow: 0 5px 20px hsla(180, 100%, 70%, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn.primary {
+      background: hsl(180, 100%, 70%);
+      color: #000;
+      border-color: hsl(180, 100%, 70%);
+    }
+
+    .btn.primary:hover {
+      background: hsl(180, 100%, 80%);
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 20px 0;
+    }
+
+    .tech-badge {
+      background: #1a1a1a;
+      border: 1px solid #444;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      color: #ccc;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 80px;
+      padding: 40px 20px;
+      border-top: 2px solid #333;
+      color: #666;
+    }
+
+    footer a {
+      color: hsl(180, 100%, 70%);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      border-radius: 50%;
+      background: hsl(180, 100%, 70%);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .platforms-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .category h2 {
+        font-size: 1.5em;
+      }
+
+      header {
+        padding: 40px 10px 30px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .subtitle {
+        font-size: 1.1em;
+      }
+
+      .tagline {
+        font-size: 0.95em;
+      }
+
+      .platforms-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (hover: none) {
+      .card:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .card:active {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px hsla(180, 100%, 70%, 0.3);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>littleBigSound (TrackPort)</h1>
+      <p class="subtitle">Cross-Platform Music Link Sharing</p>
+      <p class="tagline">Your music, any platform</p>
+      <div class="status-badges">
+        <span class="tag">Sprint 1 Complete ✓</span>
+        <span class="tag">Authentication Ready</span>
+        <span class="tag">Open Source</span>
+      </div>
+    </header>
+
+    <div class="category">
+      <h2>Core Features</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">🔗</div>
+          <h3>One Link, Every Platform</h3>
+          <p>Share a Spotify link, get YouTube, Apple Music, and more automatically. Break down streaming platform barriers.</p>
+          <div class="tags">
+            <span class="tag">Platform-agnostic</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎵</div>
+          <h3>Curated Playlists</h3>
+          <p>Create collections that work across all streaming services. Your mixtapes, universally accessible.</p>
+          <div class="tags">
+            <span class="tag">Human-centric</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <h3>Follow Curators</h3>
+          <p>Discover music through people you trust, not algorithms. Community-driven music discovery.</p>
+          <div class="tags">
+            <span class="tag">Community-driven</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📼</div>
+          <h3>Analog Revival</h3>
+          <p>Export playlists to cassette/vinyl with DIY guides. Digital meets physical media.</p>
+          <div class="tags">
+            <span class="tag">Unique</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💻</div>
+          <h3>Free & Transparent</h3>
+          <p>Built in the open, community-focused. No ads, no tracking, no lock-in.</p>
+          <div class="tags">
+            <span class="tag">Open-source</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎧</div>
+          <h3>10+ Platforms</h3>
+          <p>Spotify, Apple Music, YouTube, Tidal, Bandcamp, and more. All major streaming services supported.</p>
+          <div class="tags">
+            <span class="tag">Universal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Supported Platforms</h2>
+      <div class="platforms-grid">
+        <div class="platform-badge">🎵 Spotify</div>
+        <div class="platform-badge">🍎 Apple Music</div>
+        <div class="platform-badge">📺 YouTube Music</div>
+        <div class="platform-badge">🎶 Amazon Music</div>
+        <div class="platform-badge">🌊 Tidal</div>
+        <div class="platform-badge">🎧 Deezer</div>
+        <div class="platform-badge">☁️ SoundCloud</div>
+        <div class="platform-badge">🎸 Bandcamp</div>
+        <div class="platform-badge">📻 Pandora</div>
+        <div class="platform-badge">▶️ YouTube</div>
+        <div class="platform-badge">🎬 Vimeo</div>
+        <div class="platform-badge">📚 Internet Archive</div>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>How It Works</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="step-number">1</div>
+          <h3>Paste a Link</h3>
+          <p>Drop any music platform link into TrackPort. Works with Spotify, Apple Music, YouTube, and more.</p>
+        </div>
+
+        <div class="card">
+          <div class="step-number">2</div>
+          <h3>Find Everywhere</h3>
+          <p>Automatic cross-platform matching using Odesli/Songlink API. Intelligent track identification across services.</p>
+        </div>
+
+        <div class="card">
+          <div class="step-number">3</div>
+          <h3>Share with Anyone</h3>
+          <p>Friends listen on their preferred service. No forced platform migration, just seamless music sharing.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Development Roadmap</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>✓ Sprint 1 - Foundation</h3>
+          <p>Project structure, authentication system, React frontend, Express backend, PostgreSQL database.</p>
+          <div class="tags">
+            <span class="tag">Complete</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>🚀 Sprint 2 - Link Processing</h3>
+          <p>Core link translation feature, Odesli API integration, track matching across platforms.</p>
+          <div class="tags">
+            <span class="tag">In Progress</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📋 Sprint 3 - Social Features</h3>
+          <p>User profiles, follow system, like/comment, public playlists, social feed.</p>
+          <div class="tags">
+            <span class="tag">Planned</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📋 Sprint 4 - Platform Expansion</h3>
+          <p>Additional streaming services, physical media export tools, cassette/vinyl guides.</p>
+          <div class="tags">
+            <span class="tag">Planned</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📋 Sprint 5 - Mobile & API</h3>
+          <p>Mobile app (React Native), public API, browser extension, enhanced search.</p>
+          <div class="tags">
+            <span class="tag">Future</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category">
+      <h2>Tech Stack</h2>
+      <div class="tech-stack">
+        <span class="tech-badge">React 18</span>
+        <span class="tech-badge">Vite</span>
+        <span class="tech-badge">React Router</span>
+        <span class="tech-badge">Tailwind CSS</span>
+        <span class="tech-badge">Node.js</span>
+        <span class="tech-badge">Express</span>
+        <span class="tech-badge">PostgreSQL</span>
+        <span class="tech-badge">JWT Auth</span>
+        <span class="tech-badge">bcrypt</span>
+        <span class="tech-badge">Axios</span>
+        <span class="tech-badge">Odesli API</span>
+        <span class="tech-badge">Spotify API</span>
+        <span class="tech-badge">YouTube API</span>
+      </div>
+    </div>
+
+    <div class="category" style="text-align: center;">
+      <h2>Get Started</h2>
+      <p style="color: #aaa; margin-bottom: 30px;">
+        TrackPort is currently in active development. The authentication system is complete and link processing is underway.
+      </p>
+      <a href="https://github.com/mahersea/mahersea.github.io/tree/master/littleBigSound" class="btn" target="_blank">
+        View on GitHub
+      </a>
+      <a href="README.md" class="btn">
+        Read Documentation
+      </a>
+    </div>
+
+    <footer>
+      <p>littleBigSound (TrackPort) &copy; 2026</p>
+      <p>Cross-platform music link sharing • Open source • Community-driven</p>
+      <p style="margin-top: 20px;">
+        <a href="https://github.com/mahersea/mahersea.github.io" target="_blank">mahersea.github.io</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
