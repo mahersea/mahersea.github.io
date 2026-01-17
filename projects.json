@@ -1,15 +1,15 @@
 {
-  "lastUpdated": "2025-06-23T03:06:59.865Z",
-  "totalProjects": 88,
+  "lastUpdated": "2026-01-17T03:17:06.539Z",
+  "totalProjects": 93,
   "summary": {
     "byStatus": {
       "ready": 35,
-      "needs-docs": 24,
-      "needs-thumbnail": 26,
-      "incomplete": 3
+      "needs-thumbnail": 49,
+      "incomplete": 4,
+      "needs-docs": 5
     },
     "byCategory": {
-      "Experiments": 57,
+      "Experiments": 62,
       "Web Tools": 5,
       "Small Games": 7,
       "Mathematical Expressions": 8,
@@ -17,7 +17,7 @@
       "Tools": 2
     },
     "byTechnology": {
-      "HTML": 86,
+      "HTML": 91,
       "JavaScript": 13,
       "CSS": 3,
       "Node.js": 1
@@ -56,7 +56,6 @@
       "hasReadme": true,
       "hasThumbnail": true,
       "files": [
-        "README.md",
         "app.js",
         "claude-output.html",
         "index.html",
@@ -64,6 +63,7 @@
         "openai-output.html",
         "pathfinder-medium.png",
         "pathfinding.png",
+        "readMe.md",
         "styles.css"
       ],
       "technologies": [
@@ -100,11 +100,12 @@
       "id": "ant-farm-simulator",
       "title": "Ant Farm Simulator",
       "directory": "ant-farm-simulator",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -171,11 +172,12 @@
       "id": "aurora-borealis",
       "title": "Aurora Borealis",
       "directory": "aurora-borealis",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -189,11 +191,12 @@
       "id": "aurora-plasma",
       "title": "Aurora Plasma",
       "directory": "aurora-plasma",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -227,11 +230,12 @@
       "id": "bubble-chamber",
       "title": "Bubble Chamber",
       "directory": "bubble-chamber",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -349,11 +353,12 @@
       "id": "combustion",
       "title": "Combustion",
       "directory": "combustion",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -367,11 +372,12 @@
       "id": "combustion-chamber",
       "title": "Combustion Chamber",
       "directory": "combustion-chamber",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -385,11 +391,12 @@
       "id": "crossword",
       "title": "Crossword",
       "directory": "crossword",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html",
         "stories.json"
       ],
@@ -463,11 +470,12 @@
       "id": "engine-performance",
       "title": "Engine Performance",
       "directory": "engine-performance",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -562,11 +570,12 @@
       "id": "fluid-art-generator",
       "title": "Fluid Art Generator",
       "directory": "fluid-art-generator",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -848,11 +857,12 @@
       "id": "jet-engine",
       "title": "Jet Engine",
       "directory": "jet-engine",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -866,11 +876,12 @@
       "id": "learning",
       "title": "Learning",
       "directory": "learning",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "common.css",
         "common.js",
         "index.html",
@@ -889,11 +900,12 @@
       "id": "lightning",
       "title": "Lightning",
       "directory": "lightning",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html",
         "mountain-clouds-svg-simple.svg",
         "mountain-clouds-svg.svg"
@@ -909,11 +921,12 @@
       "id": "lightning-claude",
       "title": "Lightning Claude",
       "directory": "lightning-claude",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html",
         "mountain-clouds-svg.svg"
       ],
@@ -928,11 +941,12 @@
       "id": "lightning-js",
       "title": "Lightning Js",
       "directory": "lightning-js",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -946,11 +960,12 @@
       "id": "lightning-mithril",
       "title": "Lightning Mithril",
       "directory": "lightning-mithril",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1051,18 +1066,84 @@
       "image": "images/mandelbrot.png"
     },
     {
+      "id": "mass-effect",
+      "title": "Mass Effect",
+      "directory": "mass-effect",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "mass_effect_overview.md",
+        "prompts.md"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "mass-effect"
+    },
+    {
+      "id": "math",
+      "title": "Math",
+      "directory": "math",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html",
+        "index.original.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "math"
+    },
+    {
+      "id": "mouse-trail",
+      "title": "Mouse Trail",
+      "directory": "mouse-trail",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "canvas-mouse-jelly-infinity.html",
+        "index-2.html",
+        "index-3.html",
+        "index-4.html",
+        "index-5.html",
+        "index.html",
+        "pattern_infinity_60min.sh",
+        "pattern_pingpong_horizontal_60min.sh",
+        "pattern_pingpong_vertical_60min.sh",
+        "pattern_rectangle_perimeter_60min.sh",
+        "pattern_spiral_archimedean_60min.sh",
+        "pattern_spiral_archimedean_60min.sh "
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "mouse-trail"
+    },
+    {
       "id": "littleBigSound",
       "title": "Multi-Quadrant Explosion Simulation with Raga Tones",
       "directory": "littleBigSound",
-      "status": "needs-thumbnail",
-      "hasIndex": true,
+      "status": "incomplete",
+      "hasIndex": false,
       "hasReadme": true,
       "hasThumbnail": false,
       "files": [
-        "README.md",
-        "index.html",
-        "raga.html",
-        "western.html"
+        "PROMPT.md",
+        "README.md"
       ],
       "technologies": [
         "HTML"
@@ -1161,11 +1242,12 @@
       "id": "physarum-simulation",
       "title": "Physarum Simulation",
       "directory": "physarum-simulation",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1203,11 +1285,12 @@
       "id": "plasma-physics",
       "title": "Plasma Physics",
       "directory": "plasma-physics",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1260,11 +1343,12 @@
       "id": "reaction-diffusion",
       "title": "Reaction Diffusion",
       "directory": "reaction-diffusion",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1324,7 +1408,9 @@
       "files": [
         "README.md",
         "index.html",
-        "resume.md"
+        "resume.md",
+        "resume.txt",
+        "resume_thrivent.txt"
       ],
       "technologies": [
         "HTML"
@@ -1481,14 +1567,35 @@
       "link": "dashboard"
     },
     {
-      "id": "street-vehicles",
-      "title": "Street Vehicles",
-      "directory": "street-vehicles",
+      "id": "stoner-metal",
+      "title": "Stoner Metal",
+      "directory": "stoner-metal",
       "status": "needs-docs",
       "hasIndex": true,
       "hasReadme": false,
       "hasThumbnail": false,
       "files": [
+        "index-new.html",
+        "index.html",
+        "taxonomy.json"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "stoner-metal"
+    },
+    {
+      "id": "street-vehicles",
+      "title": "Street Vehicles",
+      "directory": "street-vehicles",
+      "status": "needs-thumbnail",
+      "hasIndex": true,
+      "hasReadme": true,
+      "hasThumbnail": false,
+      "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1502,11 +1609,12 @@
       "id": "street-vehicles-roads",
       "title": "Street Vehicles Roads",
       "directory": "street-vehicles-roads",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "figure-8-road.png",
         "index.html",
         "intersection.png"
@@ -1566,6 +1674,7 @@
       "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "CLAUDE.md",
         "README.md",
         "index.html"
       ],
@@ -1580,11 +1689,12 @@
       "id": "thrust-vectoring",
       "title": "Thrust Vectoring",
       "directory": "thrust-vectoring",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1615,6 +1725,24 @@
       "thumbnail": "images/tic-tac-toe_thumb.png"
     },
     {
+      "id": "tiles",
+      "title": "Tiles",
+      "directory": "tiles",
+      "status": "needs-docs",
+      "hasIndex": true,
+      "hasReadme": false,
+      "hasThumbnail": false,
+      "files": [
+        "index.html"
+      ],
+      "technologies": [
+        "HTML"
+      ],
+      "category": "Experiments",
+      "description": "",
+      "link": "tiles"
+    },
+    {
       "id": "touch-designer-output",
       "title": "TouchDesigner Projects",
       "directory": "touch-designer-output",
@@ -1636,11 +1764,12 @@
       "id": "turbocharger",
       "title": "Turbocharger",
       "directory": "turbocharger",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
@@ -1777,11 +1906,12 @@
       "id": "wind",
       "title": "Wind",
       "directory": "wind",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html",
         "script.js",
         "test.png"
@@ -1798,11 +1928,12 @@
       "id": "wirtz-pump",
       "title": "Wirtz Pump",
       "directory": "wirtz-pump",
-      "status": "needs-docs",
+      "status": "needs-thumbnail",
       "hasIndex": true,
-      "hasReadme": false,
+      "hasReadme": true,
       "hasThumbnail": false,
       "files": [
+        "README.md",
         "index.html"
       ],
       "technologies": [
