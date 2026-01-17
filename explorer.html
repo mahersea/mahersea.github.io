@@ -711,7 +711,8 @@
     // Fetch projects data
     async function loadProjects() {
       try {
-        const response = await fetch('projects.json');
+        // Add cache-busting timestamp to ensure fresh data
+        const response = await fetch(`projects.json?t=${Date.now()}`);
         projectsData = await response.json();
         renderStats();
         renderTree();
