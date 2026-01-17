@@ -194,9 +194,232 @@
       color: inherit;
     }
 
+    /* Hamburger Menu Button */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      z-index: 100;
+    }
+
+    .menu-toggle span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle.active span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle.active span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
+      /* Show hamburger menu */
+      .menu-toggle {
+        display: flex;
+        order: 3;
+      }
+
+      /* Header adjustments */
+      #header .container {
+        position: relative;
+      }
+
+      #header .logo {
+        order: 2;
+      }
+
+      #header iframe {
+        width: 100px;
+        height: 100px;
+        order: 1;
+      }
+
+      /* Mobile navigation */
+      #header nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 250px;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+        transition: right 0.3s ease;
+        z-index: 99;
+        padding: 80px 0 20px 0;
+      }
+
+      #header nav.active {
+        right: 0;
+      }
+
+      #header nav ul {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      #header nav ul li {
+        margin: 0;
+      }
+
+      #header nav ul li a {
+        display: block;
+        padding: 16px 24px;
+        transition: background 0.2s;
+      }
+
+      #header nav ul li a:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Overlay when menu is open */
+      #header nav.active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 250px;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: -1;
+      }
+
+      /* Hero section adjustments */
+      .hero-content {
+        padding: 20px;
+      }
+
+      .hero-content h1 {
+        font-size: 2em;
+      }
+
+      .hero-content p {
+        font-size: 14px;
+      }
+
+      /* Math projects grid */
       #math-projects .grid {
         grid-template-columns: 1fr;
+      }
+
+      #math-projects .card {
+        padding: 16px;
+      }
+
+      #math-projects .card h2 {
+        font-size: 1.3em;
+      }
+
+      #math-projects .card p {
+        font-size: 0.9em;
+      }
+
+      #math-projects .category h2 {
+        font-size: 1.5em;
+      }
+
+      /* About section */
+      .full-text {
+        margin: 16px;
+        font-size: 14px;
+      }
+
+      /* Focus styles for accessibility */
+      .menu-toggle:focus,
+      #header nav ul li a:focus,
+      .card:focus {
+        outline: 2px solid rgb(152, 47, 42);
+        outline-offset: 2px;
+      }
+
+      /* Touch device hover handling */
+      @media (hover: none) {
+        .card:hover {
+          transform: none;
+          box-shadow: none;
+        }
+
+        .card:active {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px hsla(180, 100%, 70%, 0.3);
+        }
+      }
+    }
+
+    /* Aggressive mobile optimization */
+    @media (max-width: 600px) {
+      /* Further compress header */
+      #header iframe {
+        width: 80px;
+        height: 80px;
+      }
+
+      /* Hero adjustments */
+      .hero-content h1 {
+        font-size: 1.5em;
+      }
+
+      .hero-content p {
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      /* Math projects */
+      #math-projects {
+        padding: 20px 0;
+      }
+
+      #math-projects .category {
+        margin: 24px 0;
+      }
+
+      #math-projects .category h2 {
+        font-size: 1.3em;
+        padding-left: 12px;
+      }
+
+      #math-projects .card {
+        padding: 12px;
+      }
+
+      #math-projects .card h2 {
+        font-size: 1.1em;
+      }
+
+      #math-projects .card .tags {
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      #math-projects .tag {
+        font-size: 0.75em;
+        padding: 3px 8px;
+      }
+
+      /* About section */
+      .full-text {
+        margin: 12px;
+        font-size: 13px;
+      }
+
+      /* Footer */
+      footer {
+        padding: 20px 0;
       }
     }
   </style>
@@ -219,6 +442,11 @@
     <div class="container header-container">
 	  <iframe src="../cube/index.html" width="200px" height="200px" style="border:none;"></iframe>
       <div class="logo">mahersea.github.io</div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
       <nav>
         <ul>
           <li><a href="#hero">Home</a></li>
@@ -513,5 +741,38 @@
   </footer>
 
   <script src="../script.js"></script>
+  <script>
+    // Hamburger menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.querySelector('#header nav');
+
+    if (menuToggle && nav) {
+      // Toggle menu open/close
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuToggle.classList.toggle('active');
+        nav.classList.toggle('active');
+        document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (nav.classList.contains('active') && !nav.contains(e.target) && !menuToggle.contains(e.target)) {
+          menuToggle.classList.remove('active');
+          nav.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+
+      // Close menu when clicking a link
+      nav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          menuToggle.classList.remove('active');
+          nav.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      });
+    }
+  </script>
 </body>
 </html>
