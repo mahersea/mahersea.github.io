@@ -376,15 +376,297 @@
     .breadcrumb a:hover {
       text-decoration: underline;
     }
+
+    /* Hamburger Menu Button */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      z-index: 100;
+    }
+
+    .menu-toggle span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background: #c9d1d9;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle.active span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle.active span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      /* Show hamburger menu */
+      .menu-toggle {
+        display: flex;
+      }
+
+      /* Header adjustments */
+      .header {
+        padding: 10px 16px;
+      }
+
+      .header h1 {
+        font-size: 16px;
+      }
+
+      /* Mobile navigation */
+      .header nav {
+        position: fixed;
+        top: 50px;
+        right: -100%;
+        width: 250px;
+        height: calc(100vh - 50px);
+        background: #161b22;
+        border-left: 1px solid #30363d;
+        transition: right 0.3s ease;
+        z-index: 99;
+        padding: 20px 0;
+      }
+
+      .header nav.active {
+        right: 0;
+      }
+
+      .header nav a {
+        display: block;
+        padding: 12px 20px;
+        margin-left: 0;
+        border-radius: 0;
+        transition: background 0.2s;
+      }
+
+      .header nav a:hover {
+        background: #21262d;
+      }
+
+      /* Overlay when menu is open */
+      .header nav.active::before {
+        content: '';
+        position: fixed;
+        top: 50px;
+        left: 0;
+        right: 250px;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+      }
+
+      /* Container layout - stack vertically */
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      /* Sidebar adjustments */
+      .sidebar {
+        width: 100%;
+        max-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid #30363d;
+        padding: 12px;
+      }
+
+      /* Content area adjustments */
+      .content {
+        width: 100%;
+      }
+
+      .content-header {
+        padding: 12px 16px;
+      }
+
+      .content-header h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+
+      .content-header .meta {
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .content-body {
+        padding: 16px;
+      }
+
+      /* Touch target optimization */
+      .search-box {
+        padding: 12px 16px;
+        font-size: 16px;
+        min-height: 48px;
+      }
+
+      .tree-label {
+        padding: 14px 12px;
+        min-height: 48px;
+      }
+
+      .tree-toggle {
+        font-size: 14px;
+        width: 20px;
+        margin-right: 8px;
+      }
+
+      .tree-icon {
+        font-size: 18px;
+        margin-right: 12px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+        min-height: 44px;
+        font-size: 14px;
+      }
+
+      .file-actions {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .file-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* Typography scaling */
+      .welcome {
+        padding: 24px 16px;
+      }
+
+      .welcome h2 {
+        font-size: 24px;
+      }
+
+      .welcome p {
+        font-size: 14px;
+      }
+
+      /* Stats grid - 2 columns on tablet */
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin: 24px 0;
+      }
+
+      .stat-card .number {
+        font-size: 24px;
+      }
+
+      .stat-card .label {
+        font-size: 12px;
+      }
+
+      /* Breadcrumb responsiveness */
+      .breadcrumb {
+        font-size: 12px;
+        word-break: break-word;
+        line-height: 1.4;
+      }
+
+      .tag {
+        font-size: 11px;
+        padding: 2px 6px;
+      }
+
+      /* Focus styles for accessibility */
+      .tree-label:focus,
+      .search-box:focus,
+      .btn:focus,
+      .menu-toggle:focus {
+        outline: 2px solid #58a6ff;
+        outline-offset: 2px;
+      }
+
+      /* Touch device hover handling */
+      @media (hover: none) {
+        .tree-label:hover {
+          background: transparent;
+        }
+
+        .tree-label:active {
+          background: #161b22;
+        }
+      }
+    }
+
+    /* Aggressive mobile optimization */
+    @media (max-width: 600px) {
+      /* Further reduce sidebar height */
+      .sidebar {
+        max-height: 40vh;
+        padding: 8px;
+      }
+
+      /* Compress content spacing */
+      .content-header {
+        padding: 10px 12px;
+      }
+
+      .content-body {
+        padding: 12px;
+      }
+
+      /* Single column stats */
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      /* Reduce tree nesting */
+      .tree-children {
+        margin-left: 12px;
+      }
+
+      /* File viewer compression */
+      .file-viewer ul {
+        padding: 12px;
+      }
+
+      .file-viewer li {
+        padding: 10px;
+        font-size: 13px;
+      }
+
+      .markdown-body {
+        padding: 16px;
+      }
+
+      .markdown-body h1,
+      .markdown-body h2,
+      .markdown-body h3 {
+        font-size: 1.2em;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>🗂️ Project Explorer</h1>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
     <nav>
       <a href="index.html">Home</a>
       <a href="math/index.html">Math</a>
-      <a href="index_portfolio.html">Portfolio</a>
       <a href="https://github.com/mahersea/mahersea.github.io" target="_blank">GitHub</a>
     </nav>
   </div>
@@ -647,6 +929,38 @@
         }
       });
     });
+
+    // Hamburger menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.querySelector('.header nav');
+
+    if (menuToggle && nav) {
+      // Toggle menu open/close
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuToggle.classList.toggle('active');
+        nav.classList.toggle('active');
+        document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (nav.classList.contains('active') && !nav.contains(e.target) && !menuToggle.contains(e.target)) {
+          menuToggle.classList.remove('active');
+          nav.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+
+      // Close menu when clicking a link
+      nav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          menuToggle.classList.remove('active');
+          nav.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      });
+    }
 
     // Initialize
     loadProjects();
