@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explosion Simulation with Raga & Western Scales</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgb(33, 33, 33);
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background-color: black;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+    select, button, input[type="range"] {
+      padding: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #muteIcon {
+      font-size: 18px;
+    }
+    /* Grouped dropdowns styling */
+    .grouped {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      border: 1px solid #4CAF50;
+      padding: 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="explosionSelect">Explosion Type:</label>
+    <select id="explosionSelect" onchange="setExplosionType(this.value)">
+      <option value="field">Field Explosion</option>
+      <option value="blob">Blob Explosion</option>
+      <option value="wave">Wave Explosion</option>
+      <option value="hybrid">Hybrid Explosion</option>
+    </select>
+    
+    <label for="soundSelect">Sound Type:</label>
+    <!-- Manual sound type selection; auto-trigger always uses oscillator -->
+    <select id="soundSelect">
+      <option value="oscillator" selected>Oscillator Sound</option>
+      <option value="procedural">Procedural Sound</option>
+      <option value="buffer">Custom Buffer Sound</option>
+      <option value="jazz">Smooth Jazz</option>
+    </select>
+    
+    <!-- Raga dropdown -->
+    <div class="grouped">
+      <label for="ragaSelect">Raga:</label>
+      <select id="ragaSelect">
+        <option value="none" selected>None</option>
+        <option value="Bilawal">Bilawal</option>
+        <option value="Yaman">Yaman</option>
+        <option value="Kalyan">Kalyan</option>
+        <option value="Bhairavi">Bhairavi</option>
+      </select>
+    </div>
+    
+    <!-- Western scale grouped dropdowns -->
+    <div class="grouped">
+      <label for="westernNote">Key:</label>
+      <select id="westernNote">
+        <option value="A" selected>A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+        <option value="G">G</option>
+      </select>
+      
+      <label for="accidental">Accidental:</label>
+      <select id="accidental">
+        <option value="Natural" selected>Natural</option>
+        <option value="Sharp">Sharp</option>
+        <option value="Flat">Flat</option>
+      </select>
+      
+      <label for="scaleType">Scale Type:</label>
+      <select id="scaleType">
+        <option value="Major" selected>Major</option>
+        <option value="Minor">Minor</option>
+      </select>
+    </div>
+    
+    <!-- Speed slider -->
+    <label for="speedSlider">Speed:</label>
+    <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1" />
+    
+    <!-- Mute Toggle Button -->
+    <button id="muteToggle" onclick="toggleMute()">
+      <span id="muteIcon">🔇</span>
+      <span id="muteLabel">Muted</span>
+    </button>
+  </div>
+  
+  <canvas id="explosionCanvas"></canvas>
+  
+  <!-- Hidden audio element for smooth jazz (preloaded, looped) -->
+  <audio id="jazzAudio" src="path/to/your/smooth_jazz.mp3" loop></audio>
+  
+  <script>
+    // Global mute flag and auto-trigger settings.
+    let isMuted = true;
+    let autoTriggerInterval = 1500;
+    let autoTriggerHandle = null;
+    let speedMultiplier = 1;
+    
+    // For cycling through scales.
+    let westernScaleIndex = 0;
+    let ragaScaleIndex = 0;
+    
+    const speedSlider = document.getElementById('speedSlider');
+    speedSlider.addEventListener('input', () => {
+      speedMultiplier = parseFloat(speedSlider.value);
+      autoTriggerInterval = 1500 / speedMultiplier;
+      restartAutoTrigger();
+    });
+    
+    function restartAutoTrigger() {
+      if (autoTriggerHandle) clearInterval(autoTriggerHandle);
+      autoTriggerHandle = setInterval(autoTrigger, autoTriggerInterval);
+    }
+    restartAutoTrigger();
+    
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById('muteIcon').textContent = isMuted ? '🔇' : '🔊';
+      document.getElementById('muteLabel').textContent = isMuted ? 'Muted' : 'Unmuted';
+      const jazzAudio = document.getElementById('jazzAudio');
+      jazzAudio.muted = isMuted;
+      if (isMuted) {
+        audioContext.suspend();
+      } else {
+        audioContext.resume();
+      }
+    }
+    
+    // --- Color Palette ---
+    function getColorFromX(x) {
+      const hue = (x / canvas.width) * 360;
+      return `hsla(${hue}, 100%, 50%, 0.5)`;
+    }
+    
+    // --- Explosion Simulation ---
+    class ExplosionSimulation {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.explosionTypes = {
+          field: this.fieldExplosion.bind(this),
+          blob: this.blobExplosion.bind(this),
+          wave: this.waveExplosion.bind(this),
+          hybrid: this.hybridExplosion.bind(this)
+        };
+        this.currentExplosionType = 'field';
+        this.explosions = [];
+      }
+      
+      resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+      
+      fieldExplosion(x, y) {
+        const fieldSize = 100;
+        const intensity = 10;
+        for (let dx = -fieldSize; dx < fieldSize; dx += 10) {
+          for (let dy = -fieldSize; dy < fieldSize; dy += 10) {
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < fieldSize) {
+              const falloff = 1 - (distance / fieldSize);
+              const particleX = x + dx;
+              this.explosions.push({
+                x: particleX,
+                y: y + dy,
+                radius: falloff * intensity,
+                color: getColorFromX(particleX),
+                life: 1,
+                type: 'field'
+              });
+            }
+          }
+        }
+      }
+      
+      blobExplosion(x, y) {
+        const blobCount = 5;
+        const maxRadius = 50;
+        for (let i = 0; i < blobCount; i++) {
+          const blobX = x + (Math.random()-0.5)*50;
+          this.explosions.push({
+            x: blobX,
+            y: y + (Math.random()-0.5)*50,
+            radius: Math.random()*maxRadius,
+            color: getColorFromX(blobX),
+            life: 1,
+            vx: (Math.random()-0.5)*5,
+            vy: (Math.random()-0.5)*5,
+            type: 'blob'
+          });
+        }
+      }
+      
+      waveExplosion(x, y) {
+        const waveCount = 3;
+        const maxRadius = 200;
+        for (let i = 0; i < waveCount; i++) {
+          this.explosions.push({
+            x: x,
+            y: y,
+            radius: 0,
+            maxRadius: maxRadius*(i+1)/waveCount,
+            color: getColorFromX(x),
+            life: 1,
+            growthRate: 5,
+            type: 'wave'
+          });
+        }
+      }
+      
+      hybridExplosion(x, y) {
+        this.fieldExplosion(x, y);
+        const blobCount = 3;
+        const maxRadius = 30;
+        for (let i = 0; i < blobCount; i++) {
+          const blobX = x + (Math.random()-0.5)*100;
+          this.explosions.push({
+            x: blobX,
+            y: y + (Math.random()-0.5)*100,
+            radius: Math.random()*maxRadius,
+            color: getColorFromX(blobX),
+            life: 1,
+            vx: (Math.random()-0.5)*3,
+            vy: (Math.random()-0.5)*3,
+            type: 'hybrid'
+          });
+        }
+        const waveCount = 2;
+        const maxWaveRadius = 150;
+        for (let i = 0; i < waveCount; i++) {
+          this.explosions.push({
+            x: x,
+            y: y,
+            radius: 0,
+            maxRadius: maxWaveRadius*(i+1)/waveCount,
+            color: getColorFromX(x),
+            life: 1,
+            growthRate: 3,
+            type: 'hybrid'
+          });
+        }
+      }
+      
+      render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.explosions = this.explosions.filter(explosion => {
+          switch(explosion.type) {
+            case 'field':
+              this.ctx.beginPath();
+              this.ctx.fillStyle = explosion.color;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI*2);
+              this.ctx.fill();
+              explosion.life -= 0.02;
+              break;
+            case 'blob':
+              this.ctx.beginPath();
+              this.ctx.fillStyle = explosion.color;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI*2);
+              this.ctx.fill();
+              explosion.x += explosion.vx;
+              explosion.y += explosion.vy;
+              explosion.radius *= 0.95;
+              explosion.life -= 0.03;
+              break;
+            case 'wave':
+              this.ctx.beginPath();
+              this.ctx.strokeStyle = explosion.color;
+              this.ctx.lineWidth = 5;
+              this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI*2);
+              this.ctx.stroke();
+              explosion.radius += explosion.growthRate;
+              explosion.life -= 0.02;
+              break;
+            case 'hybrid':
+              if(explosion.maxRadius) {
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = explosion.color;
+                this.ctx.lineWidth = 3;
+                this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI*2);
+                this.ctx.stroke();
+                explosion.radius += explosion.growthRate;
+                explosion.life -= 0.02;
+              } else {
+                this.ctx.beginPath();
+                this.ctx.fillStyle = explosion.color;
+                this.ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI*2);
+                this.ctx.fill();
+                explosion.x += explosion.vx;
+                explosion.y += explosion.vy;
+                explosion.radius *= 0.95;
+                explosion.life -= 0.03;
+              }
+              break;
+          }
+          return explosion.life > 0;
+        });
+        requestAnimationFrame(this.render.bind(this));
+      }
+      
+      createExplosion(x,y) {
+        this.explosionTypes[this.currentExplosionType](x,y);
+      }
+    }
+    
+    // --- Audio Setup ---
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Base frequency mapping for y position (if needed)
+    function getFrequencyFromY(y) {
+      const fMax = 880, fMin = 220;
+      return fMax - (y/canvas.height)*(fMax-fMin);
+    }
+    
+    // --- Scale Generators ---
+    // Raga scales: each is an array of frequencies (for simplicity, fixed octave)
+    function getRagaScale() {
+      const raga = document.getElementById('ragaSelect').value;
+      const scales = {
+        Bilawal: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88],
+        Yaman: [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37],
+        Kalyan: [261.63, 293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
+        Bhairavi: [261.63, 277.18, 311.13, 349.23, 392.00, 415.30, 466.16]
+      };
+      return scales[raga] || null;
+    }
+    
+    // Western scale generator: base note from key letter, accidental, and scale type.
+    function getWesternScale() {
+      const key = document.getElementById('westernNote').value;
+      const accidental = document.getElementById('accidental').value;
+      const scaleType = document.getElementById('scaleType').value;
+      // Base frequencies (using a common octave)
+      const baseFreqs = { C: 261.63, D: 293.66, E: 329.63, F: 349.23, G: 392.00, A: 440.00, B: 493.88 };
+      let base = baseFreqs[key] || 440;
+      if (accidental === "Sharp") {
+        base *= Math.pow(2, 1/12);
+      } else if (accidental === "Flat") {
+        base *= Math.pow(2, -1/12);
+      }
+      // Scale intervals in semitones
+      let intervals;
+      if (scaleType === "Major") {
+        intervals = [0, 2, 4, 5, 7, 9, 11, 12];
+      } else { // Minor (natural)
+        intervals = [0, 2, 3, 5, 7, 8, 10, 12];
+      }
+      // Generate scale frequencies.
+      return intervals.map(semi => base * Math.pow(2, semi/12));
+    }
+    
+    // Returns the active scale: if a raga is selected (not "none"), return that scale;
+    // otherwise return the Western scale.
+    function getActiveScale() {
+      const raga = document.getElementById('ragaSelect').value;
+      if (raga !== "none") {
+        return getRagaScale();
+      } else {
+        return getWesternScale();
+      }
+    }
+    
+    // --- Sound Functions ---
+    // Oscillator sound now cycles through the active scale.
+    function playOscillatorSound(dummyFrequency) {
+      if (isMuted) return;
+      const scale = getActiveScale();
+      if (!scale) return;
+      // Determine which note to play from the scale.
+      let frequency;
+      if (document.getElementById('ragaSelect').value !== "none") {
+        frequency = scale[ragaScaleIndex % scale.length];
+        ragaScaleIndex++;
+      } else {
+        frequency = scale[westernScaleIndex % scale.length];
+        westernScaleIndex++;
+      }
+      
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.start();
+      gainNode.gain.linearRampToValueAtTime(0.0, audioContext.currentTime + 1);
+      oscillator.stop(audioContext.currentTime + 1);
+    }
+    
+    // Procedural, Buffer, and Jazz functions remain unchanged.
+    function playProceduralSound(frequency) {
+      if (isMuted) return;
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.connect(audioContext.destination);
+      const osc1 = audioContext.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      osc1.connect(gainNode);
+      const osc2 = audioContext.createOscillator();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(frequency*1.5, audioContext.currentTime);
+      osc2.connect(gainNode);
+      const bufferSize = audioContext.sampleRate;
+      const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for(let i=0;i<bufferSize;i++){
+        data[i] = Math.random()*2-1;
+      }
+      const noiseSource = audioContext.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = false;
+      noiseSource.connect(gainNode);
+      osc1.start();
+      osc2.start();
+      noiseSource.start();
+      osc1.stop(audioContext.currentTime+0.5);
+      osc2.stop(audioContext.currentTime+0.5);
+      noiseSource.stop(audioContext.currentTime+0.5);
+    }
+    
+    let audioBuffer = null;
+    function loadAudioBuffer(url) {
+      fetch(url)
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+        .then(decodedBuffer => { audioBuffer = decodedBuffer; })
+        .catch(e => console.error('Error loading audio buffer', e));
+    }
+    function playBufferSound(frequency) {
+      if(isMuted || !audioBuffer) return;
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.playbackRate.value = frequency/440;
+      source.connect(audioContext.destination);
+      source.start();
+    }
+    
+    function playJazzSound() {
+      if(isMuted) return;
+      const jazzAudio = document.getElementById('jazzAudio');
+      if(jazzAudio.paused){
+        jazzAudio.currentTime = 0;
+        jazzAudio.play();
+      }
+    }
+    
+    loadAudioBuffer('path/to/your/sound.mp3');
+    document.getElementById('jazzAudio').muted = isMuted;
+    
+    // --- Integration ---
+    const canvas = document.getElementById('explosionCanvas');
+    const simulation = new ExplosionSimulation(canvas);
+    
+    function setExplosionType(type) {
+      simulation.currentExplosionType = type;
+    }
+    
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      simulation.createExplosion(x,y);
+      // Base frequency is ignored in favor of our active scale.
+      const soundSelect = document.getElementById('soundSelect').value;
+      if(soundSelect === 'oscillator'){
+        playOscillatorSound();
+      } else if(soundSelect === 'procedural'){
+        playProceduralSound(getFrequencyFromY(y));
+      } else if(soundSelect === 'buffer'){
+        playBufferSound(getFrequencyFromY(y));
+      } else if(soundSelect === 'jazz'){
+        playJazzSound();
+      }
+    });
+    
+    function autoTrigger() {
+      const x = Math.random()*canvas.width;
+      const y = Math.random()*canvas.height;
+      simulation.createExplosion(x,y);
+      playOscillatorSound();
+    }
+    
+    simulation.render();
+  </script>
+</body>
+</html>
