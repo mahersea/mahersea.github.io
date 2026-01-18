@@ -134,7 +134,8 @@
     // Dynamic canvas sizing for responsive design
     function setCanvasSize() {
       const maxWidth = Math.min(window.innerWidth - 40, 800);
-      const maxHeight = Math.min(window.innerHeight - 400, 800);
+      // Extra buffer for text block
+      const maxHeight = Math.min(window.innerHeight - 550, 800);
       const size = Math.min(maxWidth, maxHeight);
       canvas.width = size;
       canvas.height = size;
