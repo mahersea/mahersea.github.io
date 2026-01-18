@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Mandelbrot Set with Color Palettes</title>
   <style>
     body {
@@ -18,11 +19,18 @@
     }
     .controls {
       margin: 10px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     select, button {
       padding: 5px 10px;
       margin: 5px;
       font-size: 16px;
+      min-width: 120px;
     }
     .container {
         display: flex;
@@ -35,6 +43,60 @@
       margin: 20px;
       font-size: 18px;
       width: 500px;
+      max-width: 90%;
+      box-sizing: border-box;
+    }
+
+    /* Tablet breakpoint */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+        padding: 0 20px;
+      }
+
+      .text {
+        font-size: 16px;
+        width: 100%;
+        padding: 0 20px;
+        margin: 15px auto;
+      }
+
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    /* Mobile breakpoint */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+
+      .text {
+        font-size: 14px;
+        margin: 10px auto;
+      }
+
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .controls label {
+        text-align: center;
+      }
+
+      select, button {
+        width: 100%;
+        max-width: 280px;
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
@@ -56,7 +118,7 @@
     </select>
     <button id="renderBtn">Render Mandelbrot</button>
   </div>
-  <canvas id="canvas" width="800" height="800"></canvas>
+  <canvas id="canvas"></canvas>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -68,6 +130,15 @@
     const zoom = 1; // Fixed zoom for now
     const offsetX = -0.5;
     const offsetY = 0;
+
+    // Dynamic canvas sizing for responsive design
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 800);
+      const maxHeight = Math.min(window.innerHeight - 400, 800);
+      const size = Math.min(maxWidth, maxHeight);
+      canvas.width = size;
+      canvas.height = size;
+    }
 
     // Color palette functions
     function getGrayscaleColor(iteration, maxIterations) {
@@ -174,6 +245,15 @@
     }
 
     renderBtn.addEventListener('click', renderMandelbrot);
+
+    // Set initial canvas size
+    setCanvasSize();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      renderMandelbrot();
+    });
 
     // Render once on initial load.
     renderMandelbrot();
