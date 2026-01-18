@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hypotrochoid (Spirograph) Visualization</title>
   <style>
     body {
@@ -11,6 +12,9 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1 {
+      padding: 0 20px;
+    }
     canvas {
       display: block;
       margin: 20px auto;
@@ -19,6 +23,12 @@
     }
     .controls {
       margin: 10px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     .controls label, .controls input, .controls span {
       margin: 5px;
@@ -28,6 +38,39 @@
       margin: 10px;
       padding: 5px 10px;
       font-size: 16px;
+      min-width: 100px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+      input[type="range"] {
+        width: 100%;
+        max-width: 280px;
+      }
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
@@ -54,10 +97,23 @@
     <label for="fadeCheck">Fade Trail: </label>
     <input type="checkbox" id="fadeCheck">
   </div>
-  <canvas id="canvas" width="800" height="800"></canvas>
+  <canvas id="canvas"></canvas>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+
+    // Dynamic canvas sizing for responsive design
+    function setCanvasSize() {
+      const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 400, 800);
+      canvas.width = maxSize;
+      canvas.height = maxSize;
+    }
+
+    setCanvasSize();
+
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+    });
 
     // Get controls
     const RSlider = document.getElementById('RSlider');

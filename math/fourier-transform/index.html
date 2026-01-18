@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fourier Series Visualization</title>
   <style>
     body {
@@ -11,25 +12,69 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1 {
+      padding: 0 20px;
+    }
     canvas {
       display: block;
       margin: 20px auto;
       background: #000;
       border: 1px solid #fff;
+      max-width: 100%;
+      height: auto;
     }
     .controls {
       margin: 10px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     input[type="range"],
     select {
-      margin: 10px;
+      margin: 5px;
       padding: 5px 10px;
       font-size: 16px;
     }
     button {
-      margin: 10px;
+      margin: 5px;
       padding: 5px 10px;
       font-size: 16px;
+      min-width: 100px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+      input[type="range"], select {
+        width: 100%;
+        max-width: 280px;
+      }
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
@@ -47,7 +92,7 @@
     <span id="termsDisplay">5</span>
     <button id="pauseBtn">Pause</button>
   </div>
-  <canvas id="canvas" width="1200" height="600"></canvas>
+  <canvas id="canvas"></canvas>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -55,6 +100,30 @@
     const termsDisplay = document.getElementById('termsDisplay');
     const pauseBtn = document.getElementById('pauseBtn');
     const waveTypeSelect = document.getElementById('waveType');
+
+    // Dynamic canvas sizing (maintains 2:1 aspect ratio)
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 1200);
+      const maxHeight = Math.min(window.innerHeight - 300, 600);
+      const aspectRatio = 2;
+
+      let width = maxWidth;
+      let height = width / aspectRatio;
+
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    setCanvasSize();
+
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+    });
 
     let numTerms = parseInt(termsSlider.value);
     termsDisplay.textContent = numTerms;
