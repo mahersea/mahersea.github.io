@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Animated Visualization of Lissajous Curves</title>
   <style>
     body {
@@ -11,6 +12,9 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1, h2 {
+      padding: 0 20px;
+    }
     canvas {
       display: block;
       margin: 20px auto;
@@ -19,6 +23,12 @@
     .controls {
       margin: 10px auto;
       color: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     button {
       background: #333;
@@ -26,9 +36,48 @@
       border: 1px solid #555;
       padding: 5px 10px;
       border-radius: 4px;
+      min-width: 100px;
     }
     input[type="range"] {
       background: #333;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+      h2 {
+        font-size: 16px;
+      }
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+      input[type="range"] {
+        width: 100%;
+        max-width: 280px;
+      }
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
@@ -47,13 +96,24 @@
     // Get canvas and context
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 800;
-    canvas.height = 800;
 
-    // Center coordinates and scale factor
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    const scale = canvas.width / 3;
+    // Canvas sizing variables (will be recalculated on resize)
+    let cx, cy, scale;
+
+    // Dynamic canvas sizing for responsive design
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 800);
+      const maxHeight = Math.min(window.innerHeight - 400, 800);
+      const size = Math.min(maxWidth, maxHeight);
+
+      canvas.width = size;
+      canvas.height = size;
+
+      // Recalculate center and scale based on new canvas size
+      cx = canvas.width / 2;
+      cy = canvas.height / 2;
+      scale = canvas.width / 3;
+    }
 
     // Lissajous parameters:
     // x(t) = A * sin(a*t + δ)
@@ -92,6 +152,16 @@
 
     fadeCheck.addEventListener('input', () => {
       fadingEnabled = fadeCheck.checked;
+    });
+
+    // Set initial canvas size
+    setCanvasSize();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      // Clear trail on resize to prevent visual artifacts
+      trailPoints = [];
     });
 
     // Compute a point on the Lissajous curve

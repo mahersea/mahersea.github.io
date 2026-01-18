@@ -2,23 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Animated Visualization of z(θ)= e^(iθ) + e^(iπθ)</title>
   <style>
-    body { 
-      margin: 0; 
-      background: #000000; 
+    body {
+      margin: 0;
+      background: #000000;
       color: #ffffff;
-      font-family: Arial, sans-serif; 
-      text-align: center; 
+      font-family: Arial, sans-serif;
+      text-align: center;
     }
-    canvas { 
-      display: block; 
-      margin: 20px auto; 
-      background: #000000; 
+    h1 {
+      padding: 0 20px;
     }
-    .controls { 
-      margin: 10px auto; 
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000000;
+    }
+    .controls {
+      margin: 10px auto;
       color: #ffffff;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     button {
       background: #333;
@@ -26,9 +36,42 @@
       border: 1px solid #555;
       padding: 5px 10px;
       border-radius: 4px;
+      min-width: 100px;
     }
     input[type="range"] {
       background: #333;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 20px;
+      }
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+        margin-top: 10px;
+      }
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+      input[type="range"] {
+        width: 100%;
+        max-width: 280px;
+      }
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
@@ -47,16 +90,23 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // Set canvas dimensions
-    canvas.width = 800;
-    canvas.height = 800;
+    // Canvas sizing variables (will be recalculated on resize)
+    let cx, cy, scale;
 
-    // Center of the canvas
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    // Dynamic canvas sizing for responsive design
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 800);
+      const maxHeight = Math.min(window.innerHeight - 300, 800);
+      const size = Math.min(maxWidth, maxHeight);
 
-    // Scale factor to map to our canvas
-    const scale = canvas.width / 4.5;
+      canvas.width = size;
+      canvas.height = size;
+
+      // Recalculate center and scale based on new canvas size
+      cx = canvas.width / 2;
+      cy = canvas.height / 2;
+      scale = canvas.width / 4.5;
+    }
 
     // Animation variables
     let animationId;
@@ -88,6 +138,16 @@
 
     fadeCheck.addEventListener('input', () => {
       fadingEnabled = fadeCheck.checked;
+    });
+
+    // Set initial canvas size
+    setCanvasSize();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      // Clear trail on resize to prevent visual artifacts
+      trailPoints = [];
     });
 
     // Function to compute the complex value z(θ)

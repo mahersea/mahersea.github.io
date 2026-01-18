@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pendulum Wave Simulation</title>
   <style>
     body {
@@ -11,25 +12,71 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1 {
+      padding: 0 20px;
+    }
     canvas {
       display: block;
       margin: 20px auto;
       background: #000;
       border: 1px solid #444;
+      max-width: 100%;
+      height: auto;
     }
     .controls {
       margin: 10px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     button, input[type="range"] {
       padding: 5px 10px;
       margin: 5px;
       font-size: 16px;
     }
+    button {
+      min-width: 100px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+      input[type="range"] {
+        width: 100%;
+        max-width: 280px;
+      }
+      canvas {
+        margin: 10px auto;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>Pendulum Wave Simulation</h1>
-  <canvas id="canvas" width="800" height="600"></canvas>
+  <canvas id="canvas"></canvas>
   <div class="controls">
     <button id="pauseBtn">Pause</button>
     <label for="speedRange">Speed: </label>
@@ -42,6 +89,31 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const speedRange = document.getElementById('speedRange');
     const speedDisplay = document.getElementById('speedDisplay');
+
+    // Dynamic canvas sizing for responsive design (maintains 4:3 aspect ratio)
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 800);
+      const maxHeight = Math.min(window.innerHeight - 300, 600);
+      const aspectRatio = 4 / 3;
+
+      let width = maxWidth;
+      let height = width / aspectRatio;
+
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    setCanvasSize();
+
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      initPendulums();
+    });
 
     let isAnimating = true;
     let animationId;
@@ -71,16 +143,20 @@
     const thetaMax = 0.2;       // Maximum swing amplitude (radians).
 
     // Create an array of pendulum objects.
-    // Each pendulum is assigned a pivotX position (evenly spaced) and a length.
-    // We also assign each a unique color hue for vivid contrast.
     let pendulums = [];
-    for (let i = 0; i < numPendulums; i++) {
-      let pivotX = (canvas.width / (numPendulums + 1)) * (i + 1);
-      let L = L_min + i * deltaL;
-      // Map index to a hue (0 to 360 degrees).
-      let hue = map(i, 0, numPendulums - 1, 0, 360);
-      pendulums.push({ pivotX, pivotY, L, hue });
+
+    function initPendulums() {
+      pendulums = [];
+      for (let i = 0; i < numPendulums; i++) {
+        let pivotX = (canvas.width / (numPendulums + 1)) * (i + 1);
+        let L = L_min + i * deltaL;
+        // Map index to a hue (0 to 360 degrees).
+        let hue = map(i, 0, numPendulums - 1, 0, 360);
+        pendulums.push({ pivotX, pivotY, L, hue });
+      }
     }
+
+    initPendulums();
 
     // Utility: maps a value from one range to another.
     function map(value, in_min, in_max, out_min, out_max) {

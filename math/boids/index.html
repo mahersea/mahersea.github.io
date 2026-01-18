@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flocking Behavior with Dynamic Colors</title>
   <style>
     body {
@@ -11,14 +12,25 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    h1 {
+      padding: 0 20px;
+    }
     canvas {
       display: block;
       margin: 20px auto;
       background: #000;
       border: 1px solid #fff;
+      max-width: 100%;
+      height: auto;
     }
     .controls {
       margin: 10px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
     }
     .controls label, .controls input, .controls span {
       margin: 5px;
@@ -28,12 +40,52 @@
       margin: 10px;
       padding: 5px 10px;
       font-size: 16px;
+      min-width: 100px;
+    }
+
+    /* Tablet breakpoint */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      canvas {
+        margin: 15px auto;
+      }
+    }
+
+    /* Mobile breakpoint */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      button {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      canvas {
+        margin: 10px auto;
+      }
     }
   </style>
 </head>
 <body>
   <h1>Flocking Behavior with Dynamic Colors</h1>
-  <canvas id="canvas" width="800" height="600"></canvas>
+  <canvas id="canvas"></canvas>
   <div class="controls">
     <label for="boidCount">Number of Boids: </label>
     <input type="range" id="boidCount" min="10" max="200" value="100">
@@ -53,6 +105,24 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+
+    // Dynamic canvas sizing for responsive design (maintains 4:3 aspect ratio)
+    function setCanvasSize() {
+      const maxWidth = Math.min(window.innerWidth - 40, 800);
+      const maxHeight = Math.min(window.innerHeight - 400, 600);
+      const aspectRatio = 4 / 3;
+
+      let width = maxWidth;
+      let height = width / aspectRatio;
+
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+    }
 
     // Control elements
     const boidCountSlider = document.getElementById('boidCount');
@@ -321,6 +391,16 @@
       pauseBtn.textContent = isAnimating ? 'Pause' : 'Resume';
       if (isAnimating) animate();
       else cancelAnimationFrame(animationId);
+    });
+
+    // Set initial canvas size
+    setCanvasSize();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      // Re-initialize flock to fit new canvas size
+      initFlock();
     });
 
     // Animation loop: update flock, including dynamic colors.
