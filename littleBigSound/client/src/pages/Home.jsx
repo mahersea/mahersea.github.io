@@ -30,7 +30,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg">
                 1
               </div>
-              <h3 className="font-bold mb-3 text-lg text-primary-900 dark:text-primary-300">Paste a link</h3>
+              <h3 className="font-bold mb-3 text-lg text-gray-300 dark:text-primary-300">Paste a link</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 From Spotify, YouTube, Apple Music, or any platform
               </p>
@@ -39,7 +39,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg">
                 2
               </div>
-              <h3 className="font-bold mb-3 text-lg text-primary-900 dark:text-primary-300">We find it everywhere</h3>
+              <h3 className="font-bold mb-3 text-lg text-gray-300 dark:text-primary-300">We find it everywhere</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Automatically match tracks across all platforms
               </p>
@@ -48,7 +48,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg">
                 3
               </div>
-              <h3 className="font-bold mb-3 text-lg text-primary-900 dark:text-primary-300">Share with anyone</h3>
+              <h3 className="font-bold mb-3 text-lg text-gray-300 dark:text-primary-300">Share with anyone</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Your friends listen on their preferred platform
               </p>
