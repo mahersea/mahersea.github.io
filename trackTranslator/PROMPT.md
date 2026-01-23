@@ -1,4 +1,4 @@
-# Music Sharing Application - littleBigSound
+# Music Sharing Application - trackTranslator
 
 ## Project Vision
 A universal music link platform that allows users to discover, curate, and share music regardless of which streaming service they use. Share a track from Spotify, and your friends can listen on Apple Music, YouTube, or their preferred platform.
@@ -37,7 +37,7 @@ A universal music link platform that allows users to discover, curate, and share
 - **TuneMyMusic** - Playlist transfer between platforms
 - **Soundiiz** - Playlist conversion and management
 
-### What Makes littleBigSound Different
+### What Makes trackTranslator Different
 1. **Social/Community Layer** - Not just link translation, but curation and discovery
 2. **Playlist-Centric** - Focus on collections and mixtapes, not just single tracks
 3. **Follow-Based Discovery** - Follow curators you trust
@@ -57,7 +57,7 @@ A universal music link platform that allows users to discover, curate, and share
 ## Music Sources (Link-Based Approach)
 
 ### Supported Streaming Platforms
-littleBigSound aggregates links from these platforms:
+trackTranslator aggregates links from these platforms:
 
 **Major Streaming Services:**
 - Spotify
@@ -528,14 +528,14 @@ Since we're linking to external platforms, the player has two modes:
 2. **Target Scale**: Small community tool - invite-only or small public beta initially
 3. **Hosting**: Cloud service (Netlify/Vercel/Railway)
 4. **Business Model**: Free & open-source (MIT/GPL license)
-5. **Audio Architecture**: **Cross-platform link aggregation** - Users share links to tracks on any platform (Apple Music, Spotify, YouTube, etc.), and littleBigSound translates them to the user's preferred platform
+5. **Audio Architecture**: **Cross-platform link aggregation** - Users share links to tracks on any platform (Apple Music, Spotify, YouTube, etc.), and trackTranslator translates them to the user's preferred platform
 6. **Physical Media**: DIY instructions only (export playlists with artwork and burning guides)
 7. **Discovery**: Follow-based model with chronological/social feeds
 8. **Legal Support**: Not initially - clear ToS and DMCA process, consult lawyer if needed later
 
 ### Key Insight: Link Aggregation, Not File Hosting
 
-Rather than hosting audio files directly, littleBigSound acts as a **universal music link service**:
+Rather than hosting audio files directly, trackTranslator acts as a **universal music link service**:
 - Users share a track from any platform (Spotify, Apple Music, YouTube, SoundCloud, Bandcamp, etc.)
 - The system identifies the track and finds equivalent links across other platforms
 - When someone accesses the shared link, they're directed to their preferred streaming service

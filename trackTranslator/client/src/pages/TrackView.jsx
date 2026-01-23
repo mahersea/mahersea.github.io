@@ -68,7 +68,7 @@ const TrackView = () => {
       <div className="mb-6 flex justify-end">
         <ShareButton
           url={`/tracks/${id}`}
-          title={`Check out "${track.title}" by ${track.artist} on TrackPort`}
+          title={`Check out "${track.title}" by ${track.artist} on TrackTranslator`}
         />
       </div>
 

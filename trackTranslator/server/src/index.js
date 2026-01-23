@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'TrackPort API is running' });
+  res.json({ status: 'ok', message: 'TrackTranslator API is running' });
 });
 
 app.use('/api/auth', authRoutes);
@@ -34,7 +34,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`\n⚓ TrackPort API running on port ${PORT}`);
+  console.log(`\n⚓ TrackTranslator API running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health\n`);
 });
 

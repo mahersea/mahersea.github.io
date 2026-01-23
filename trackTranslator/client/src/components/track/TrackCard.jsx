@@ -73,7 +73,7 @@ const TrackCard = ({ track, platforms, sourcePlatform }) => {
         {track.id && (
           <ShareButton
             url={`/tracks/${track.id}`}
-            title={`Check out "${track.title}" by ${track.artist} on TrackPort`}
+            title={`Check out "${track.title}" by ${track.artist} on TrackTranslator`}
           />
         )}
         {isAuthenticated && (

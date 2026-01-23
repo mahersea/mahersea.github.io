@@ -139,13 +139,13 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     // Load theme from localStorage on mount
-    const savedTheme = localStorage.getItem('trackport-theme');
+    const savedTheme = localStorage.getItem('tracktranslator-theme');
     if (savedTheme && themes[savedTheme]) {
       setCurrentTheme(savedTheme);
     }
 
     // Load dark mode preference
-    const savedDarkMode = localStorage.getItem('trackport-dark-mode');
+    const savedDarkMode = localStorage.getItem('tracktranslator-dark-mode');
     if (savedDarkMode !== null) {
       setDarkMode(savedDarkMode === 'true');
     }
@@ -167,7 +167,7 @@ export const ThemeProvider = ({ children }) => {
     });
 
     // Save to localStorage
-    localStorage.setItem('trackport-theme', currentTheme);
+    localStorage.setItem('tracktranslator-theme', currentTheme);
   }, [currentTheme]);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export const ThemeProvider = ({ children }) => {
     }
 
     // Save to localStorage
-    localStorage.setItem('trackport-dark-mode', darkMode.toString());
+    localStorage.setItem('tracktranslator-dark-mode', darkMode.toString());
   }, [darkMode]);
 
   const changeTheme = (themeName) => {

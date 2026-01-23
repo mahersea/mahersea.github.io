@@ -8,7 +8,7 @@ const Home = () => {
     <div className="container-custom mt-12 pb-16">
       <div className="text-center mb-12">
         <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-primary-600 to-accent-500 bg-clip-text text-transparent">
-          TrackPort
+          TrackTranslator
         </h1>
         <p className="text-2xl text-gray-700 dark:text-gray-200 font-medium">
           Your music, any platform
