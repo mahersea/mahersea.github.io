@@ -1134,9 +1134,9 @@
       "link": "mouse-trail"
     },
     {
-      "id": "littleBigSound",
+      "id": "trackTranslator",
       "title": "Multi-Quadrant Explosion Simulation with Raga Tones",
-      "directory": "littleBigSound",
+      "directory": "trackTranslator",
       "status": "needs-thumbnail",
       "hasIndex": true,
       "hasReadme": true,
@@ -1151,7 +1151,7 @@
       ],
       "category": "Experiments",
       "description": "An interactive audio-visual experience combining particle explosions with musical elements from traditional ragas.",
-      "link": "littleBigSound"
+      "link": "trackTranslator"
     },
     {
       "id": "geo-news",

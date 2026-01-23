@@ -14,7 +14,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="text-2xl font-bold text-white hover:text-white/90 transition-colors flex items-center gap-2">
             <span className="text-3xl">⚓</span>
-            TrackPort
+            TrackTranslator
           </Link>
 
           <div className="flex items-center gap-3">

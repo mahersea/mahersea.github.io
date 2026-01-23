@@ -134,7 +134,7 @@ const PlaylistView = () => {
             {playlist.is_public && (
               <ShareButton
                 url={`/playlists/${id}`}
-                title={`Check out "${playlist.name}" on TrackPort`}
+                title={`Check out "${playlist.name}" on TrackTranslator`}
               />
             )}
             {isOwner && (
