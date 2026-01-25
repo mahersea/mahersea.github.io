@@ -1,17 +1,18 @@
 {
-  "name": "server",
+  "name": "tracktranslator-server",
   "version": "1.0.0",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "migrate": "node src/scripts/migrate.js"
+    "migrate": "node src/scripts/migrate.js",
+    "build": "echo 'No build step required for Node.js backend'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": ["music", "streaming", "api", "cross-platform"],
+  "author": "mahersea",
+  "license": "MIT",
+  "description": "TrackTranslator API - Cross-platform music link translation service",
   "dependencies": {
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
