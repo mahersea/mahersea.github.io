@@ -409,7 +409,17 @@ app.use((err, _req, res, _next) => {
 
 ensureDataFiles();
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`littleFleetMan running on http://0.0.0.0:${PORT}`);
   console.log(`Using DATA_DIR=${DATA_DIR}`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down.');
+  server.close(() => process.exit(0));
+});
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT, shutting down.');
+  server.close(() => process.exit(0));
 });
