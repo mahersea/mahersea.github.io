@@ -4,7 +4,30 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3011;
-const DATA_DIR = process.env.DATA_DIR || __dirname;
+
+function resolveDataDir() {
+  const candidates = [
+    process.env.DATA_DIR,
+    __dirname,
+    '/tmp/littlefleetman-data'
+  ].filter(Boolean);
+
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      const probe = path.join(dir, '.write-test');
+      fs.writeFileSync(probe, 'ok');
+      fs.unlinkSync(probe);
+      return dir;
+    } catch (_err) {
+      // Try the next candidate directory.
+    }
+  }
+
+  throw new Error('No writable DATA_DIR available. Set DATA_DIR to a writable path.');
+}
+
+const DATA_DIR = resolveDataDir();
 
 const VEHICLES_FILE = path.join(DATA_DIR, 'vehicles.json');
 const WORK_ORDERS_FILE = path.join(DATA_DIR, 'work-orders.json');
@@ -387,5 +410,6 @@ app.use((err, _req, res, _next) => {
 ensureDataFiles();
 
 app.listen(PORT, () => {
-  console.log(`littleFleetMan running on http://localhost:${PORT}`);
+  console.log(`littleFleetMan running on http://0.0.0.0:${PORT}`);
+  console.log(`Using DATA_DIR=${DATA_DIR}`);
 });
