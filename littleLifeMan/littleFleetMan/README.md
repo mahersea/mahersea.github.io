@@ -27,7 +27,7 @@ Deploy `littleLifeMan/littleFleetMan` as the Railway service root directory.
 
 1. In Railway, create a new service from this repo.
 2. Set the service Root Directory to `littleLifeMan/littleFleetMan`.
-3. Railway will run `npm start` (configured in `railway.json`).
+3. Use the included `Dockerfile` (recommended) so Railway runs `node server.js` directly.
 4. Health checks use `GET /api/health`.
 
 Optional persistent storage:
