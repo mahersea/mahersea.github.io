@@ -5,6 +5,14 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3011;
 
+function getRequestId(req) {
+  const headerId = req.headers['x-request-id'];
+  if (Array.isArray(headerId)) {
+    return headerId[0];
+  }
+  return headerId || '-';
+}
+
 function resolveDataDir() {
   const candidates = [
     process.env.DATA_DIR,
@@ -34,6 +42,20 @@ const WORK_ORDERS_FILE = path.join(DATA_DIR, 'work-orders.json');
 
 const VEHICLE_STATUSES = ['active', 'in_service', 'retired'];
 const WORK_ORDER_STATUSES = ['open', 'in_progress', 'completed', 'cancelled'];
+
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  const requestId = getRequestId(req);
+
+  res.on('finish', () => {
+    const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
+    console.log(
+      `[http] ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs.toFixed(1)}ms req_id=${requestId}`
+    );
+  });
+
+  next();
+});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -400,6 +422,17 @@ app.delete('/api/work-orders/:id', (req, res) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'littleFleetMan', port: PORT });
+});
+
+app.get('/health', (_req, res) => {
+  res.status(200).send('ok');
+});
+
+app.get('/', (_req, res, next) => {
+  if (fs.existsSync(path.join(__dirname, 'public', 'index.html'))) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  return next();
 });
 
 app.use((err, _req, res, _next) => {
