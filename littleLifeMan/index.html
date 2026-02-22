@@ -372,6 +372,12 @@
       background-color: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
       padding: 10px;
+      object-fit: contain;
+    }
+
+    .project-card[data-project="fleet"] .project-logo {
+      width: 240px;
+      height: 240px;
     }
 
     .project-content {
@@ -756,6 +762,29 @@
               <span class="link-icon local-icon"></span>
               <span class="link-label">Local Server</span>
               <span class="link-type">localhost:3007</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Manager -->
+      <div class="project-card" data-type="static" data-project="fleet">
+        <div class="project-header">
+          <img src="littleFleetMan/public/images/logo.png" alt="Fleet Manager" class="project-logo">
+          <h2 class="project-name">littleFleetMan <span class="static-badge">Static</span></h2>
+        </div>
+        <div class="project-content">
+          <p class="project-description">Track vehicles as projects, organize work orders, and manage fleet maintenance in one place.</p>
+          <div class="project-links">
+            <a href="littleFleetMan/public/index.html" class="project-link static-link">
+              <span class="link-icon static-icon"></span>
+              <span class="link-label">HTML File</span>
+              <span class="link-type">Static</span>
+            </a>
+            <a href="http://localhost:3011/" class="project-link local-link">
+              <span class="link-icon local-icon"></span>
+              <span class="link-label">Local Server</span>
+              <span class="link-type">localhost:3011</span>
             </a>
           </div>
         </div>

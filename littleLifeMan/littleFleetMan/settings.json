@@ -1,0 +1,5 @@
+{
+  "defaultVehicleStatus": "active",
+  "reminderLeadDays": 14,
+  "allowForceVehicleDelete": true
+}

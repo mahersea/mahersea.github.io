@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "vehicleId": 1,
+    "title": "Oil change and filter replacement",
+    "description": "Standard synthetic oil service.",
+    "dueDate": "2026-03-02",
+    "status": "open",
+    "createdAt": "2026-02-21T00:00:00.000Z",
+    "updatedAt": "2026-02-21T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "vehicleId": 2,
+    "title": "Replace front brake pads and rear shoes",
+    "description": "Check rotors while replacing pads.",
+    "dueDate": "2026-03-04",
+    "status": "open",
+    "createdAt": "2026-02-21T00:00:00.000Z",
+    "updatedAt": "2026-02-21T04:37:34.565Z"
+  },
+  {
+    "id": 3,
+    "vehicleId": 1,
+    "title": "Strap heat shield",
+    "description": "Make that scrapey noise go away",
+    "dueDate": "2026-03-20",
+    "status": "open",
+    "createdAt": "2026-02-21T04:40:20.829Z",
+    "updatedAt": "2026-02-21T04:40:20.829Z"
+  },
+  {
+    "id": 4,
+    "vehicleId": 2,
+    "title": "Install Muffler",
+    "description": "Muffler and parts are in the garage",
+    "dueDate": "2026-03-13",
+    "status": "open",
+    "createdAt": "2026-02-21T04:41:09.938Z",
+    "updatedAt": "2026-02-21T04:41:09.938Z"
+  },
+  {
+    "id": 5,
+    "vehicleId": 2,
+    "title": "Check Spark Plugs",
+    "description": "Replace if needed",
+    "dueDate": "2026-02-22",
+    "status": "open",
+    "createdAt": "2026-02-21T04:41:39.194Z",
+    "updatedAt": "2026-02-21T04:41:39.194Z"
+  },
+  {
+    "id": 6,
+    "vehicleId": 3,
+    "title": "Diagnose Damage",
+    "description": "Figure out what was damaged from the winter collision.",
+    "dueDate": "2026-02-22",
+    "status": "open",
+    "createdAt": "2026-02-21T04:42:28.907Z",
+    "updatedAt": "2026-02-21T04:42:28.907Z"
+  },
+  {
+    "id": 7,
+    "vehicleId": 3,
+    "title": "Straighten Frame",
+    "description": "Yank that frame straight with a chain and truck/tree",
+    "dueDate": "2026-03-08",
+    "status": "open",
+    "createdAt": "2026-02-21T04:43:16.786Z",
+    "updatedAt": "2026-02-21T04:43:16.786Z"
+  },
+  {
+    "id": 8,
+    "vehicleId": 4,
+    "title": "Diagnose Codes",
+    "description": "Figure out what Coil Packs need to be replaced. Change front spark plugs?",
+    "dueDate": "",
+    "status": "open",
+    "createdAt": "2026-02-21T04:44:09.959Z",
+    "updatedAt": "2026-02-21T04:44:09.959Z"
+  },
+  {
+    "id": 9,
+    "vehicleId": 4,
+    "title": "Rear Right Brakes",
+    "description": "Replace pads and grease calipers. Both sides",
+    "dueDate": "2026-02-22",
+    "status": "open",
+    "createdAt": "2026-02-21T04:45:31.247Z",
+    "updatedAt": "2026-02-21T04:45:31.247Z"
+  },
+  {
+    "id": 10,
+    "vehicleId": 5,
+    "title": "Remove Turbo Unit",
+    "description": "Just pull the unit",
+    "dueDate": "2026-03-15",
+    "status": "open",
+    "createdAt": "2026-02-21T04:46:09.241Z",
+    "updatedAt": "2026-02-21T04:46:09.241Z"
+  },
+  {
+    "id": 11,
+    "vehicleId": 5,
+    "title": "Rebuild Turbo",
+    "description": "Order and rebuild Turbo Unit",
+    "dueDate": "2026-04-05",
+    "status": "open",
+    "createdAt": "2026-02-21T04:46:51.439Z",
+    "updatedAt": "2026-02-21T04:47:22.720Z"
+  },
+  {
+    "id": 12,
+    "vehicleId": 5,
+    "title": "Install Turbo",
+    "description": "",
+    "dueDate": "2026-05-17",
+    "status": "open",
+    "createdAt": "2026-02-21T04:47:48.419Z",
+    "updatedAt": "2026-02-21T04:47:48.419Z"
+  },
+  {
+    "id": 13,
+    "vehicleId": 6,
+    "title": "Remove and scrap service body",
+    "description": "",
+    "dueDate": "2026-03-22",
+    "status": "open",
+    "createdAt": "2026-02-21T04:48:36.280Z",
+    "updatedAt": "2026-02-21T04:48:36.280Z"
+  },
+  {
+    "id": 14,
+    "vehicleId": 7,
+    "title": "Install New Tires",
+    "description": "",
+    "dueDate": "2026-05-03",
+    "status": "open",
+    "createdAt": "2026-02-21T04:49:12.630Z",
+    "updatedAt": "2026-02-21T04:49:12.630Z"
+  }
+]
