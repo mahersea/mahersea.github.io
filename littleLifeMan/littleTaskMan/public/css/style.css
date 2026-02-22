@@ -495,6 +495,51 @@ tr:hover {
   background-color: var(--status-postponed);
 }
 
+/* Gantt Legend Styles */
+.gantt-legend {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin: 15px 0;
+  border: 1px solid var(--border-light);
+}
+
+.gantt-legend .legend-title {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.gantt-legend .legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.gantt-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gantt-legend .legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.gantt-legend .legend-label {
+  font-size: 13px;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   body {

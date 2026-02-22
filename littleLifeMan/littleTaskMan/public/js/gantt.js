@@ -100,27 +100,41 @@ window.setupGantt = function() {
 window.loadGanttData = async function(projectFilter = 'all') {
   try {
     const tasks = await fetchWithErrorHandling(TASKS_API);
-    
+
     // Format data for gantt
     const ganttData = {
       data: tasks.filter(task => {
         return projectFilter === 'all' || task.project === projectFilter;
-      }).map(task => ({
-        id: task.id,
-        text: task.title,
-        project: task.project,
-        assignedUser: task.assignedUser,
-        start_date: task.start_date || task.deadline,
-        duration: task.duration || 1,
-        status: task.status,
-        progress: task.status === 'Completed' ? 1 : 
-                 task.status === 'In Progress' ? 0.5 : 0.0,
-      })),
+      }).map(task => {
+        // Calculate duration from start_date and deadline
+        let duration = 1; // default duration
+        if (task.start_date && task.deadline) {
+          const start = new Date(task.start_date);
+          const end = new Date(task.deadline);
+          const diffTime = Math.abs(end - start);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          duration = diffDays > 0 ? diffDays : 1;
+        } else if (task.duration) {
+          duration = task.duration;
+        }
+
+        return {
+          id: task.id,
+          text: task.title,
+          project: task.project,
+          assignedUser: task.assignedUser,
+          start_date: task.start_date || task.deadline,
+          duration: duration,
+          status: task.status,
+          progress: task.status === 'Completed' ? 1 :
+                   task.status === 'In Progress' ? 0.5 : 0.0,
+        };
+      }),
       links: [] // We'll add links for dependencies in a later phase
     };
-    
+
     gantt.parse(ganttData);
-    
+
     // Also populate the project filter
     populateGanttProjectFilter();
   } catch (error) {
