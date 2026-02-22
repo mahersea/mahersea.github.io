@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 3011;
 function resolveDataDir() {
   const candidates = [
     process.env.DATA_DIR,
-    __dirname,
-    '/tmp/littlefleetman-data'
+    '/tmp/littlefleetman-data',
+    __dirname
   ].filter(Boolean);
 
   for (const dir of candidates) {
