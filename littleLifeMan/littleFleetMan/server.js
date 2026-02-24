@@ -440,19 +440,51 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Unexpected server error.' });
 });
 
+console.log('Starting littleFleetMan...');
+console.log(`Node version: ${process.version}`);
+console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`PORT: ${PORT}`);
+console.log(`DATA_DIR: ${DATA_DIR}`);
+
 ensureDataFiles();
+console.log('Data files initialized successfully');
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`littleFleetMan running on http://0.0.0.0:${PORT}`);
-  console.log(`Using DATA_DIR=${DATA_DIR}`);
+  console.log(`✓ littleFleetMan is running on http://0.0.0.0:${PORT}`);
+  console.log(`✓ Health check available at http://0.0.0.0:${PORT}/health`);
+  console.log(`✓ API available at http://0.0.0.0:${PORT}/api`);
+});
+
+server.on('error', (err) => {
+  console.error('Server error:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+  process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  server.close(() => process.exit(1));
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled rejection at:', promise, 'reason:', reason);
+  server.close(() => process.exit(1));
 });
 
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down.');
-  server.close(() => process.exit(0));
+  console.log('Received SIGTERM, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
 
 process.on('SIGINT', () => {
-  console.log('Received SIGINT, shutting down.');
-  server.close(() => process.exit(0));
+  console.log('Received SIGINT, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });

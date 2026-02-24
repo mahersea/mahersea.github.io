@@ -23,16 +23,14 @@ Then open:
 - `http://localhost:3011/`
 
 ## Railway Deploy
-Deploy `littleLifeMan/littleFleetMan` as the Railway service root directory.
 
-1. In Railway, create a new service from this repo.
-2. Set the service Root Directory to `littleLifeMan/littleFleetMan`.
-3. Use the included `Dockerfile` (recommended) so Railway runs `node server.js` directly.
-4. Health checks use `GET /api/health`.
+**Quick Deploy:**
+1. Connect GitHub repo to Railway
+2. Set service root directory to `littleLifeMan/littleFleetMan`
+3. Railway will auto-detect the Dockerfile and deploy
+4. Optional: Add Railway Volume at `/data` and set `DATA_DIR=/data` for persistence
 
-Optional persistent storage:
-- Attach a Railway Volume (for example mounted at `/data`).
-- Set `DATA_DIR=/data` so `vehicles.json` and `work-orders.json` persist across deploys/restarts.
+**For detailed deployment instructions, troubleshooting, and production setup, see [RAILWAY.md](./RAILWAY.md)**
 
 ## API
 ### Vehicles
