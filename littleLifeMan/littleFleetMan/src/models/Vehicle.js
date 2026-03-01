@@ -1,4 +1,4 @@
-const { getDatabase } = require('../db/database');
+const { getPool } = require('../db/database');
 
 const VEHICLE_STATUSES = ['active', 'in_service', 'retired'];
 
@@ -28,32 +28,49 @@ function validateVehiclePayload(payload) {
   return errors;
 }
 
+function mapRowToVehicle(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    vin: row.vin,
+    licensePlate: row.license_plate,
+    status: row.status,
+    odometer: row.odometer,
+    lastServiceDate: row.last_service_date,
+    notes: row.notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
 class Vehicle {
-  static getAll() {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM vehicles ORDER BY id DESC').all();
+  static async getAll() {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM vehicles ORDER BY id DESC');
+    return result.rows.map(mapRowToVehicle);
   }
 
-  static getById(id) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM vehicles WHERE id = ?').get(id);
+  static async getById(id) {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM vehicles WHERE id = $1', [id]);
+    return result.rows.length ? mapRowToVehicle(result.rows[0]) : null;
   }
 
-  static create(payload) {
+  static async create(payload) {
     const errors = validateVehiclePayload(payload);
     if (errors.length) {
       throw new Error(errors.join(', '));
     }
 
-    const db = getDatabase();
+    const pool = getPool();
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
-      INSERT INTO vehicles (name, type, vin, licensePlate, status, odometer, lastServiceDate, notes, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = stmt.run(
+    const result = await pool.query(`
+      INSERT INTO vehicles (name, type, vin, license_plate, status, odometer, last_service_date, notes, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `, [
       payload.name.trim(),
       payload.type.trim(),
       (payload.vin || '').trim(),
@@ -64,32 +81,31 @@ class Vehicle {
       (payload.notes || '').trim(),
       now,
       now
-    );
+    ]);
 
-    return Vehicle.getById(result.lastInsertRowid);
+    return mapRowToVehicle(result.rows[0]);
   }
 
-  static update(id, payload) {
+  static async update(id, payload) {
     const errors = validateVehiclePayload(payload);
     if (errors.length) {
       throw new Error(errors.join(', '));
     }
 
-    const existing = Vehicle.getById(id);
+    const existing = await Vehicle.getById(id);
     if (!existing) {
       return null;
     }
 
-    const db = getDatabase();
+    const pool = getPool();
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
+    const result = await pool.query(`
       UPDATE vehicles
-      SET name = ?, type = ?, vin = ?, licensePlate = ?, status = ?, odometer = ?, lastServiceDate = ?, notes = ?, updatedAt = ?
-      WHERE id = ?
-    `);
-
-    stmt.run(
+      SET name = $1, type = $2, vin = $3, license_plate = $4, status = $5, odometer = $6, last_service_date = $7, notes = $8, updated_at = $9
+      WHERE id = $10
+      RETURNING *
+    `, [
       payload.name.trim(),
       payload.type.trim(),
       (payload.vin || '').trim(),
@@ -100,44 +116,57 @@ class Vehicle {
       (payload.notes || '').trim(),
       now,
       id
-    );
+    ]);
 
-    return Vehicle.getById(id);
+    return mapRowToVehicle(result.rows[0]);
   }
 
-  static delete(id, force = false) {
-    const db = getDatabase();
+  static async delete(id, force = false) {
+    const pool = getPool();
 
-    const existing = Vehicle.getById(id);
+    const existing = await Vehicle.getById(id);
     if (!existing) {
       return { success: false, error: 'Vehicle not found.' };
     }
 
     // Check for open work orders
-    const openWorkOrders = db.prepare(`
+    const openWorkOrders = await pool.query(`
       SELECT COUNT(*) as count
       FROM work_orders
-      WHERE vehicleId = ? AND status IN ('open', 'in_progress')
-    `).get(id);
+      WHERE vehicle_id = $1 AND status IN ('open', 'in_progress')
+    `, [id]);
 
-    if (openWorkOrders.count > 0 && !force) {
+    const openCount = parseInt(openWorkOrders.rows[0].count);
+
+    if (openCount > 0 && !force) {
       return {
         success: false,
         error: 'Vehicle has open work orders.',
-        openWorkOrdersCount: openWorkOrders.count,
+        openWorkOrdersCount: openCount,
         message: 'Close/cancel work orders first, or use force=true to delete vehicle and associated work orders.'
       };
     }
 
     // Delete vehicle (cascade will handle work orders due to foreign key)
-    db.prepare('DELETE FROM vehicles WHERE id = ?').run(id);
+    await pool.query('DELETE FROM vehicles WHERE id = $1', [id]);
 
     return { success: true };
   }
 
-  static getWorkOrders(vehicleId) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM work_orders WHERE vehicleId = ? ORDER BY id DESC').all(vehicleId);
+  static async getWorkOrders(vehicleId) {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM work_orders WHERE vehicle_id = $1 ORDER BY id DESC', [vehicleId]);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      vehicleId: row.vehicle_id,
+      title: row.title,
+      description: row.description,
+      dueDate: row.due_date,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 }
 
