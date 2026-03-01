@@ -3,20 +3,20 @@ const WorkOrder = require('../models/WorkOrder');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const vehicleId = req.query.vehicleId ? Number(req.query.vehicleId) : null;
-    const workOrders = WorkOrder.getAll(vehicleId);
+    const workOrders = await WorkOrder.getAll(vehicleId);
     res.json(workOrders);
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const orderId = Number(req.params.id);
-    const workOrder = WorkOrder.getById(orderId);
+    const workOrder = await WorkOrder.getById(orderId);
 
     if (!workOrder) {
       return res.status(404).json({ error: 'Work order not found.' });
@@ -28,9 +28,9 @@ router.get('/:id', (req, res, next) => {
   }
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    const newWorkOrder = WorkOrder.create(req.body);
+    const newWorkOrder = await WorkOrder.create(req.body);
     res.status(201).json(newWorkOrder);
   } catch (err) {
     if (err.message.includes('required') || err.message.includes('must')) {
@@ -40,10 +40,10 @@ router.post('/', (req, res, next) => {
   }
 });
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const orderId = Number(req.params.id);
-    const updatedWorkOrder = WorkOrder.update(orderId, req.body);
+    const updatedWorkOrder = await WorkOrder.update(orderId, req.body);
 
     if (!updatedWorkOrder) {
       return res.status(404).json({ error: 'Work order not found.' });
@@ -58,10 +58,10 @@ router.put('/:id', (req, res, next) => {
   }
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const orderId = Number(req.params.id);
-    const deleted = WorkOrder.delete(orderId);
+    const deleted = await WorkOrder.delete(orderId);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Work order not found.' });

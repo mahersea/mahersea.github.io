@@ -3,19 +3,19 @@ const Vehicle = require('../models/Vehicle');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const vehicles = Vehicle.getAll();
+    const vehicles = await Vehicle.getAll();
     res.json(vehicles);
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const vehicleId = Number(req.params.id);
-    const vehicle = Vehicle.getById(vehicleId);
+    const vehicle = await Vehicle.getById(vehicleId);
 
     if (!vehicle) {
       return res.status(404).json({ error: 'Vehicle not found.' });
@@ -27,9 +27,9 @@ router.get('/:id', (req, res, next) => {
   }
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    const newVehicle = Vehicle.create(req.body);
+    const newVehicle = await Vehicle.create(req.body);
     res.status(201).json(newVehicle);
   } catch (err) {
     if (err.message.includes('required') || err.message.includes('must')) {
@@ -39,10 +39,10 @@ router.post('/', (req, res, next) => {
   }
 });
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const vehicleId = Number(req.params.id);
-    const updatedVehicle = Vehicle.update(vehicleId, req.body);
+    const updatedVehicle = await Vehicle.update(vehicleId, req.body);
 
     if (!updatedVehicle) {
       return res.status(404).json({ error: 'Vehicle not found.' });
@@ -57,12 +57,12 @@ router.put('/:id', (req, res, next) => {
   }
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const vehicleId = Number(req.params.id);
     const force = req.query.force === 'true';
 
-    const result = Vehicle.delete(vehicleId, force);
+    const result = await Vehicle.delete(vehicleId, force);
 
     if (!result.success) {
       if (result.error === 'Vehicle not found.') {
@@ -81,10 +81,10 @@ router.delete('/:id', (req, res, next) => {
   }
 });
 
-router.get('/:id/work-orders', (req, res, next) => {
+router.get('/:id/work-orders', async (req, res, next) => {
   try {
     const vehicleId = Number(req.params.id);
-    const workOrders = Vehicle.getWorkOrders(vehicleId);
+    const workOrders = await Vehicle.getWorkOrders(vehicleId);
     res.json(workOrders);
   } catch (err) {
     next(err);

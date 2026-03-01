@@ -3,12 +3,13 @@ const { healthCheck } = require('../db/database');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  const health = healthCheck();
+router.get('/', async (req, res) => {
+  const health = await healthCheck();
 
   if (!health.healthy) {
     return res.status(503).json({
       status: 'unhealthy',
+      database: health.database,
       error: health.error,
       timestamp: new Date().toISOString()
     });
@@ -16,8 +17,8 @@ router.get('/', (req, res) => {
 
   res.status(200).json({
     status: 'healthy',
-    dataDir: health.dataDir,
-    dbPath: health.dbPath,
+    database: health.database,
+    connected: health.connected,
     timestamp: new Date().toISOString()
   });
 });

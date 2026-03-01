@@ -14,32 +14,23 @@ This application is configured to deploy on Railway using Docker.
 
 ### Environment Variables
 
-The application automatically detects Railway's environment. The only required variable is:
+**Required (auto-set by Railway):**
+- `PORT` - Server port (typically 8080 or dynamic)
+- `DATABASE_URL` - PostgreSQL connection string (set when you add PostgreSQL)
 
-- `PORT` - Automatically set by Railway (typically 8080 or dynamic)
-
-### Optional Environment Variables
-
-- `DATA_DIR` - Path for data storage (defaults to `/tmp/littlefleetman-data` in Railway)
+**Optional:**
 - `NODE_ENV` - Set to `production` (automatically set in Dockerfile)
 
-### Data Persistence
+### Database Setup
 
-**Important:** By default, data is stored in `/tmp/littlefleetman-data` which is ephemeral.
-Data will be lost when the container restarts.
+**REQUIRED:** Add PostgreSQL database to your Railway project
 
-#### Option 1: Railway Volume (Recommended)
+1. Go to your Railway project dashboard
+2. Click **"New"** → **"Database"** → **"Add PostgreSQL"**
+3. Railway automatically creates `DATABASE_URL` environment variable
+4. Your service will connect automatically on next deploy
 
-1. Go to your Railway project
-2. Click on your service
-3. Navigate to "Volumes" tab
-4. Click "New Volume"
-5. Set mount path: `/data`
-6. Add environment variable: `DATA_DIR=/data`
-
-#### Option 2: External Database (Future Enhancement)
-
-Consider migrating from JSON files to PostgreSQL or MongoDB for production use.
+**See [POSTGRESQL.md](./POSTGRESQL.md) for detailed database setup and management.**
 
 ## Deployment Steps
 
@@ -49,8 +40,9 @@ Consider migrating from JSON files to PostgreSQL or MongoDB for production use.
 2. In Railway dashboard, click "New Project"
 3. Select "Deploy from GitHub repo"
 4. Choose your repository
-5. Railway will automatically detect the Dockerfile
-6. Deploy!
+5. **Add PostgreSQL database** (New → Database → PostgreSQL)
+6. Railway will automatically detect the Dockerfile
+7. Deploy!
 
 ### Via Railway CLI
 
@@ -95,8 +87,10 @@ Starting littleFleetMan...
 Node version: v20.x.x
 Environment: production
 PORT: 8080
-DATA_DIR: /tmp/littlefleetman-data
-Data files initialized successfully
+Connecting to PostgreSQL...
+Database schema initialized
+Seeding initial data...
+Database initialization complete
 ✓ littleFleetMan is running on http://0.0.0.0:8080
 ✓ Health check available at http://0.0.0.0:8080/health
 ✓ API available at http://0.0.0.0:8080/api

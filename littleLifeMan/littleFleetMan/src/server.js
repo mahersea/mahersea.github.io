@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { getDatabase, seedData, migrateFromJSON, closeDatabase, DATA_DIR } = require('./db/database');
+const { initialize, closeDatabase } = require('./db/database');
 
 const vehicleRoutes = require('./routes/vehicles');
 const workOrderRoutes = require('./routes/workOrders');
@@ -52,54 +52,58 @@ console.log('Starting littleFleetMan...');
 console.log(`Node version: ${process.version}`);
 console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`PORT: ${PORT}`);
-console.log(`DATA_DIR: ${DATA_DIR}`);
 
-const db = getDatabase();
-console.log('Database initialized');
+async function startServer() {
+  try {
+    await initialize();
 
-migrateFromJSON();
-seedData();
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✓ littleFleetMan is running on http://0.0.0.0:${PORT}`);
+      console.log(`✓ Health check available at http://0.0.0.0:${PORT}/health`);
+      console.log(`✓ API available at http://0.0.0.0:${PORT}/api`);
+    });
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✓ littleFleetMan is running on http://0.0.0.0:${PORT}`);
-  console.log(`✓ Health check available at http://0.0.0.0:${PORT}/health`);
-  console.log(`✓ API available at http://0.0.0.0:${PORT}/api`);
-});
+    server.on('error', (err) => {
+      console.error('Server error:', err);
+      if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+      }
+      process.exit(1);
+    });
 
-server.on('error', (err) => {
-  console.error('Server error:', err);
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use`);
+    process.on('uncaughtException', async (err) => {
+      console.error('Uncaught exception:', err);
+      await closeDatabase();
+      server.close(() => process.exit(1));
+    });
+
+    process.on('unhandledRejection', async (reason, promise) => {
+      console.error('Unhandled rejection at:', promise, 'reason:', reason);
+      await closeDatabase();
+      server.close(() => process.exit(1));
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('Received SIGTERM, shutting down gracefully...');
+      await closeDatabase();
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', async () => {
+      console.log('Received SIGINT, shutting down gracefully...');
+      await closeDatabase();
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   }
-  process.exit(1);
-});
+}
 
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
-  closeDatabase();
-  server.close(() => process.exit(1));
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled rejection at:', promise, 'reason:', reason);
-  closeDatabase();
-  server.close(() => process.exit(1));
-});
-
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down gracefully...');
-  closeDatabase();
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('Received SIGINT, shutting down gracefully...');
-  closeDatabase();
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+startServer();

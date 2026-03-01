@@ -1,6 +1,6 @@
 # littleFleetMan
 
-Vehicle-first little manager app.
+Vehicle-first fleet management app with PostgreSQL backend.
 
 ## Features
 - Vehicle CRUD
@@ -26,11 +26,13 @@ Then open:
 
 **Quick Deploy:**
 1. Connect GitHub repo to Railway
-2. Set service root directory to `littleLifeMan/littleFleetMan`
-3. Railway will auto-detect the Dockerfile and deploy
-4. Optional: Add Railway Volume at `/data` and set `DATA_DIR=/data` for persistence
+2. Add PostgreSQL database to your project (New → Database → PostgreSQL)
+3. Set service root directory to `littleLifeMan/littleFleetMan`
+4. Railway will auto-detect the Dockerfile, connect to PostgreSQL, and deploy
 
-**For detailed deployment instructions, troubleshooting, and production setup, see [RAILWAY.md](./RAILWAY.md)**
+**For detailed deployment instructions, see:**
+- [RAILWAY.md](./RAILWAY.md) - Railway configuration and troubleshooting
+- [POSTGRESQL.md](./POSTGRESQL.md) - PostgreSQL setup and management
 
 ## API
 ### Vehicles

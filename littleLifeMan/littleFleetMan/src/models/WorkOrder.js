@@ -1,9 +1,9 @@
-const { getDatabase } = require('../db/database');
+const { getPool } = require('../db/database');
 const Vehicle = require('./Vehicle');
 
 const WORK_ORDER_STATUSES = ['open', 'in_progress', 'completed', 'cancelled'];
 
-function validateWorkOrderPayload(payload) {
+async function validateWorkOrderPayload(payload) {
   const errors = [];
 
   if (!payload.title || typeof payload.title !== 'string') {
@@ -13,7 +13,7 @@ function validateWorkOrderPayload(payload) {
   if (payload.vehicleId === undefined || Number.isNaN(Number(payload.vehicleId))) {
     errors.push('vehicleId must be a valid number.');
   } else {
-    const vehicle = Vehicle.getById(Number(payload.vehicleId));
+    const vehicle = await Vehicle.getById(Number(payload.vehicleId));
     if (!vehicle) {
       errors.push('vehicleId must refer to an existing vehicle.');
     }
@@ -30,37 +30,52 @@ function validateWorkOrderPayload(payload) {
   return errors;
 }
 
+function mapRowToWorkOrder(row) {
+  return {
+    id: row.id,
+    vehicleId: row.vehicle_id,
+    title: row.title,
+    description: row.description,
+    dueDate: row.due_date,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
 class WorkOrder {
-  static getAll(vehicleId = null) {
-    const db = getDatabase();
+  static async getAll(vehicleId = null) {
+    const pool = getPool();
 
     if (vehicleId) {
-      return db.prepare('SELECT * FROM work_orders WHERE vehicleId = ? ORDER BY id DESC').all(vehicleId);
+      const result = await pool.query('SELECT * FROM work_orders WHERE vehicle_id = $1 ORDER BY id DESC', [vehicleId]);
+      return result.rows.map(mapRowToWorkOrder);
     }
 
-    return db.prepare('SELECT * FROM work_orders ORDER BY id DESC').all();
+    const result = await pool.query('SELECT * FROM work_orders ORDER BY id DESC');
+    return result.rows.map(mapRowToWorkOrder);
   }
 
-  static getById(id) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM work_orders WHERE id = ?').get(id);
+  static async getById(id) {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM work_orders WHERE id = $1', [id]);
+    return result.rows.length ? mapRowToWorkOrder(result.rows[0]) : null;
   }
 
-  static create(payload) {
-    const errors = validateWorkOrderPayload(payload);
+  static async create(payload) {
+    const errors = await validateWorkOrderPayload(payload);
     if (errors.length) {
       throw new Error(errors.join(', '));
     }
 
-    const db = getDatabase();
+    const pool = getPool();
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
-      INSERT INTO work_orders (vehicleId, title, description, dueDate, status, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = stmt.run(
+    const result = await pool.query(`
+      INSERT INTO work_orders (vehicle_id, title, description, due_date, status, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [
       Number(payload.vehicleId),
       payload.title.trim(),
       (payload.description || '').trim(),
@@ -68,32 +83,31 @@ class WorkOrder {
       payload.status,
       now,
       now
-    );
+    ]);
 
-    return WorkOrder.getById(result.lastInsertRowid);
+    return mapRowToWorkOrder(result.rows[0]);
   }
 
-  static update(id, payload) {
-    const errors = validateWorkOrderPayload(payload);
+  static async update(id, payload) {
+    const errors = await validateWorkOrderPayload(payload);
     if (errors.length) {
       throw new Error(errors.join(', '));
     }
 
-    const existing = WorkOrder.getById(id);
+    const existing = await WorkOrder.getById(id);
     if (!existing) {
       return null;
     }
 
-    const db = getDatabase();
+    const pool = getPool();
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
+    const result = await pool.query(`
       UPDATE work_orders
-      SET vehicleId = ?, title = ?, description = ?, dueDate = ?, status = ?, updatedAt = ?
-      WHERE id = ?
-    `);
-
-    stmt.run(
+      SET vehicle_id = $1, title = $2, description = $3, due_date = $4, status = $5, updated_at = $6
+      WHERE id = $7
+      RETURNING *
+    `, [
       Number(payload.vehicleId),
       payload.title.trim(),
       (payload.description || '').trim(),
@@ -101,20 +115,20 @@ class WorkOrder {
       payload.status,
       now,
       id
-    );
+    ]);
 
-    return WorkOrder.getById(id);
+    return mapRowToWorkOrder(result.rows[0]);
   }
 
-  static delete(id) {
-    const db = getDatabase();
+  static async delete(id) {
+    const pool = getPool();
 
-    const existing = WorkOrder.getById(id);
+    const existing = await WorkOrder.getById(id);
     if (!existing) {
       return false;
     }
 
-    db.prepare('DELETE FROM work_orders WHERE id = ?').run(id);
+    await pool.query('DELETE FROM work_orders WHERE id = $1', [id]);
     return true;
   }
 }
