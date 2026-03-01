@@ -1,15 +1,10 @@
+require('dotenv').config();
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const bodyParser = require('body-parser');
+const db = require('./db');
 
 const app = express();
-const PORT = 3003;
-
-// Data file paths
-const TASKS_FILE = path.join(__dirname, 'tasks.json');
-const USERS_FILE = path.join(__dirname, 'users.json');
-const PROJECTS_FILE = path.join(__dirname, 'projects.json');
+const PORT = process.env.PORT || 3003;
 
 // Middleware
 app.use(bodyParser.json());
@@ -18,245 +13,223 @@ app.use(express.static('public'));
 // Validation Middleware
 function validateTask(req, res, next) {
   const { title, project, assignedUser, deadline, status } = req.body;
-  
+
   if (!title || !project || !assignedUser || !deadline || !status) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  
+
   const validStatuses = ['Open', 'In Progress', 'Completed', 'Blocked', 'Postponed'];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid status value' });
   }
-  
+
   // Gantt-specific validation
   if (req.body.start_date && !/^\d{4}-\d{2}-\d{2}$/.test(req.body.start_date)) {
     return res.status(400).json({ error: 'Invalid start date format. Use YYYY-MM-DD' });
   }
-  
+
   if (req.body.duration && (isNaN(req.body.duration) || req.body.duration < 1)) {
     return res.status(400).json({ error: 'Duration must be a positive number' });
   }
-  
+
   next();
 }
 
 function validateUser(req, res, next) {
   const { username, role } = req.body;
-  
+
   if (!username || !role) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  
+
   const validRoles = ['admin', 'user'];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ error: 'Invalid role value' });
   }
-  
+
   next();
 }
 
 function validateProject(req, res, next) {
   const { name } = req.body;
-  
+
   if (!name) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  
+
   next();
-}
-
-// Helper functions for file operations
-function readData(file) {
-  if (!fs.existsSync(file)) {
-    console.warn(`File not found: ${file}. Creating empty file.`);
-    writeData(file, []);
-    return [];
-  }
-  
-  try {
-    const data = fs.readFileSync(file, 'utf8');
-    return data.trim() ? JSON.parse(data) : [];
-  } catch (err) {
-    console.error(`Error reading file ${file}:`, err);
-    return [];
-  }
-}
-
-function writeData(file, data) {
-  try {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error(`Error writing to file ${file}:`, err);
-    throw new Error(`Failed to write data to ${file}`);
-  }
 }
 
 /* ------------------ Tasks Endpoints ------------------ */
 // GET all tasks
-app.get('/api/tasks', (req, res) => {
-  const tasks = readData(TASKS_FILE);
-  res.json(tasks);
+app.get('/api/tasks', async (req, res, next) => {
+  try {
+    const tasks = await db.getAllTasks();
+    res.json(tasks);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET a single task
-app.get('/api/tasks/:id', (req, res) => {
-  const tasks = readData(TASKS_FILE);
-  const task = tasks.find(t => t.id === parseInt(req.params.id));
-  task ? res.json(task) : res.status(404).send('Task not found');
+app.get('/api/tasks/:id', async (req, res, next) => {
+  try {
+    const task = await db.getTaskById(parseInt(req.params.id));
+    task ? res.json(task) : res.status(404).json({ error: 'Task not found' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // POST a new task
-app.post('/api/tasks', validateTask, (req, res) => {
-  const tasks = readData(TASKS_FILE);
-  const newTask = req.body;
-  newTask.id = tasks.length ? tasks[tasks.length - 1].id + 1 : 1;
-  
-  // Add Gantt-specific properties if not provided
-  if (!newTask.start_date) {
-    newTask.start_date = new Date().toISOString().split('T')[0]; // Today's date
+app.post('/api/tasks', validateTask, async (req, res, next) => {
+  try {
+    const newTask = req.body;
+
+    // Add Gantt-specific properties if not provided
+    if (!newTask.start_date) {
+      newTask.start_date = new Date().toISOString().split('T')[0]; // Today's date
+    }
+
+    if (!newTask.duration) {
+      // Calculate days between start and deadline
+      const start = new Date(newTask.start_date);
+      const end = new Date(newTask.deadline);
+      const diffTime = Math.abs(end - start);
+      newTask.duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; // At least 1 day
+    }
+
+    // Optional dependencies array
+    if (!newTask.dependencies) {
+      newTask.dependencies = [];
+    }
+
+    const task = await db.createTask(newTask);
+    res.status(201).json(task);
+  } catch (err) {
+    next(err);
   }
-  
-  if (!newTask.duration) {
-    // Calculate days between start and deadline
-    const start = new Date(newTask.start_date);
-    const end = new Date(newTask.deadline);
-    const diffTime = Math.abs(end - start);
-    newTask.duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; // At least 1 day
-  }
-  
-  // Optional dependencies array
-  if (!newTask.dependencies) {
-    newTask.dependencies = [];
-  }
-  
-  tasks.push(newTask);
-  writeData(TASKS_FILE, tasks);
-  res.status(201).json(newTask);
 });
 
 // PUT update a task
-app.put('/api/tasks/:id', validateTask, (req, res) => {
-  const tasks = readData(TASKS_FILE);
-  const index = tasks.findIndex(t => t.id === parseInt(req.params.id));
-  if (index !== -1) {
-    tasks[index] = { ...tasks[index], ...req.body };
-    writeData(TASKS_FILE, tasks);
-    res.json(tasks[index]);
-  } else {
-    res.status(404).send('Task not found');
+app.put('/api/tasks/:id', validateTask, async (req, res, next) => {
+  try {
+    const task = await db.updateTask(parseInt(req.params.id), req.body);
+    task ? res.json(task) : res.status(404).json({ error: 'Task not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
 // DELETE a task
-app.delete('/api/tasks/:id', (req, res) => {
-  let tasks = readData(TASKS_FILE);
-  const initialLength = tasks.length;
-  tasks = tasks.filter(t => t.id !== parseInt(req.params.id));
-  if (tasks.length < initialLength) {
-    writeData(TASKS_FILE, tasks);
-    res.status(204).send();
-  } else {
-    res.status(404).send('Task not found');
+app.delete('/api/tasks/:id', async (req, res, next) => {
+  try {
+    const deleted = await db.deleteTask(parseInt(req.params.id));
+    deleted ? res.status(204).send() : res.status(404).json({ error: 'Task not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
 /* ------------------ Users Endpoints ------------------ */
 // GET all users
-app.get('/api/users', (req, res) => {
-  const users = readData(USERS_FILE);
-  res.json(users);
+app.get('/api/users', async (req, res, next) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET a single user
-app.get('/api/users/:id', (req, res) => {
-  const users = readData(USERS_FILE);
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  user ? res.json(user) : res.status(404).send('User not found');
+app.get('/api/users/:id', async (req, res, next) => {
+  try {
+    const user = await db.getUserById(parseInt(req.params.id));
+    user ? res.json(user) : res.status(404).json({ error: 'User not found' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // POST a new user
-app.post('/api/users', validateUser, (req, res) => {
-  const users = readData(USERS_FILE);
-  const newUser = req.body;
-  newUser.id = users.length ? users[users.length - 1].id + 1 : 1;
-  users.push(newUser);
-  writeData(USERS_FILE, users);
-  res.status(201).json(newUser);
+app.post('/api/users', validateUser, async (req, res, next) => {
+  try {
+    const user = await db.createUser(req.body);
+    res.status(201).json(user);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // PUT update a user
-app.put('/api/users/:id', validateUser, (req, res) => {
-  const users = readData(USERS_FILE);
-  const index = users.findIndex(u => u.id === parseInt(req.params.id));
-  if (index !== -1) {
-    users[index] = { ...users[index], ...req.body };
-    writeData(USERS_FILE, users);
-    res.json(users[index]);
-  } else {
-    res.status(404).send('User not found');
+app.put('/api/users/:id', validateUser, async (req, res, next) => {
+  try {
+    const user = await db.updateUser(parseInt(req.params.id), req.body);
+    user ? res.json(user) : res.status(404).json({ error: 'User not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
 // DELETE a user
-app.delete('/api/users/:id', (req, res) => {
-  let users = readData(USERS_FILE);
-  const initialLength = users.length;
-  users = users.filter(u => u.id !== parseInt(req.params.id));
-  if (users.length < initialLength) {
-    writeData(USERS_FILE, users);
-    res.status(204).send();
-  } else {
-    res.status(404).send('User not found');
+app.delete('/api/users/:id', async (req, res, next) => {
+  try {
+    const deleted = await db.deleteUser(parseInt(req.params.id));
+    deleted ? res.status(204).send() : res.status(404).json({ error: 'User not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
 /* ------------------ Projects Endpoints ------------------ */
 // GET all projects
-app.get('/api/projects', (req, res) => {
-  const projects = readData(PROJECTS_FILE);
-  res.json(projects);
+app.get('/api/projects', async (req, res, next) => {
+  try {
+    const projects = await db.getAllProjects();
+    res.json(projects);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET a single project
-app.get('/api/projects/:id', (req, res) => {
-  const projects = readData(PROJECTS_FILE);
-  const project = projects.find(p => p.id === parseInt(req.params.id));
-  project ? res.json(project) : res.status(404).send('Project not found');
+app.get('/api/projects/:id', async (req, res, next) => {
+  try {
+    const project = await db.getProjectById(parseInt(req.params.id));
+    project ? res.json(project) : res.status(404).json({ error: 'Project not found' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // POST a new project
-app.post('/api/projects', validateProject, (req, res) => {
-  const projects = readData(PROJECTS_FILE);
-  const newProject = req.body;
-  newProject.id = projects.length ? projects[projects.length - 1].id + 1 : 1;
-  projects.push(newProject);
-  writeData(PROJECTS_FILE, projects);
-  res.status(201).json(newProject);
+app.post('/api/projects', validateProject, async (req, res, next) => {
+  try {
+    const project = await db.createProject(req.body);
+    res.status(201).json(project);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // PUT update a project
-app.put('/api/projects/:id', validateProject, (req, res) => {
-  const projects = readData(PROJECTS_FILE);
-  const index = projects.findIndex(p => p.id === parseInt(req.params.id));
-  if (index !== -1) {
-    projects[index] = { ...projects[index], ...req.body };
-    writeData(PROJECTS_FILE, projects);
-    res.json(projects[index]);
-  } else {
-    res.status(404).send('Project not found');
+app.put('/api/projects/:id', validateProject, async (req, res, next) => {
+  try {
+    const project = await db.updateProject(parseInt(req.params.id), req.body);
+    project ? res.json(project) : res.status(404).json({ error: 'Project not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
 // DELETE a project
-app.delete('/api/projects/:id', (req, res) => {
-  let projects = readData(PROJECTS_FILE);
-  const initialLength = projects.length;
-  projects = projects.filter(p => p.id !== parseInt(req.params.id));
-  if (projects.length < initialLength) {
-    writeData(PROJECTS_FILE, projects);
-    res.status(204).send();
-  } else {
-    res.status(404).send('Project not found');
+app.delete('/api/projects/:id', async (req, res, next) => {
+  try {
+    const deleted = await db.deleteProject(parseInt(req.params.id));
+    deleted ? res.status(204).send() : res.status(404).json({ error: 'Project not found' });
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -269,6 +242,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    await db.initializeDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+startServer();

@@ -1,16 +1,6 @@
 [
   {
     "project": "Pam's Cat Paradise",
-    "title": "Cat Sanctuary",
-    "assignedUser": "Sean",
-    "deadline": "2026-04-18",
-    "status": "Open",
-    "id": 1,
-    "start_date": "2026-04-11",
-    "duration": 7
-  },
-  {
-    "project": "Pam's Cat Paradise",
     "title": "Open Wooden Blinds",
     "assignedUser": "Sean",
     "deadline": "2026-04-19",
@@ -37,13 +27,13 @@
     "start_date": "2026-02-08",
     "deadline": "2026-02-28",
     "duration": 1,
-    "status": "Open",
+    "status": "Completed",
     "id": 6,
     "dependencies": []
   },
   {
     "project": "Acura RDX",
-    "title": "Turbo Replace",
+    "title": "Turbo Remove",
     "assignedUser": "Sean",
     "start_date": "2026-02-08",
     "deadline": "2026-06-08",

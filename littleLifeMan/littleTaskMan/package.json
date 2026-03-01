@@ -12,7 +12,9 @@
   "dependencies": {
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
-    "dhtmlx-gantt": "^8.0.1"
+    "dhtmlx-gantt": "^8.0.1",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {},
   "description": ""
