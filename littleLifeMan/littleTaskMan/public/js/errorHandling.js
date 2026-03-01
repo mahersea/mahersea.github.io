@@ -4,12 +4,17 @@
 window.fetchWithErrorHandling = async function(url, options = {}) {
   try {
     const response = await fetch(url, options);
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
     }
-    
+
+    // Handle 204 No Content responses (DELETE operations)
+    if (response.status === 204) {
+      return null;
+    }
+
     return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
