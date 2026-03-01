@@ -245,12 +245,24 @@ app.use((err, req, res, next) => {
 // Initialize database and start server
 async function startServer() {
   try {
+    console.log('Starting littleTaskMan server...');
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Port: ${PORT}`);
+
+    // Test database connection first
+    await db.testConnection();
+
+    // Initialize database tables
     await db.initializeDatabase();
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+
+    // Start the server
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✓ Server running on http://localhost:${PORT}`);
+      console.log('Ready to accept requests');
     });
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('✗ Failed to start server:', err.message);
+    console.error('Stack trace:', err.stack);
     process.exit(1);
   }
 }

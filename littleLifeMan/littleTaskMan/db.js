@@ -2,11 +2,32 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
+// Check if DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is not set!');
+  console.error('Please add a PostgreSQL database to your Railway project.');
+  console.error('For local development, create a .env file with DATABASE_URL.');
+  process.exit(1);
+}
+
 // Create connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
+
+// Test database connection
+async function testConnection() {
+  try {
+    const client = await pool.connect();
+    console.log('✓ Database connection successful');
+    client.release();
+    return true;
+  } catch (err) {
+    console.error('✗ Database connection failed:', err.message);
+    throw err;
+  }
+}
 
 // Initialize database tables
 async function initializeDatabase() {
@@ -146,6 +167,7 @@ function formatTask(task) {
 
 module.exports = {
   pool,
+  testConnection,
   initializeDatabase,
   // Tasks
   getAllTasks,
